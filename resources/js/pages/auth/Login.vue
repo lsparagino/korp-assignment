@@ -1,12 +1,5 @@
 <script setup lang="ts">
 import { Form, Head } from '@inertiajs/vue3';
-import InputError from '@/components/InputError.vue';
-import TextLink from '@/components/TextLink.vue';
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Spinner } from '@/components/ui/spinner';
 import AuthBase from '@/layouts/AuthLayout.vue';
 import { register } from '@/routes';
 import { store } from '@/routes/login';
@@ -26,84 +19,89 @@ defineProps<{
     >
         <Head title="Log in" />
 
-        <div
+        <v-alert
             v-if="status"
-            class="mb-4 text-center text-sm font-medium text-green-600"
+            type="success"
+            variant="tonal"
+            class="mb-4"
+            density="compact"
         >
             {{ status }}
-        </div>
+        </v-alert>
 
         <Form
             v-bind="store.form()"
             :reset-on-success="['password']"
             v-slot="{ errors, processing }"
-            class="flex flex-col gap-6"
         >
-            <div class="grid gap-6">
-                <div class="grid gap-2">
-                    <Label for="email">Email address</Label>
-                    <Input
-                        id="email"
-                        type="email"
-                        name="email"
-                        required
-                        autofocus
-                        :tabindex="1"
-                        autocomplete="email"
-                        placeholder="email@example.com"
-                    />
-                    <InputError :message="errors.email" />
-                </div>
+            <div class="space-y-4">
+                <v-text-field
+                    label="Email address"
+                    placeholder="email@example.com"
+                    type="email"
+                    name="email"
+                    required
+                    autofocus
+                    variant="outlined"
+                    color="primary"
+                    density="comfortable"
+                    :error-messages="errors.email"
+                    hide-details="auto"
+                ></v-text-field>
 
-                <div class="grid gap-2">
-                    <div class="flex items-center justify-between">
-                        <Label for="password">Password</Label>
-                        <TextLink
+                <div>
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="text-caption font-weight-medium text-slate-700">Password</span>
+                        <Link
                             v-if="canResetPassword"
-                            :href="request()"
-                            class="text-sm"
-                            :tabindex="5"
+                            :href="request().url"
+                            class="text-caption text-primary font-weight-bold"
                         >
                             Forgot password?
-                        </TextLink>
+                        </Link>
                     </div>
-                    <Input
-                        id="password"
+                    <v-text-field
+                        placeholder="Password"
                         type="password"
                         name="password"
                         required
-                        :tabindex="2"
-                        autocomplete="current-password"
-                        placeholder="Password"
-                    />
-                    <InputError :message="errors.password" />
+                        variant="outlined"
+                        color="primary"
+                        density="comfortable"
+                        :error-messages="errors.password"
+                        hide-details="auto"
+                    ></v-text-field>
                 </div>
 
-                <div class="flex items-center justify-between">
-                    <Label for="remember" class="flex items-center space-x-3">
-                        <Checkbox id="remember" name="remember" :tabindex="3" />
-                        <span>Remember me</span>
-                    </Label>
-                </div>
+                <v-checkbox
+                    label="Remember me"
+                    name="remember"
+                    color="primary"
+                    density="comfortable"
+                    hide-details
+                    class="ml-n3"
+                ></v-checkbox>
 
-                <Button
+                <v-btn
                     type="submit"
-                    class="mt-4 w-full"
-                    :tabindex="4"
-                    :disabled="processing"
+                    block
+                    color="primary"
+                    height="48"
+                    rounded="lg"
+                    class="mt-4 text-none font-weight-bold"
+                    :loading="processing"
                     data-test="login-button"
                 >
-                    <Spinner v-if="processing" />
                     Log in
-                </Button>
+                </v-btn>
             </div>
 
             <div
-                class="text-center text-sm text-muted-foreground"
+                class="text-center mt-6"
                 v-if="canRegister"
             >
-                Don't have an account?
-                <TextLink :href="register()" :tabindex="5">Sign up</TextLink>
+                <span class="text-body-2 text-slate-500">Don't have an account?</span>
+                <Link :href="register().url" class="text-body-2 text-primary font-weight-bold ml-1">Sign up</Link>
             </div>
         </Form>
     </AuthBase>
