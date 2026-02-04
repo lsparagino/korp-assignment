@@ -14,6 +14,7 @@ import { dashboard, logout } from '@/routes';
 import { edit } from '@/routes/profile';
 import { create as walletsCreate, index as walletsIndex } from '@/routes/wallets';
 import { index as transactionsIndex } from '@/routes/transactions';
+import { index as teamIndex } from '@/routes/team';
 import type { BreadcrumbItem } from '@/types';
 
 interface Props {
@@ -47,7 +48,12 @@ const navItems = [
         href: transactionsIndex().url,
         active: computed(() => page.url.startsWith('/transactions')),
     },
-    { title: 'Team Members', icon: Users, href: '#' },
+    {
+        title: 'Team Members',
+        icon: Users,
+        href: teamIndex().url,
+        active: computed(() => page.url.startsWith('/team-members')),
+    },
 ];
 
 const selectedCompany = ref('Acme Corp');

@@ -93,4 +93,26 @@ Route::get('transactions', function () {
     ]);
 })->middleware(['auth', 'verified'])->name('transactions.index');
 
+Route::get('team-members', function () {
+    return Inertia::render('team/Index', [
+        'company' => 'Acme Corp',
+        'members' => [
+            [
+                'id' => 1,
+                'name' => 'John Doe',
+                'email' => 'admin@acme.com',
+                'role' => 'Admin',
+                'wallet_access' => 'All',
+            ],
+            [
+                'id' => 2,
+                'name' => 'Jane Smith',
+                'email' => 'jane@acme.com',
+                'role' => 'Member',
+                'wallet_access' => 'Marketing Wallet',
+            ],
+        ],
+    ]);
+})->middleware(['auth', 'verified'])->name('team.index');
+
 require __DIR__.'/settings.php';
