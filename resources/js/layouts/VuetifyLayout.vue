@@ -12,7 +12,10 @@ import { computed, ref } from 'vue';
 import AppLogo from '@/components/AppLogo.vue';
 import { dashboard, logout } from '@/routes';
 import { edit } from '@/routes/profile';
-import { create as walletsCreate, index as walletsIndex } from '@/routes/wallets';
+import {
+    create as walletsCreate,
+    index as walletsIndex,
+} from '@/routes/wallets';
 import { index as transactionsIndex } from '@/routes/transactions';
 import { index as teamIndex } from '@/routes/team';
 import type { BreadcrumbItem } from '@/types';
@@ -235,7 +238,7 @@ const handleLogout = () => {
                         :href="item.href"
                         variant="text"
                         active-color="primary"
-                        class="rounded-0 mb-1 rounded-tr-sm rounded-br-sm"
+                        class="nav-item"
                     >
                         <template v-slot:prepend>
                             <v-icon
@@ -284,17 +287,23 @@ const handleLogout = () => {
     padding: 1rem 1rem 1rem 0;
 }
 
-:deep(.v-list-item--active) {
+.cursor-pointer {
+    cursor: pointer;
+}
+
+.nav-item {
+    border-radius: 0 8px 8px 0;
+    margin-bottom: 0.25rem;
+    border-left: 4px solid transparent;
+}
+
+.nav-item.v-list-item--active {
     background-color: #dfe4ee !important;
     color: #191f2f !important;
     border-left: 4px solid rgb(var(--v-theme-primary));
 }
 
-:deep(.v-list-item--active .v-icon) {
+.nav-item.v-list-item--active .v-icon {
     color: rgb(var(--v-theme-primary)) !important;
-}
-
-.cursor-pointer {
-    cursor: pointer;
 }
 </style>
