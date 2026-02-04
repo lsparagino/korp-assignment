@@ -12,6 +12,7 @@ import { computed, ref } from 'vue';
 import AppLogo from '@/components/AppLogo.vue';
 import { dashboard, logout } from '@/routes';
 import { edit } from '@/routes/profile';
+import { create as walletsCreate, index as walletsIndex } from '@/routes/wallets';
 import type { BreadcrumbItem } from '@/types';
 
 interface Props {
@@ -33,7 +34,12 @@ const navItems = [
         href: dashboard().url,
         active: computed(() => page.url === dashboard().url),
     },
-    { title: 'Wallets', icon: Wallet, href: '#' },
+    {
+        title: 'Wallets',
+        icon: Wallet,
+        href: walletsIndex().url,
+        active: computed(() => page.url.startsWith('/wallets')),
+    },
     { title: 'Transactions', icon: Repeat, href: '#' },
     { title: 'Team Members', icon: Users, href: '#' },
 ];
@@ -228,14 +234,16 @@ const handleLogout = () => {
                 <template v-slot:append>
                     <v-divider></v-divider>
                     <div class="pa-4">
-                        <v-btn
-                            prepend-icon="mdi-plus"
-                            color="primary"
-                            size="large"
-                            block
-                        >
-                            Create Wallet
-                        </v-btn>
+                        <Link :href="walletsCreate().url">
+                            <v-btn
+                                prepend-icon="mdi-plus"
+                                color="primary"
+                                size="large"
+                                block
+                            >
+                                Create Wallet
+                            </v-btn>
+                        </Link>
                     </div>
                 </template>
             </v-navigation-drawer>
