@@ -15,8 +15,7 @@
 
   const currencies = [
     { title: 'US Dollar (USD)', value: 'USD' },
-    { title: 'Euro (EUR)', value: 'EUR' },
-    { title: 'British Pound (GBP)', value: 'GBP' },
+    { title: 'Euro (EUR)', value: 'EUR' }
   ]
 
   async function submit () {

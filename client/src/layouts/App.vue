@@ -29,6 +29,7 @@
       icon: Wallet,
       to: '/wallets/',
       active: computed(() => route.path.startsWith('/wallets')),
+      role: 'admin',
     },
     {
       title: 'Transactions',
@@ -41,8 +42,16 @@
       icon: Users,
       to: '/team-members/',
       active: computed(() => route.path.startsWith('/team-members')),
+      role: 'admin',
     },
   ]
+
+  const filteredNavItems = computed(() => {
+    return navItems.filter(item => {
+      if (!item.role) return true
+      return authStore.user?.role === item.role
+    })
+  })
 
   const selectedCompany = ref('Acme Corp')
   const companies = ['Acme Corp', 'Globex Inc', 'Soylent Corp']
@@ -74,11 +83,7 @@
                   variant="outlined"
                 >
                   {{ selectedCompany }}
-                  <v-icon
-                    end
-                    :icon="ChevronDown"
-                    size="18"
-                  />
+                  <v-icon end :icon="ChevronDown" size="18" />
                 </v-btn>
               </template>
               <v-list>
@@ -95,7 +100,7 @@
             </v-menu>
 
             <!-- Notifications -->
-            <v-btn color="grey-darken-2" icon variant="text">
+            <v-btn color="grey-darken-2" disabled icon variant="text">
               <v-icon :icon="Bell" />
             </v-btn>
 
@@ -120,9 +125,7 @@
                         class="bg-sidebar-bg border-grey-lighten-2"
                         size="36"
                       >
-                        <v-icon
-                          icon="mdi-account"
-                        />
+                        <v-icon icon="mdi-account" />
                       </v-avatar>
                       <div v-if="authStore.user">
                         <h3
@@ -147,9 +150,7 @@
                         to="/settings/profile"
                       >
                         <template #prepend>
-                          <v-icon
-                            icon="mdi-cog"
-                          />
+                          <v-icon icon="mdi-cog" />
                         </template>
 
                         <v-list-item-title
@@ -194,7 +195,7 @@
       >
         <v-list class="list-container" density="comfortable" nav>
           <v-list-item
-            v-for="item in navItems"
+            v-for="item in filteredNavItems"
             :key="item.title"
             :active="item.active.value"
             active-color="primary"
@@ -218,7 +219,7 @@
 
         <template #append>
           <v-divider />
-          <div class="pa-4">
+          <div v-if="authStore.user?.role === 'admin'" class="pa-4">
             <v-btn
               block
               class="text-none"

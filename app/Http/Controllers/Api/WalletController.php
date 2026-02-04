@@ -49,6 +49,20 @@ class WalletController extends Controller
         return new WalletResource($wallet);
     }
 
+    public function update(Request $request, Wallet $wallet): WalletResource
+    {
+        $this->authorize('update', $wallet);
+
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'currency' => ['required', 'string', \Illuminate\Validation\Rule::enum(\App\Enums\WalletCurrency::class)],
+        ]);
+
+        $wallet->update($validated);
+
+        return new WalletResource($wallet);
+    }
+
     public function toggleFreeze(Wallet $wallet): WalletResource
     {
         $this->authorize('update', $wallet);
