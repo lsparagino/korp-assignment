@@ -19,6 +19,21 @@ declare module 'vue-router/auto-routes' {
    */
   export interface RouteNamedMap {
     '/': RouteRecordInfo<'/', '/', Record<never, never>, Record<never, never>>,
+    '/auth/confirm-password': RouteRecordInfo<'/auth/confirm-password', '/auth/confirm-password', Record<never, never>, Record<never, never>>,
+    '/auth/forgot-password': RouteRecordInfo<'/auth/forgot-password', '/auth/forgot-password', Record<never, never>, Record<never, never>>,
+    '/auth/login': RouteRecordInfo<'/auth/login', '/auth/login', Record<never, never>, Record<never, never>>,
+    '/auth/register': RouteRecordInfo<'/auth/register', '/auth/register', Record<never, never>, Record<never, never>>,
+    '/auth/reset-password': RouteRecordInfo<'/auth/reset-password', '/auth/reset-password', Record<never, never>, Record<never, never>>,
+    '/auth/two-factor-challenge': RouteRecordInfo<'/auth/two-factor-challenge', '/auth/two-factor-challenge', Record<never, never>, Record<never, never>>,
+    '/auth/verify-email': RouteRecordInfo<'/auth/verify-email', '/auth/verify-email', Record<never, never>, Record<never, never>>,
+    '/dashboard': RouteRecordInfo<'/dashboard', '/dashboard', Record<never, never>, Record<never, never>>,
+    '/settings/password': RouteRecordInfo<'/settings/password', '/settings/password', Record<never, never>, Record<never, never>>,
+    '/settings/profile': RouteRecordInfo<'/settings/profile', '/settings/profile', Record<never, never>, Record<never, never>>,
+    '/settings/two-factor': RouteRecordInfo<'/settings/two-factor', '/settings/two-factor', Record<never, never>, Record<never, never>>,
+    '/team-members/': RouteRecordInfo<'/team-members/', '/team-members', Record<never, never>, Record<never, never>>,
+    '/transactions/': RouteRecordInfo<'/transactions/', '/transactions', Record<never, never>, Record<never, never>>,
+    '/wallets/': RouteRecordInfo<'/wallets/', '/wallets', Record<never, never>, Record<never, never>>,
+    '/wallets/create': RouteRecordInfo<'/wallets/create', '/wallets/create', Record<never, never>, Record<never, never>>,
   }
 
   /**
@@ -34,6 +49,66 @@ declare module 'vue-router/auto-routes' {
   export interface _RouteFileInfoMap {
     'src/pages/index.vue': {
       routes: '/'
+      views: never
+    }
+    'src/pages/auth/confirm-password.vue': {
+      routes: '/auth/confirm-password'
+      views: never
+    }
+    'src/pages/auth/forgot-password.vue': {
+      routes: '/auth/forgot-password'
+      views: never
+    }
+    'src/pages/auth/login.vue': {
+      routes: '/auth/login'
+      views: never
+    }
+    'src/pages/auth/register.vue': {
+      routes: '/auth/register'
+      views: never
+    }
+    'src/pages/auth/reset-password.vue': {
+      routes: '/auth/reset-password'
+      views: never
+    }
+    'src/pages/auth/two-factor-challenge.vue': {
+      routes: '/auth/two-factor-challenge'
+      views: never
+    }
+    'src/pages/auth/verify-email.vue': {
+      routes: '/auth/verify-email'
+      views: never
+    }
+    'src/pages/dashboard.vue': {
+      routes: '/dashboard'
+      views: never
+    }
+    'src/pages/settings/password.vue': {
+      routes: '/settings/password'
+      views: never
+    }
+    'src/pages/settings/profile.vue': {
+      routes: '/settings/profile'
+      views: never
+    }
+    'src/pages/settings/two-factor.vue': {
+      routes: '/settings/two-factor'
+      views: never
+    }
+    'src/pages/team-members/index.vue': {
+      routes: '/team-members/'
+      views: never
+    }
+    'src/pages/transactions/index.vue': {
+      routes: '/transactions/'
+      views: never
+    }
+    'src/pages/wallets/index.vue': {
+      routes: '/wallets/'
+      views: never
+    }
+    'src/pages/wallets/create.vue': {
+      routes: '/wallets/create'
       views: never
     }
   }
