@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
-import { ExternalLink, Wallet } from 'lucide-vue-next';
+import { ExternalLink } from 'lucide-vue-next';
 import AppLayout from '@/layouts/AppLayout.vue';
-import { type BreadcrumbItem } from '@/types';
 import { create as createWallet } from '@/routes/wallets';
+import { type BreadcrumbItem } from '@/types';
 
 interface WalletItem {
     id: number;
@@ -70,11 +70,31 @@ const getStatusColor = (status: string) => {
             <v-table density="comfortable">
                 <thead class="bg-grey-lighten-4">
                     <tr>
-                        <th class="text-left text-grey-darken-1 text-uppercase text-caption font-weight-bold">Name</th>
-                        <th class="text-left text-grey-darken-1 text-uppercase text-caption font-weight-bold">Currency</th>
-                        <th class="text-left text-grey-darken-1 text-uppercase text-caption font-weight-bold">Balance</th>
-                        <th class="text-left text-grey-darken-1 text-uppercase text-caption font-weight-bold">Status</th>
-                        <th class="text-left text-grey-darken-1 text-uppercase text-caption font-weight-bold">Actions</th>
+                        <th
+                            class="text-grey-darken-1 text-uppercase text-caption font-weight-bold text-left"
+                        >
+                            Name
+                        </th>
+                        <th
+                            class="text-grey-darken-1 text-uppercase text-caption font-weight-bold text-left"
+                        >
+                            Currency
+                        </th>
+                        <th
+                            class="text-grey-darken-1 text-uppercase text-caption font-weight-bold text-left"
+                        >
+                            Balance
+                        </th>
+                        <th
+                            class="text-grey-darken-1 text-uppercase text-caption font-weight-bold text-left"
+                        >
+                            Status
+                        </th>
+                        <th
+                            class="text-grey-darken-1 text-uppercase text-caption font-weight-bold text-left"
+                        >
+                            Actions
+                        </th>
                     </tr>
                 </thead>
                 <tbody>
@@ -82,9 +102,13 @@ const getStatusColor = (status: string) => {
                         <td class="font-weight-bold text-grey-darken-3">
                             {{ wallet.name }}
                         </td>
-                        <td class="text-grey-darken-2">{{ wallet.currency }}</td>
+                        <td class="text-grey-darken-2">
+                            {{ wallet.currency }}
+                        </td>
                         <td class="font-weight-black text-grey-darken-3">
-                            {{ formatCurrency(wallet.balance, wallet.currency) }}
+                            {{
+                                formatCurrency(wallet.balance, wallet.currency)
+                            }}
                         </td>
                         <td>
                             <v-chip
@@ -117,9 +141,18 @@ const getStatusColor = (status: string) => {
                 </tbody>
             </v-table>
 
-            <div class="pa-4 d-flex align-center justify-space-between border-t bg-grey-lighten-4">
-                <span class="text-caption text-grey-darken-1">Showing 3 of 100</span>
-                <v-pagination :length="3" density="compact" active-color="primary" class="my-0"></v-pagination>
+            <div
+                class="pa-4 d-flex align-center justify-space-between bg-grey-lighten-4 border-t"
+            >
+                <span class="text-caption text-grey-darken-1"
+                    >Showing 3 of 100</span
+                >
+                <v-pagination
+                    :length="3"
+                    density="compact"
+                    active-color="primary"
+                    class="my-0"
+                ></v-pagination>
             </div>
         </v-card>
     </AppLayout>

@@ -2,8 +2,8 @@
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import { ChevronDown } from 'lucide-vue-next';
 import AppLayout from '@/layouts/AppLayout.vue';
-import { type BreadcrumbItem } from '@/types';
 import { index as walletsIndex } from '@/routes/wallets';
+import { type BreadcrumbItem } from '@/types';
 
 interface Props {
     company: string;
@@ -29,7 +29,7 @@ const form = useForm({
     status: 'Active',
 });
 
-const currencies = ['USD', 'EUR', 'GBP', 'JPY'];
+const currencies = ['USD', 'EUR'];//, 'GBP', 'JPY'];
 const statuses = ['Active', 'Frozen', 'Inactive'];
 
 const submit = () => {
@@ -102,7 +102,7 @@ const submit = () => {
                                     <template v-slot:append-inner>
                                         <v-divider vertical class="mx-2"></v-divider>
                                         <span class="text-caption font-weight-bold text-grey-darken-1 mr-2">{{ form.currency }}</span>
-                                        <v-icon :icon="ChevronDown" size="14"></v-icon>
+<!--                                        <v-icon :icon="ChevronDown" size="14"></v-icon>-->
                                     </template>
                                 </v-text-field>
                             </v-col>
@@ -135,15 +135,14 @@ const submit = () => {
                             variant="outlined"
                             color="grey-darken-1"
                             class="text-none mr-4"
-                            rounded="lg"
                         >
                             Cancel
                         </v-btn>
                     </Link>
                     <v-btn
                         color="primary"
+                        variant="flat"
                         class="text-none font-weight-bold px-6"
-                        rounded="lg"
                         prepend-icon="mdi-plus"
                         @click="submit"
                     >

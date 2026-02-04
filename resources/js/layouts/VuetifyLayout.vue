@@ -12,7 +12,10 @@ import { computed, ref } from 'vue';
 import AppLogo from '@/components/AppLogo.vue';
 import { dashboard, logout } from '@/routes';
 import { edit } from '@/routes/profile';
-import { create as walletsCreate, index as walletsIndex } from '@/routes/wallets';
+import {
+    create as walletsCreate,
+    index as walletsIndex,
+} from '@/routes/wallets';
 import type { BreadcrumbItem } from '@/types';
 
 interface Props {
@@ -56,7 +59,9 @@ const handleLogout = () => {
     <v-app>
         <v-layout class="rounded-md border">
             <v-app-bar>
-                <div class="d-flex h-100 w-100 justify-space-between overflow-hidden">
+                <div
+                    class="d-flex h-100 w-100 justify-space-between overflow-hidden"
+                >
                     <AppLogo></AppLogo>
 
                     <div class="d-flex align-center ga-4 px-6">
@@ -135,8 +140,14 @@ const handleLogout = () => {
                                                 ></v-icon>
                                             </v-avatar>
                                             <div>
-                                                <h3 class="text-subtitle-1 font-weight-bold">{{ auth.user.name }}</h3>
-                                                <p class="text-caption text-grey-darken-1">
+                                                <h3
+                                                    class="text-subtitle-1 font-weight-bold"
+                                                >
+                                                    {{ auth.user.name }}
+                                                </h3>
+                                                <p
+                                                    class="text-caption text-grey-darken-1"
+                                                >
                                                     {{ auth.user.email }}
                                                 </p>
                                             </div>
@@ -234,9 +245,10 @@ const handleLogout = () => {
                 <template v-slot:append>
                     <v-divider></v-divider>
                     <div class="pa-4">
-                        <Link :href="walletsCreate().url">
+                        <Link :href="walletsCreate().url" class="btn-link">
                             <v-btn
                                 prepend-icon="mdi-plus"
+                                class="text-none"
                                 color="primary"
                                 size="large"
                                 block
