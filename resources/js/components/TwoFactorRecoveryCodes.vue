@@ -1,16 +1,7 @@
 <script setup lang="ts">
 import { Form } from '@inertiajs/vue3';
-import { Eye, EyeOff, LockKeyhole, RefreshCw } from 'lucide-vue-next';
 import { nextTick, onMounted, ref, useTemplateRef } from 'vue';
 import AlertError from '@/components/AlertError.vue';
-import { Button } from '@/components/ui/button';
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from '@/components/ui/card';
 import { useTwoFactorAuth } from '@/composables/useTwoFactorAuth';
 import { regenerateRecoveryCodes } from '@/routes/two-factor';
 
@@ -39,28 +30,30 @@ onMounted(async () => {
 </script>
 
 <template>
-    <Card class="w-full">
-        <CardHeader>
-            <CardTitle class="flex gap-3">
-                <LockKeyhole class="size-4" />2FA Recovery Codes
-            </CardTitle>
-            <CardDescription>
-                Recovery codes let you regain access if you lose your 2FA
-                device. Store them in a secure password manager.
-            </CardDescription>
-        </CardHeader>
-        <CardContent>
-            <div
-                class="flex flex-col gap-3 select-none sm:flex-row sm:items-center sm:justify-between"
-            >
-                <Button @click="toggleRecoveryCodesVisibility" class="w-fit">
-                    <component
-                        :is="isRecoveryCodesVisible ? EyeOff : Eye"
-                        class="size-4"
-                    />
-                    {{ isRecoveryCodesVisible ? 'Hide' : 'View' }} Recovery
-                    Codes
-                </Button>
+    <v-card variant="outlined" rounded="lg" class="w-100">
+        <v-card-item class="pb-2">
+            <template v-slot:prepend>
+                <v-icon icon="mdi-lock-outline" class="mr-2"></v-icon>
+            </template>
+            <v-card-title class="text-h6 font-weight-bold">
+                2FA Recovery Codes
+            </v-card-title>
+            <v-card-subtitle class="text-wrap">
+                Recovery codes let you regain access if you lose your 2FA device. Store them in a secure password manager.
+            </v-card-subtitle>
+        </v-card-item>
+
+        <v-card-text>
+            <div class="d-flex flex-column flex-sm-row ga-3 justify-center justify-sm-space-between align-sm-center mb-4">
+                <v-btn
+                    variant="tonal"
+                    color="primary"
+                    class="text-none"
+                    @click="toggleRecoveryCodesVisibility"
+                >
+                    <v-icon start :icon="isRecoveryCodesVisible ? 'mdi-eye-off-outline' : 'mdi-eye-outline'"></v-icon>
+                    {{ isRecoveryCodesVisible ? 'Hide' : 'View' }} Recovery Codes
+                </v-btn>
 
                 <Form
                     v-if="isRecoveryCodesVisible && recoveryCodesList.length"
@@ -70,54 +63,52 @@ onMounted(async () => {
                     @success="fetchRecoveryCodes"
                     #default="{ processing }"
                 >
-                    <Button
-                        variant="secondary"
+                    <v-btn
+                        variant="text"
+                        color="secondary"
+                        class="text-none"
                         type="submit"
-                        :disabled="processing"
+                        :loading="processing"
                     >
-                        <RefreshCw /> Regenerate Codes
-                    </Button>
+                        <v-icon start icon="mdi-refresh"></v-icon>
+                        Regenerate Codes
+                    </v-btn>
                 </Form>
             </div>
-            <div
-                :class="[
-                    'relative overflow-hidden transition-all duration-300',
-                    isRecoveryCodesVisible
-                        ? 'h-auto opacity-100'
-                        : 'h-0 opacity-0',
-                ]"
-            >
-                <div v-if="errors?.length" class="mt-6">
-                    <AlertError :errors="errors" />
-                </div>
-                <div v-else class="mt-3 space-y-3">
-                    <div
-                        ref="recoveryCodeSectionRef"
-                        class="grid gap-1 rounded-lg bg-muted p-4 font-mono text-sm"
-                    >
-                        <div v-if="!recoveryCodesList.length" class="space-y-2">
-                            <div
-                                v-for="n in 8"
-                                :key="n"
-                                class="h-4 animate-pulse rounded bg-muted-foreground/20"
-                            ></div>
-                        </div>
-                        <div
-                            v-else
-                            v-for="(code, index) in recoveryCodesList"
-                            :key="index"
-                        >
-                            {{ code }}
-                        </div>
+
+            <v-expand-transition>
+                <div v-show="isRecoveryCodesVisible">
+                    <div v-if="errors?.length" class="mt-4">
+                        <AlertError :errors="errors" />
                     </div>
-                    <p class="text-xs text-muted-foreground select-none">
-                        Each recovery code can be used once to access your
-                        account and will be removed after use. If you need more,
-                        click
-                        <span class="font-bold">Regenerate Codes</span> above.
-                    </p>
+                    <div v-else class="mt-4">
+                        <div
+                            ref="recoveryCodeSectionRef"
+                            class="rounded-lg bg-grey-lighten-4 pa-4 font-weight-medium font-monospace text-body-2"
+                        >
+                            <v-row v-if="!recoveryCodesList.length" dense>
+                                <v-col v-for="n in 8" :key="n" cols="6" sm="3">
+                                    <v-skeleton-loader type="text"></v-skeleton-loader>
+                                </v-col>
+                            </v-row>
+                            <v-row v-else dense>
+                                <v-col
+                                    v-for="(code, index) in recoveryCodesList"
+                                    :key="index"
+                                    cols="6"
+                                    sm="3"
+                                    class="py-1"
+                                >
+                                    {{ code }}
+                                </v-col>
+                            </v-row>
+                        </div>
+                        <p class="text-caption text-grey-darken-1 mt-3">
+                            Each recovery code can be used once to access your account and will be removed after use. If you need more, click <strong>Regenerate Codes</strong> above.
+                        </p>
+                    </div>
                 </div>
-            </div>
-        </CardContent>
-    </Card>
+            </v-expand-transition>
+        </v-card-text>
+    </v-card>
 </template>

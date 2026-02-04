@@ -1,8 +1,5 @@
 <script setup lang="ts">
-import { Form, Head } from '@inertiajs/vue3';
-import TextLink from '@/components/TextLink.vue';
-import { Button } from '@/components/ui/button';
-import { Spinner } from '@/components/ui/spinner';
+import { Form, Head, Link } from '@inertiajs/vue3';
 import AuthLayout from '@/layouts/AuthLayout.vue';
 import { logout } from '@/routes';
 import { send } from '@/routes/verification';
@@ -19,31 +16,42 @@ defineProps<{
     >
         <Head title="Email verification" />
 
-        <div
+        <v-alert
             v-if="status === 'verification-link-sent'"
-            class="mb-4 text-center text-sm font-medium text-green-600"
+            type="success"
+            variant="tonal"
+            class="mb-4"
+            density="compact"
         >
             A new verification link has been sent to the email address you
             provided during registration.
-        </div>
+        </v-alert>
 
         <Form
             v-bind="send.form()"
-            class="space-y-6 text-center"
             v-slot="{ processing }"
         >
-            <Button :disabled="processing" variant="secondary">
-                <Spinner v-if="processing" />
-                Resend verification email
-            </Button>
+            <div class="d-flex flex-column ga-6 align-center">
+                <v-btn
+                    type="submit"
+                    block
+                    variant="tonal"
+                    color="secondary"
+                    height="48"
+                    rounded="lg"
+                    class="text-none font-weight-bold"
+                    :loading="processing"
+                >
+                    Resend verification email
+                </v-btn>
 
-            <TextLink
-                :href="logout()"
-                as="button"
-                class="mx-auto block text-sm"
-            >
-                Log out
-            </TextLink>
+                <Link
+                    :href="logout().url"
+                    class="text-body-2 text-primary font-weight-bold text-decoration-none"
+                >
+                    Log out
+                </Link>
+            </div>
         </Form>
     </AuthLayout>
 </template>

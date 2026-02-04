@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Form, Head } from '@inertiajs/vue3';
+import { Form, Head, Link } from '@inertiajs/vue3';
 import AuthBase from '@/layouts/AuthLayout.vue';
 import { register } from '@/routes';
 import { store } from '@/routes/login';
@@ -34,7 +34,7 @@ defineProps<{
             :reset-on-success="['password']"
             v-slot="{ errors, processing }"
         >
-            <div class="space-y-4">
+            <div class="d-flex flex-column ga-4">
                 <v-text-field
                     label="Email address"
                     placeholder="email@example.com"
@@ -50,12 +50,15 @@ defineProps<{
                 ></v-text-field>
 
                 <div>
-                    <div class="flex items-center justify-between mb-1">
-                        <span class="text-caption font-weight-medium text-slate-700">Password</span>
+                    <div class="d-flex align-center justify-space-between mb-1">
+                        <span
+                            class="text-caption font-weight-medium text-grey-darken-3"
+                            >Password</span
+                        >
                         <Link
                             v-if="canResetPassword"
                             :href="request().url"
-                            class="text-caption text-primary font-weight-bold"
+                            class="text-caption font-weight-bold text-decoration-none text-primary"
                         >
                             Forgot password?
                         </Link>
@@ -79,7 +82,7 @@ defineProps<{
                     color="primary"
                     density="comfortable"
                     hide-details
-                    class="ml-n3"
+                    class="ms-n3"
                 ></v-checkbox>
 
                 <v-btn
@@ -96,12 +99,15 @@ defineProps<{
                 </v-btn>
             </div>
 
-            <div
-                class="text-center mt-6"
-                v-if="canRegister"
-            >
-                <span class="text-body-2 text-slate-500">Don't have an account?</span>
-                <Link :href="register().url" class="text-body-2 text-primary font-weight-bold ml-1">Sign up</Link>
+            <div class="mt-6 text-center" v-if="canRegister">
+                <span class="text-body-2 text-grey-darken-1"
+                    >Don't have an account?</span
+                >
+                <Link
+                    :href="register().url"
+                    class="text-body-2 font-weight-bold ms-1 text-decoration-none text-primary"
+                    >Sign up</Link
+                >
             </div>
         </Form>
     </AuthBase>

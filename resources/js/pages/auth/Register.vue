@@ -17,7 +17,7 @@ import { store } from '@/routes/register';
             :reset-on-success="['password', 'password_confirmation']"
             v-slot="{ errors, processing }"
         >
-            <div class="space-y-4">
+            <div class="d-flex flex-column ga-4">
                 <v-text-field
                     label="Name"
                     placeholder="Full name"
@@ -86,8 +86,8 @@ import { store } from '@/routes/register';
             </div>
 
             <div class="text-center mt-6">
-                <span class="text-body-2 text-slate-500">Already have an account?</span>
-                <Link :href="login().url" class="text-body-2 text-primary font-weight-bold ml-1">Log in</Link>
+                <span class="text-body-2 text-grey-darken-1">Already have an account?</span>
+                <Link :href="login().url" class="text-body-2 text-primary font-weight-bold ms-1 text-decoration-none">Log in</Link>
             </div>
         </Form>
     </AuthBase>

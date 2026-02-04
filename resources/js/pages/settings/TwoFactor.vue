@@ -1,12 +1,9 @@
 <script setup lang="ts">
 import { Form, Head } from '@inertiajs/vue3';
-import { ShieldBan, ShieldCheck } from 'lucide-vue-next';
 import { onUnmounted, ref } from 'vue';
 import Heading from '@/components/Heading.vue';
 import TwoFactorRecoveryCodes from '@/components/TwoFactorRecoveryCodes.vue';
 import TwoFactorSetupModal from '@/components/TwoFactorSetupModal.vue';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { useTwoFactorAuth } from '@/composables/useTwoFactorAuth';
 import AppLayout from '@/layouts/AppLayout.vue';
 import SettingsLayout from '@/layouts/settings/Layout.vue';
@@ -45,7 +42,7 @@ onUnmounted(() => {
         <h1 class="sr-only">Two-Factor Authentication Settings</h1>
 
         <SettingsLayout>
-            <div class="space-y-6">
+            <div class="d-flex flex-column ga-6">
                 <Heading
                     variant="small"
                     title="Two-Factor Authentication"
@@ -54,11 +51,13 @@ onUnmounted(() => {
 
                 <div
                     v-if="!twoFactorEnabled"
-                    class="flex flex-col items-start justify-start space-y-4"
+                    class="d-flex flex-column ga-4 items-start"
                 >
-                    <Badge variant="destructive">Disabled</Badge>
+                    <div>
+                        <v-chip color="error" size="small" label variant="flat">Disabled</v-chip>
+                    </div>
 
-                    <p class="text-muted-foreground">
+                    <p class="text-body-2 text-grey-darken-1">
                         When you enable two-factor authentication, you will be
                         prompted for a secure pin during login. This pin can be
                         retrieved from a TOTP-supported application on your
@@ -66,32 +65,45 @@ onUnmounted(() => {
                     </p>
 
                     <div>
-                        <Button
+                        <v-btn
                             v-if="hasSetupData"
+                            color="primary"
+                            variant="flat"
+                            class="text-none"
                             @click="showSetupModal = true"
                         >
-                            <ShieldCheck />Continue Setup
-                        </Button>
+                            <v-icon start icon="mdi-shield-check"></v-icon>
+                            Continue Setup
+                        </v-btn>
                         <Form
                             v-else
                             v-bind="enable.form()"
                             @success="showSetupModal = true"
                             #default="{ processing }"
                         >
-                            <Button type="submit" :disabled="processing">
-                                <ShieldCheck />Enable 2FA</Button
-                            ></Form
-                        >
+                            <v-btn
+                                type="submit"
+                                color="primary"
+                                variant="flat"
+                                class="text-none"
+                                :loading="processing"
+                            >
+                                <v-icon start icon="mdi-shield-check"></v-icon>
+                                Enable 2FA
+                            </v-btn>
+                        </Form>
                     </div>
                 </div>
 
                 <div
                     v-else
-                    class="flex flex-col items-start justify-start space-y-4"
+                    class="d-flex flex-column ga-4 items-start"
                 >
-                    <Badge variant="default">Enabled</Badge>
+                    <div>
+                        <v-chip color="success" size="small" label variant="flat">Enabled</v-chip>
+                    </div>
 
-                    <p class="text-muted-foreground">
+                    <p class="text-body-2 text-grey-darken-1">
                         With two-factor authentication enabled, you will be
                         prompted for a secure, random pin during login, which
                         you can retrieve from the TOTP-supported application on
@@ -100,16 +112,18 @@ onUnmounted(() => {
 
                     <TwoFactorRecoveryCodes />
 
-                    <div class="relative inline">
+                    <div>
                         <Form v-bind="disable.form()" #default="{ processing }">
-                            <Button
-                                variant="destructive"
+                            <v-btn
+                                color="error"
+                                variant="flat"
                                 type="submit"
-                                :disabled="processing"
+                                class="text-none"
+                                :loading="processing"
                             >
-                                <ShieldBan />
+                                <v-icon start icon="mdi-shield-off"></v-icon>
                                 Disable 2FA
-                            </Button>
+                            </v-btn>
                         </Form>
                     </div>
                 </div>

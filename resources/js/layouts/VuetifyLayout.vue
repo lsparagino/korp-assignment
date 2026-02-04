@@ -50,17 +50,17 @@ const handleLogout = () => {
     <v-app>
         <v-layout class="rounded-md border">
             <v-app-bar>
-                <div class="flex h-full w-full justify-between overflow-hidden">
+                <div class="d-flex h-100 w-100 justify-space-between overflow-hidden">
                     <AppLogo></AppLogo>
 
-                    <div class="flex items-center gap-4 px-6">
+                    <div class="d-flex align-center ga-4 px-6">
                         <!-- Company Selector -->
-                        <v-menu offset-y class>
+                        <v-menu offset-y>
                             <template v-slot:activator="{ props }">
                                 <v-btn
                                     variant="outlined"
                                     v-bind="props"
-                                    class="text-none border-slate-200 text-slate-700"
+                                    class="text-none border-grey-lighten-2 text-grey-darken-3"
                                     rounded="lg"
                                 >
                                     {{ selectedCompany }}
@@ -85,7 +85,7 @@ const handleLogout = () => {
                         </v-menu>
 
                         <!-- Notifications -->
-                        <v-btn icon variant="text" color="slate-600">
+                        <v-btn icon variant="text" color="grey-darken-2">
                             <v-icon :icon="Bell"></v-icon>
                         </v-btn>
 
@@ -112,11 +112,11 @@ const handleLogout = () => {
                             </template>
                             <v-card>
                                 <v-card-text>
-                                    <div class="">
-                                        <div class="flex items-center gap-4">
+                                    <div class="pa-2">
+                                        <div class="d-flex align-center ga-4">
                                             <v-avatar
                                                 size="36"
-                                                class="bg-sidebar-bg border border-slate-200"
+                                                class="bg-sidebar-bg border-grey-lighten-2"
                                             >
                                                 <v-img
                                                     v-if="auth.user?.avatar"
@@ -129,8 +129,8 @@ const handleLogout = () => {
                                                 ></v-icon>
                                             </v-avatar>
                                             <div>
-                                                <h3>{{ auth.user.name }}</h3>
-                                                <p class="text-caption">
+                                                <h3 class="text-subtitle-1 font-weight-bold">{{ auth.user.name }}</h3>
+                                                <p class="text-caption text-grey-darken-1">
                                                     {{ auth.user.email }}
                                                 </p>
                                             </div>
@@ -140,7 +140,7 @@ const handleLogout = () => {
 
                                         <v-list class="py-0" :lines="false">
                                             <Link
-                                                class="block w-full cursor-pointer"
+                                                class="d-block w-100 cursor-pointer"
                                                 :href="edit()"
                                                 as="button"
                                                 prefetch
@@ -163,7 +163,7 @@ const handleLogout = () => {
                                                 </v-list-item>
                                             </Link>
                                             <Link
-                                                class="block w-full cursor-pointer"
+                                                class="d-block w-100 cursor-pointer"
                                                 :href="logout()"
                                                 @click="handleLogout"
                                                 data-test="logout-button"
@@ -198,7 +198,7 @@ const handleLogout = () => {
                 permanent
                 width="260"
                 color="sidebar-bg"
-                class="border-e"
+                class="border-e-sm"
             >
                 <v-list nav density="comfortable" class="list-container">
                     <v-list-item
@@ -209,17 +209,17 @@ const handleLogout = () => {
                         :href="item.href"
                         variant="text"
                         active-color="primary"
-                        class="rounded-0 mb-1 rounded-tr-sm! rounded-br-sm!"
+                        class="rounded-0 mb-1 rounded-tr-sm rounded-br-sm"
                     >
                         <template v-slot:prepend>
                             <v-icon
                                 :icon="item.icon"
                                 size="20"
-                                class="mr-0! ml-4!"
+                                class="mr-0 ms-4"
                             ></v-icon>
                         </template>
                         <v-list-item-title
-                            class="text-base! font-normal text-slate-800"
+                            class="text-body-1 font-normal text-grey-darken-3"
                             >{{ item.title }}</v-list-item-title
                         >
                     </v-list-item>
@@ -227,7 +227,7 @@ const handleLogout = () => {
 
                 <template v-slot:append>
                     <v-divider></v-divider>
-                    <div class="p-4!">
+                    <div class="pa-4">
                         <v-btn
                             prepend-icon="mdi-plus"
                             color="primary"
@@ -263,5 +263,9 @@ const handleLogout = () => {
 
 :deep(.v-list-item--active .v-icon) {
     color: rgb(var(--v-theme-primary)) !important;
+}
+
+.cursor-pointer {
+    cursor: pointer;
 }
 </style>

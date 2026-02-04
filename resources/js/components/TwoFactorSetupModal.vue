@@ -1,24 +1,9 @@
 <script setup lang="ts">
 import { Form } from '@inertiajs/vue3';
 import { useClipboard } from '@vueuse/core';
-import { Check, Copy, ScanLine } from 'lucide-vue-next';
 import { computed, nextTick, ref, useTemplateRef, watch } from 'vue';
 import AlertError from '@/components/AlertError.vue';
 import InputError from '@/components/InputError.vue';
-import { Button } from '@/components/ui/button';
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogHeader,
-    DialogTitle,
-} from '@/components/ui/dialog';
-import {
-    InputOTP,
-    InputOTPGroup,
-    InputOTPSlot,
-} from '@/components/ui/input-otp';
-import { Spinner } from '@/components/ui/spinner';
 import { useAppearance } from '@/composables/useAppearance';
 import { useTwoFactorAuth } from '@/composables/useTwoFactorAuth';
 import { confirm } from '@/routes/two-factor';
@@ -109,129 +94,106 @@ watch(
 </script>
 
 <template>
-    <Dialog :open="isOpen" @update:open="isOpen = $event">
-        <DialogContent class="sm:max-w-md">
-            <DialogHeader class="flex items-center justify-center">
-                <div
-                    class="mb-3 w-auto rounded-full border border-border bg-card p-0.5 shadow-sm"
-                >
-                    <div
-                        class="relative overflow-hidden rounded-full border border-border bg-muted p-2.5"
-                    >
-                        <div
-                            class="absolute inset-0 grid grid-cols-5 opacity-50"
-                        >
-                            <div
-                                v-for="i in 5"
-                                :key="`col-${i}`"
-                                class="border-r border-border last:border-r-0"
-                            />
-                        </div>
-                        <div
-                            class="absolute inset-0 grid grid-rows-5 opacity-50"
-                        >
-                            <div
-                                v-for="i in 5"
-                                :key="`row-${i}`"
-                                class="border-b border-border last:border-b-0"
-                            />
-                        </div>
-                        <ScanLine
-                            class="relative z-20 size-6 text-foreground"
-                        />
-                    </div>
+    <v-dialog v-model="isOpen" max-width="500">
+        <v-card rounded="xl" class="pa-4">
+            <v-card-item class="text-center pb-0">
+                <div class="d-flex justify-center mb-4">
+                    <v-avatar color="primary" variant="tonal" size="56">
+                        <v-icon icon="mdi-qrcode-scan" size="32"></v-icon>
+                    </v-avatar>
                 </div>
-                <DialogTitle>{{ modalConfig.title }}</DialogTitle>
-                <DialogDescription class="text-center">
+                <v-card-title class="text-h6 font-weight-bold">
+                    {{ modalConfig.title }}
+                </v-card-title>
+                <v-card-subtitle class="text-body-2 text-grey-darken-1 text-wrap mt-1">
                     {{ modalConfig.description }}
-                </DialogDescription>
-            </DialogHeader>
+                </v-card-subtitle>
+            </v-card-item>
 
-            <div
-                class="relative flex w-auto flex-col items-center justify-center space-y-5"
-            >
+            <v-card-text class="pt-6">
                 <template v-if="!showVerificationStep">
-                    <AlertError v-if="errors?.length" :errors="errors" />
+                    <AlertError v-if="errors?.length" :errors="errors" class="mb-4" />
+                    
                     <template v-else>
-                        <div
-                            class="relative mx-auto flex max-w-md items-center overflow-hidden"
-                        >
-                            <div
-                                class="relative mx-auto aspect-square w-64 overflow-hidden rounded-lg border border-border"
+                        <div class="d-flex justify-center mb-6">
+                            <v-card
+                                variant="outlined"
+                                rounded="lg"
+                                class="pa-4 bg-white"
+                                width="250"
+                                height="250"
                             >
                                 <div
                                     v-if="!qrCodeSvg"
-                                    class="absolute inset-0 z-10 flex aspect-square h-auto w-full animate-pulse items-center justify-center bg-background"
+                                    class="d-flex align-center justify-center fill-height"
                                 >
-                                    <Spinner class="size-6" />
+                                    <v-progress-circular indeterminate color="primary"></v-progress-circular>
                                 </div>
                                 <div
                                     v-else
-                                    class="relative z-10 overflow-hidden border p-5"
+                                    class="d-flex align-center justify-center fill-height"
                                 >
                                     <div
                                         v-html="qrCodeSvg"
-                                        class="flex aspect-square size-full items-center justify-center"
+                                        class="d-flex align-center justify-center"
                                         :style="{
                                             filter:
                                                 resolvedAppearance === 'dark'
                                                     ? 'invert(1) brightness(1.5)'
                                                     : undefined,
+                                            width: '100%',
+                                            height: '100%'
                                         }"
                                     />
                                 </div>
-                            </div>
+                            </v-card>
                         </div>
 
-                        <div class="flex w-full items-center space-x-5">
-                            <Button class="w-full" @click="handleModalNextStep">
-                                {{ modalConfig.buttonText }}
-                            </Button>
-                        </div>
-
-                        <div
-                            class="relative flex w-full items-center justify-center"
+                        <v-btn
+                            block
+                            color="primary"
+                            variant="flat"
+                            class="text-none mb-6"
+                            @click="handleModalNextStep"
                         >
-                            <div
-                                class="absolute inset-0 top-1/2 h-px w-full bg-border"
-                            />
-                            <span class="relative bg-card px-2 py-1"
-                                >or, enter the code manually</span
-                            >
+                            {{ modalConfig.buttonText }}
+                        </v-btn>
+
+                        <div class="d-flex align-center mb-6">
+                            <v-divider></v-divider>
+                            <span class="px-4 text-caption text-grey-darken-1 text-no-wrap">
+                                or, enter the code manually
+                            </span>
+                            <v-divider></v-divider>
                         </div>
 
-                        <div
-                            class="flex w-full items-center justify-center space-x-2"
+                        <v-text-field
+                            readonly
+                            :value="manualSetupKey"
+                            variant="outlined"
+                            density="comfortable"
+                            rounded="lg"
+                            color="primary"
+                            placeholder="Setup Key"
+                            persistent-hint
+                            :loading="!manualSetupKey"
                         >
-                            <div
-                                class="flex w-full items-stretch overflow-hidden rounded-xl border border-border"
-                            >
-                                <div
-                                    v-if="!manualSetupKey"
-                                    class="flex h-full w-full items-center justify-center bg-muted p-3"
+                            <template v-slot:append-inner>
+                                <v-btn
+                                    icon
+                                    variant="text"
+                                    density="comfortable"
+                                    class="mr-n2"
+                                    @click="copy(manualSetupKey || '')"
                                 >
-                                    <Spinner />
-                                </div>
-                                <template v-else>
-                                    <input
-                                        type="text"
-                                        readonly
-                                        :value="manualSetupKey"
-                                        class="h-full w-full bg-background p-3 text-foreground"
-                                    />
-                                    <button
-                                        @click="copy(manualSetupKey || '')"
-                                        class="relative block h-auto border-l border-border px-3 hover:bg-muted"
-                                    >
-                                        <Check
-                                            v-if="copied"
-                                            class="w-4 text-green-500"
-                                        />
-                                        <Copy v-else class="w-4" />
-                                    </button>
-                                </template>
-                            </div>
-                        </div>
+                                    <v-icon
+                                        :color="copied ? 'success' : 'grey-darken-1'"
+                                        :icon="copied ? 'mdi-check' : 'mdi-content-copy'"
+                                        size="18"
+                                    ></v-icon>
+                                </v-btn>
+                            </template>
+                        </v-text-field>
                     </template>
                 </template>
 
@@ -241,60 +203,50 @@ watch(
                         reset-on-error
                         @finish="code = ''"
                         @success="isOpen = false"
-                        v-slot="{ errors, processing }"
+                        v-slot="{ errors: formErrors, processing }"
                     >
                         <input type="hidden" name="code" :value="code" />
                         <div
                             ref="pinInputContainerRef"
-                            class="relative w-full space-y-3"
+                            class="d-flex flex-column ga-6 align-center"
                         >
-                            <div
-                                class="flex w-full flex-col items-center justify-center space-y-3 py-2"
-                            >
-                                <InputOTP
-                                    id="otp"
-                                    v-model="code"
-                                    :maxlength="6"
-                                    :disabled="processing"
-                                >
-                                    <InputOTPGroup>
-                                        <InputOTPSlot
-                                            v-for="index in 6"
-                                            :key="index"
-                                            :index="index - 1"
-                                        />
-                                    </InputOTPGroup>
-                                </InputOTP>
-                                <InputError
-                                    :message="
-                                        errors?.confirmTwoFactorAuthentication
-                                            ?.code
-                                    "
-                                />
-                            </div>
+                            <v-otp-input
+                                v-model="code"
+                                :length="6"
+                                :disabled="processing"
+                                variant="outlined"
+                                color="primary"
+                            ></v-otp-input>
 
-                            <div class="flex w-full items-center space-x-5">
-                                <Button
-                                    type="button"
-                                    variant="outline"
-                                    class="w-auto flex-1"
+                            <InputError
+                                :message="formErrors?.confirmTwoFactorAuthentication?.code"
+                            />
+
+                            <div class="d-flex ga-4 w-100">
+                                <v-btn
+                                    variant="outlined"
+                                    color="grey-darken-1"
+                                    class="text-none flex-grow-1"
                                     @click="showVerificationStep = false"
                                     :disabled="processing"
                                 >
                                     Back
-                                </Button>
-                                <Button
+                                </v-btn>
+                                <v-btn
                                     type="submit"
-                                    class="w-auto flex-1"
-                                    :disabled="processing || code.length < 6"
+                                    color="primary"
+                                    variant="flat"
+                                    class="text-none flex-grow-1"
+                                    :loading="processing"
+                                    :disabled="code.length < 6"
                                 >
                                     Confirm
-                                </Button>
+                                </v-btn>
                             </div>
                         </div>
                     </Form>
                 </template>
-            </div>
-        </DialogContent>
-    </Dialog>
+            </v-card-text>
+        </v-card>
+    </v-dialog>
 </template>
