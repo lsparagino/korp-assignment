@@ -138,6 +138,14 @@
                         >
                           {{ authStore.user.email }}
                         </p>
+                        <v-chip
+                          class="mt-1 text-uppercase font-weight-bold"
+                          :color="authStore.user.role === 'admin' ? 'primary' : 'grey-darken-1'"
+                          size="x-small"
+                          variant="flat"
+                        >
+                          {{ authStore.user.role }}
+                        </v-chip>
                       </div>
                     </div>
 

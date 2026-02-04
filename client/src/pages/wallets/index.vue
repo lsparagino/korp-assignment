@@ -1,6 +1,9 @@
 <script lang="ts" setup>
   import { Wallet } from 'lucide-vue-next'
-  import { onMounted, ref } from 'vue'
+  import { ref } from 'vue'
+  import ConfirmDialog from '@/components/ConfirmDialog.vue'
+  import Pagination from '@/components/Pagination.vue'
+  import { usePagination } from '@/composables/usePagination'
   import api from '@/plugins/api'
   import { useAuthStore } from '@/stores/auth'
 
@@ -8,54 +11,96 @@
 
   const company = ref('')
   const wallets = ref<any[]>([])
-  const processing = ref(true)
 
-  async function fetchWallets () {
+  const {
+    meta,
+    handlePageChange,
+    handlePerPageChange,
+    refresh,
+  } = usePagination(async params => {
     try {
-      const response = await api.get('/wallets')
-      // company.value = response.data.company
-      wallets.value = response.data.data.map((w: any) => ({
-        ...w,
-        balanceFormatted: new Intl.NumberFormat('en-US', {
-          style: 'currency',
-          currency: w.currency,
-        }).format(w.balance),
-        statusColor:
-          w.status === 'active' ? 'green-lighten-4' : 'red-lighten-4',
-        statusTextColor:
-          w.status === 'active' ? 'green-darken-3' : 'red-darken-3',
-      }))
+      const response = await api.get('/wallets', { params })
+
+      // company.value = response.data.company // If company is returned in response
+
+      wallets.value = response.data.data.map((w: any) => {
+        const currencyColors: Record<string, { bg: string; text: string }> = {
+          USD: { bg: 'blue-lighten-4', text: 'blue-darken-3' },
+          EUR: { bg: 'orange-lighten-4', text: 'orange-darken-3' },
+          GBP: { bg: 'indigo-lighten-4', text: 'indigo-darken-3' },
+        }
+        const colors = currencyColors[w.currency] || { bg: 'grey-lighten-3', text: 'grey-darken-3' }
+
+        return {
+          ...w,
+          balanceFormatted: new Intl.NumberFormat('en-US', {
+            style: 'currency',
+            currency: w.currency,
+          }).format(w.balance),
+          statusColor:
+            w.status === 'active' ? 'green-lighten-4' : 'red-lighten-4',
+          statusTextColor:
+            w.status === 'active' ? 'green-darken-3' : 'red-darken-3',
+          currencyColor: colors.bg,
+          currencyTextColor: colors.text,
+        }
+      })
+
+      if (response.data.meta) {
+        meta.value = response.data.meta
+      }
     } catch (error) {
       console.error('Error fetching wallets:', error)
-    } finally {
-      processing.value = false
+    }
+  })
+
+  // Dialog state
+  const confirmDialog = ref({
+    show: false,
+    title: '',
+    message: '',
+    requiresPin: false,
+    onConfirm: () => {},
+  })
+
+  function toggleStatus (wallet: any) {
+    const isFreezing = wallet.status === 'active'
+    confirmDialog.value = {
+      show: true,
+      title: isFreezing ? 'Freeze Wallet' : 'Unfreeze Wallet',
+      message: `Are you sure you want to ${isFreezing ? 'freeze' : 'unfreeze'} the wallet "${wallet.name}"?`,
+      requiresPin: false,
+      onConfirm: async () => {
+        try {
+          await api.patch(`/wallets/${wallet.id}/toggle-freeze`)
+          refresh()
+        } catch (error) {
+          console.error('Error toggling status:', error)
+        }
+      },
     }
   }
 
-  async function toggleStatus (wallet: any) {
-    try {
-      await api.patch(`/wallets/${wallet.id}/toggle-freeze`)
-      fetchWallets()
-    } catch (error) {
-      console.error('Error toggling status:', error)
+  function deleteWallet (wallet: any) {
+    confirmDialog.value = {
+      show: true,
+      title: 'Delete Wallet',
+      message: `Warning: You are about to permanently delete the wallet "${wallet.name}". This action cannot be undone. Only empty wallets can be deleted.`,
+      requiresPin: true,
+      onConfirm: async () => {
+        try {
+          await api.delete(`/wallets/${wallet.id}`)
+          refresh()
+        } catch (error: any) {
+          if (error.response?.status === 403) {
+            alert(error.response.data.message || 'You are not authorized to delete this wallet (it might not be empty).')
+          } else {
+            console.error('Error deleting wallet:', error)
+          }
+        }
+      },
     }
   }
-
-  async function deleteWallet (wallet: any) {
-    if (!confirm(`Are you sure you want to delete the wallet "${wallet.name}"?`)) return
-    try {
-      await api.delete(`/wallets/${wallet.id}`)
-      fetchWallets()
-    } catch (error: any) {
-      if (error.response?.status === 403) {
-        alert(error.response.data.message || 'You are not authorized to delete this wallet (it might not be empty).')
-      } else {
-        console.error('Error deleting wallet:', error)
-      }
-    }
-  }
-
-  onMounted(fetchWallets)
 </script>
 
 <template>
@@ -76,7 +121,7 @@
     </v-btn>
   </div>
 
-  <v-card border flat :loading="processing" rounded="lg">
+  <v-card border flat rounded="lg">
     <v-table density="comfortable">
       <thead class="bg-grey-lighten-4">
         <tr>
@@ -132,8 +177,9 @@
           </td>
           <td>
             <v-chip
-              class="font-weight-bold text-grey-darken-3"
-              color="grey-lighten-3"
+              class="font-weight-bold"
+              :class="`text-${wallet.currencyTextColor}`"
+              :color="wallet.currencyColor"
               size="small"
               variant="flat"
             >
@@ -185,18 +231,22 @@
       </tbody>
     </v-table>
 
-    <div
-      class="pa-4 d-flex align-center justify-space-between bg-grey-lighten-5 border-t"
-    >
-      <span class="text-caption text-grey-darken-1">Showing {{ wallets.length }} of 100</span>
-      <v-pagination
-        active-color="primary"
-        class="my-0"
-        density="compact"
-        :length="3"
+    <div class="border-t">
+      <Pagination
+        :meta="meta"
+        @update:page="handlePageChange"
+        @update:per-page="handlePerPageChange"
       />
     </div>
   </v-card>
+
+  <ConfirmDialog
+    v-model="confirmDialog.show"
+    :message="confirmDialog.message"
+    :requires-pin="confirmDialog.requiresPin"
+    :title="confirmDialog.title"
+    @confirm="confirmDialog.onConfirm"
+  />
 </template>
 
 <route lang="yaml">

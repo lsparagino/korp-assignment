@@ -102,3 +102,28 @@ test('members cannot delete wallets', function () {
     
     $response->assertStatus(403);
 });
+test('wallets list is paginated', function () {
+    $user = User::factory()->create();
+    Wallet::factory()->count(15)->create(['user_id' => $user->id]);
+    
+    Sanctum::actingAs($user);
+    
+    $response = $this->getJson('/api/v0/wallets?per_page=10');
+    
+    $response->assertStatus(200)
+        ->assertJsonCount(10, 'data')
+        ->assertJsonPath('meta.total', 15)
+        ->assertJsonPath('meta.per_page', 10)
+        ->assertJsonPath('meta.current_page', 1)
+        ->assertJsonStructure([
+            'data',
+            'links',
+            'meta'
+        ]);
+        
+    // Test page 2
+    $response = $this->getJson('/api/v0/wallets?page=2&per_page=10');
+    $response->assertStatus(200)
+        ->assertJsonCount(5, 'data')
+        ->assertJsonPath('meta.current_page', 2);
+});

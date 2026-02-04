@@ -1,18 +1,37 @@
 <script lang="ts" setup>
-  import { Wallet } from 'lucide-vue-next'
+  import { Snowflake, Trash2, Wallet } from 'lucide-vue-next'
   import { onMounted, reactive, ref } from 'vue'
   import { useRoute, useRouter } from 'vue-router'
+  import ConfirmDialog from '@/components/ConfirmDialog.vue'
   import api from '@/plugins/api'
+
+  interface WalletModel {
+    id: number
+    name: string
+    currency: string
+    balance: number
+    status: string
+  }
 
   const route = useRoute()
   const router = useRouter()
   const processing = ref(false)
   const loading = ref(true)
   const errors = ref<Record<string, string[]>>({})
+  const wallet = ref<WalletModel | null>(null)
 
   const form = reactive({
     name: '',
     currency: '',
+  })
+
+  // Dialog state
+  const confirmDialog = ref({
+    show: false,
+    title: '',
+    message: '',
+    requiresPin: false,
+    onConfirm: () => {},
   })
 
   const currencies = [
@@ -23,6 +42,7 @@
   async function fetchWallet () {
     try {
       const response = await api.get(`/wallets/${route.params.id}`)
+      wallet.value = response.data.data
       form.name = response.data.data.name
       form.currency = response.data.data.currency
     } catch (error) {
@@ -46,6 +66,47 @@
       }
     } finally {
       processing.value = false
+    }
+  }
+
+  function handleToggleStatus () {
+    if (!wallet.value) return
+    const isFreezing = wallet.value.status === 'active'
+    confirmDialog.value = {
+      show: true,
+      title: isFreezing ? 'Freeze Wallet' : 'Unfreeze Wallet',
+      message: `Are you sure you want to ${isFreezing ? 'freeze' : 'unfreeze'} the wallet "${wallet.value.name}"?`,
+      requiresPin: false,
+      onConfirm: async () => {
+        try {
+          await api.patch(`/wallets/${wallet.value?.id}/toggle-freeze`)
+          fetchWallet()
+        } catch (error) {
+          console.error('Error toggling status:', error)
+        }
+      },
+    }
+  }
+
+  function handleDelete () {
+    if (!wallet.value) return
+    confirmDialog.value = {
+      show: true,
+      title: 'Delete Wallet',
+      message: `Warning: You are about to permanently delete the wallet "${wallet.value.name}". This action cannot be undone. Only empty wallets can be deleted.`,
+      requiresPin: true,
+      onConfirm: async () => {
+        try {
+          await api.delete(`/wallets/${wallet.value?.id}`)
+          router.push('/wallets/')
+        } catch (error: any) {
+          if (error.response?.status === 403) {
+            alert(error.response.data.message || 'You are not authorized to delete this wallet (it might not be empty).')
+          } else {
+            console.error('Error deleting wallet:', error)
+          }
+        }
+      },
     }
   }
 
@@ -172,11 +233,51 @@
             <p class="text-body-2 text-grey-darken-1 mb-6">
               Modify the name or currency of this wallet.
             </p>
+
+            <v-divider class="mb-6" />
+
+            <div class="text-subtitle-2 font-weight-bold text-grey-darken-3 mb-4 text-left">
+              Management Actions
+            </div>
+
+            <div class="d-flex flex-column ga-2">
+              <v-btn
+                block
+                class="justify-start text-none"
+                :color="wallet?.status === 'active' ? 'warning' : 'success'"
+                :prepend-icon="wallet?.status === 'active' ? Snowflake : 'mdi-fire'"
+                rounded="lg"
+                variant="outlined"
+                @click="handleToggleStatus"
+              >
+                {{ wallet?.status === 'active' ? 'Freeze Wallet' : 'Unfreeze Wallet' }}
+              </v-btn>
+
+              <v-btn
+                block
+                class="justify-start text-none"
+                color="error"
+                :prepend-icon="Trash2"
+                rounded="lg"
+                variant="outlined"
+                @click="handleDelete"
+              >
+                Delete Wallet
+              </v-btn>
+            </div>
           </v-sheet>
         </v-col>
       </v-row>
     </v-form>
   </v-card>
+
+  <ConfirmDialog
+    v-model="confirmDialog.show"
+    :message="confirmDialog.message"
+    :requires-pin="confirmDialog.requiresPin"
+    :title="confirmDialog.title"
+    @confirm="confirmDialog.onConfirm"
+  />
 </template>
 
 <route lang="yaml">

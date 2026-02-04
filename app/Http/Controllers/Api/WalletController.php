@@ -19,8 +19,11 @@ class WalletController extends Controller
     {
         $this->authorize('viewAny', Wallet::class);
 
+        $perPage = $request->input('per_page', 10);
+        $perPage = min((int) $perPage, 500); // Max 500 items per page
+
         return WalletResource::collection(
-            $request->user()->wallets()->latest()->get()
+            $request->user()->wallets()->latest()->paginate($perPage)
         );
     }
 
