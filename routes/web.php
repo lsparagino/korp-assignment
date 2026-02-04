@@ -49,4 +49,48 @@ Route::get('wallets/create', function () {
     ]);
 })->middleware(['auth', 'verified'])->name('wallets.create');
 
+Route::get('transactions', function () {
+    return Inertia::render('transactions/Index', [
+        'company' => 'Acme Corp',
+        'transactions' => [
+            [
+                'id' => 1,
+                'date' => '12/10/2022',
+                'wallet' => 'Main Wallet',
+                'type' => 'Debit',
+                'amount' => -500.00,
+                'currency' => 'USD',
+                'reference' => 'Invoice #123',
+            ],
+            [
+                'id' => 2,
+                'date' => '12/09/2022',
+                'wallet' => 'EUR Wallet',
+                'type' => 'Credit',
+                'amount' => 1000.00,
+                'currency' => 'EUR',
+                'reference' => 'Client Payment',
+            ],
+            [
+                'id' => 3,
+                'date' => '12/08/2022',
+                'wallet' => 'Marketing Wallet',
+                'type' => 'Debit',
+                'amount' => -200.00,
+                'currency' => 'USD',
+                'reference' => 'Advertising',
+            ],
+            [
+                'id' => 4,
+                'date' => '12/07/2022',
+                'wallet' => 'Main Wallet',
+                'type' => 'Credit',
+                'amount' => 2500.00,
+                'currency' => 'EUR',
+                'reference' => 'Transfer',
+            ],
+        ],
+    ]);
+})->middleware(['auth', 'verified'])->name('transactions.index');
+
 require __DIR__.'/settings.php';

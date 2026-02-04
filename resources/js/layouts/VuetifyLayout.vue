@@ -12,10 +12,8 @@ import { computed, ref } from 'vue';
 import AppLogo from '@/components/AppLogo.vue';
 import { dashboard, logout } from '@/routes';
 import { edit } from '@/routes/profile';
-import {
-    create as walletsCreate,
-    index as walletsIndex,
-} from '@/routes/wallets';
+import { create as walletsCreate, index as walletsIndex } from '@/routes/wallets';
+import { index as transactionsIndex } from '@/routes/transactions';
 import type { BreadcrumbItem } from '@/types';
 
 interface Props {
@@ -43,7 +41,12 @@ const navItems = [
         href: walletsIndex().url,
         active: computed(() => page.url.startsWith('/wallets')),
     },
-    { title: 'Transactions', icon: Repeat, href: '#' },
+    {
+        title: 'Transactions',
+        icon: Repeat,
+        href: transactionsIndex().url,
+        active: computed(() => page.url.startsWith('/transactions')),
+    },
     { title: 'Team Members', icon: Users, href: '#' },
 ];
 
