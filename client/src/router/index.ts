@@ -17,7 +17,16 @@ const router = createRouter({
 
 router.beforeEach((to, from, next) => {
   const authStore = useAuthStore()
-  const publicPages = ['/', '/auth/login', '/auth/register', '/auth/forgot-password', '/auth/reset-password', '/auth/verify-email', '/auth/confirm-password', '/auth/two-factor-challenge']
+  const publicPages = [
+    '/',
+    '/auth/login',
+    '/auth/register',
+    '/auth/forgot-password',
+    '/auth/reset-password',
+    '/auth/verify-email',
+    '/auth/confirm-password',
+    '/auth/two-factor-challenge',
+  ]
 
   // Normalize path by removing trailing slash if not root
   const path = to.path === '/' ? '/' : to.path.replace(/\/$/, '')
@@ -37,9 +46,14 @@ router.beforeEach((to, from, next) => {
 
 // Workaround for https://github.com/vitejs/vite/issues/11804
 router.onError((err, to) => {
-  if (err?.message?.includes?.('Failed to fetch dynamically imported module')) {
+  if (
+    err?.message?.includes?.('Failed to fetch dynamically imported module')
+  ) {
     if (localStorage.getItem('vuetify:dynamic-reload')) {
-      console.error('Dynamic import error, reloading page did not fix it', err)
+      console.error(
+        'Dynamic import error, reloading page did not fix it',
+        err,
+      )
     } else {
       console.log('Reloading page to fix dynamic import error')
       localStorage.setItem('vuetify:dynamic-reload', 'true')

@@ -1,4 +1,5 @@
-<script setup lang="ts">
+<script lang="ts" setup>
+  import type { VAlert } from 'vuetify/components'
   import { reactive, ref } from 'vue'
   import api from '@/plugins/api'
 
@@ -6,22 +7,25 @@
     email: '',
   })
 
-  const processing = ref(false)
+  const processing = ref<boolean>(false)
   const errors = ref<Record<string, string[]>>({})
   const status = ref('')
+  const alertType = ref<VAlert['type']>('success')
 
   async function submit () {
     processing.value = true
     errors.value = {}
     status.value = ''
-
     try {
       const response = await api.post('/forgot-password', form)
       status.value = response.data.message
+      alertType.value = 'success'
     } catch (error: any) {
       if (error.response?.status === 422) {
-        errors.value = error.response.data.errors
+        alertType.value = 'warning'
+        status.value = 'Your mailbox is full'
       } else {
+        alertType.value = 'error'
         status.value = 'An error occurred. Please try again.'
       }
     } finally {
@@ -35,7 +39,7 @@
     v-if="status"
     class="mb-4"
     density="compact"
-    type="success"
+    :type="alertType"
     variant="tonal"
   >
     {{ status }}
@@ -48,10 +52,10 @@
         autofocus
         color="primary"
         density="comfortable"
-        label="Email address"
         :error-messages="errors.email"
-        name="email"
         hide-details="auto"
+        label="Email address"
+        name="email"
         placeholder="email@example.com"
         required
         type="email"
@@ -72,15 +76,18 @@
     </div>
   </v-form>
 
-  <div class="text-center mt-6">
+  <div class="mt-6 text-center">
     <span class="text-body-2 text-grey-darken-1">Or, return to</span>
-    <router-link class="text-body-2 text-primary font-weight-bold ms-1 text-decoration-none" to="/auth/login">log in</router-link>
+    <router-link
+      class="text-body-2 font-weight-bold ms-1 text-decoration-none text-primary"
+      to="/auth/login"
+    >log in</router-link>
   </div>
 </template>
 
 <route lang="yaml">
 meta:
-  layout: Auth
-  title: Forgot password
-  description: Enter your email to receive a password reset link
+    layout: Auth
+    title: Forgot password
+    description: Enter your email to receive a password reset link
 </route>

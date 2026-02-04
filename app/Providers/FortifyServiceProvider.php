@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Actions\Fortify\CreateNewUser;
 use App\Actions\Fortify\ResetUserPassword;
+use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
@@ -12,6 +13,7 @@ use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Laravel\Fortify\Features;
 use Laravel\Fortify\Fortify;
+use function config;
 
 class FortifyServiceProvider extends ServiceProvider
 {
@@ -31,6 +33,11 @@ class FortifyServiceProvider extends ServiceProvider
         $this->configureActions();
         $this->configureViews();
         $this->configureRateLimiting();
+
+        $clientUrl = config('app.client_url');
+        ResetPassword::createUrlUsing(function ($user, string $token) use ($clientUrl) {
+            return "$clientUrl?token=".$token;
+        });
     }
 
     /**

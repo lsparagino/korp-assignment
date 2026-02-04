@@ -1,245 +1,245 @@
-<script setup lang="ts">
-import {
+<script lang="ts" setup>
+  import {
     Bell,
     ChevronDown,
     LayoutDashboard,
     Repeat,
     Users,
     Wallet,
-} from 'lucide-vue-next';
-import { computed, ref } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
-import AppLogo from '@/components/AppLogo.vue';
-import { useAuthStore } from '@/stores/auth';
+  } from 'lucide-vue-next'
+  import { computed, ref } from 'vue'
+  import { useRoute, useRouter } from 'vue-router'
+  import AppLogo from '@/components/AppLogo.vue'
+  import { useAuthStore } from '@/stores/auth'
 
-const route = useRoute();
-const router = useRouter();
-const authStore = useAuthStore();
-const drawer = ref(true);
+  const route = useRoute()
+  const router = useRouter()
+  const authStore = useAuthStore()
+  const drawer = ref(true)
 
-const navItems = [
+  const navItems = [
     {
-        title: 'Dashboard',
-        icon: LayoutDashboard,
-        to: '/dashboard',
-        active: computed(() => route.path === '/dashboard'),
+      title: 'Dashboard',
+      icon: LayoutDashboard,
+      to: '/dashboard',
+      active: computed(() => route.path === '/dashboard'),
     },
     {
-        title: 'Wallets',
-        icon: Wallet,
-        to: '/wallets/',
-        active: computed(() => route.path.startsWith('/wallets')),
+      title: 'Wallets',
+      icon: Wallet,
+      to: '/wallets/',
+      active: computed(() => route.path.startsWith('/wallets')),
     },
     {
-        title: 'Transactions',
-        icon: Repeat,
-        to: '/transactions/',
-        active: computed(() => route.path.startsWith('/transactions')),
+      title: 'Transactions',
+      icon: Repeat,
+      to: '/transactions/',
+      active: computed(() => route.path.startsWith('/transactions')),
     },
     {
-        title: 'Team Members',
-        icon: Users,
-        to: '/team-members/',
-        active: computed(() => route.path.startsWith('/team-members')),
+      title: 'Team Members',
+      icon: Users,
+      to: '/team-members/',
+      active: computed(() => route.path.startsWith('/team-members')),
     },
-];
+  ]
 
-const selectedCompany = ref('Acme Corp');
-const companies = ['Acme Corp', 'Globex Inc', 'Soylent Corp'];
+  const selectedCompany = ref('Acme Corp')
+  const companies = ['Acme Corp', 'Globex Inc', 'Soylent Corp']
 
-const handleLogout = async () => {
+  async function handleLogout () {
     // In a real app, you'd call the API logout first
-    authStore.clearToken();
-    router.push('/auth/login');
-};
+    authStore.clearToken()
+    router.push('/auth/login')
+  }
 </script>
 
 <template>
-    <v-app>
-        <v-layout>
-            <v-app-bar>
-                <div
-                    class="d-flex h-100 w-100 justify-space-between overflow-hidden"
+  <v-app>
+    <v-layout>
+      <v-app-bar>
+        <div
+          class="d-flex h-100 w-100 justify-space-between overflow-hidden"
+        >
+          <AppLogo />
+
+          <div class="d-flex align-center ga-4 px-6">
+            <!-- Company Selector -->
+            <v-menu offset-y>
+              <template #activator="{ props }">
+                <v-btn
+                  class="text-none border-grey-lighten-2 text-grey-darken-3"
+                  rounded="lg"
+                  v-bind="props"
+                  variant="outlined"
                 >
-                    <AppLogo></AppLogo>
+                  {{ selectedCompany }}
+                  <v-icon
+                    end
+                    :icon="ChevronDown"
+                    size="18"
+                  />
+                </v-btn>
+              </template>
+              <v-list>
+                <v-list-item
+                  v-for="company in companies"
+                  :key="company"
+                  @click="selectedCompany = company"
+                >
+                  <v-list-item-title>{{
+                    company
+                  }}</v-list-item-title>
+                </v-list-item>
+              </v-list>
+            </v-menu>
 
-                    <div class="d-flex align-center ga-4 px-6">
-                        <!-- Company Selector -->
-                        <v-menu offset-y>
-                            <template v-slot:activator="{ props }">
-                                <v-btn
-                                    variant="outlined"
-                                    v-bind="props"
-                                    class="text-none border-grey-lighten-2 text-grey-darken-3"
-                                    rounded="lg"
-                                >
-                                    {{ selectedCompany }}
-                                    <v-icon
-                                        end
-                                        :icon="ChevronDown"
-                                        size="18"
-                                    ></v-icon>
-                                </v-btn>
-                            </template>
-                            <v-list>
-                                <v-list-item
-                                    v-for="company in companies"
-                                    :key="company"
-                                    @click="selectedCompany = company"
-                                >
-                                    <v-list-item-title>{{
-                                        company
-                                    }}</v-list-item-title>
-                                </v-list-item>
-                            </v-list>
-                        </v-menu>
+            <!-- Notifications -->
+            <v-btn color="grey-darken-2" icon variant="text">
+              <v-icon :icon="Bell" />
+            </v-btn>
 
-                        <!-- Notifications -->
-                        <v-btn icon variant="text" color="grey-darken-2">
-                            <v-icon :icon="Bell"></v-icon>
-                        </v-btn>
+            <!-- User Avatar -->
 
-                        <!-- User Avatar -->
-
-                        <v-menu min-width="200px">
-                            <template v-slot:activator="{ props }">
-                                <v-btn icon v-bind="props">
-                                    <v-avatar
-                                        size="large"
-                                        class="bg-sidebar-bg"
-                                    >
-                                        <v-icon
-                                            icon="mdi-account"
-                                        ></v-icon>
-                                    </v-avatar>
-                                </v-btn>
-                            </template>
-                            <v-card>
-                                <v-card-text>
-                                    <div class="pa-2">
-                                        <div class="d-flex align-center ga-4">
-                                            <v-avatar
-                                                size="36"
-                                                class="bg-sidebar-bg border-grey-lighten-2"
-                                            >
-                                                <v-icon
-                                                    icon="mdi-account"
-                                                ></v-icon>
-                                            </v-avatar>
-                                            <div v-if="authStore.user">
-                                                <h3
-                                                    class="text-subtitle-1 font-weight-bold"
-                                                >
-                                                    {{ authStore.user.name }}
-                                                </h3>
-                                                <p
-                                                    class="text-caption text-grey-darken-1"
-                                                >
-                                                    {{ authStore.user.email }}
-                                                </p>
-                                            </div>
-                                        </div>
-
-                                        <v-divider class="my-3"></v-divider>
-
-                                        <v-list class="py-0" :lines="false">
-                                            <v-list-item
-                                                color="primary"
-                                                class="px-0"
-                                                to="/settings/profile"
-                                            >
-                                                <template v-slot:prepend>
-                                                    <v-icon
-                                                        icon="mdi-cog"
-                                                    ></v-icon>
-                                                </template>
-
-                                                <v-list-item-title
-                                                    class="text-start"
-                                                >
-                                                    Settings
-                                                </v-list-item-title>
-                                            </v-list-item>
-                                            <v-list-item class="px-0" @click="handleLogout">
-                                                <template v-slot:prepend>
-                                                    <v-icon
-                                                        icon="mdi-logout"
-                                                        color="error"
-                                                    ></v-icon>
-                                                </template>
-
-                                                <v-list-item-title
-                                                    class="text-error text-start"
-                                                >
-                                                    Disconnect
-                                                </v-list-item-title>
-                                            </v-list-item>
-                                        </v-list>
-                                    </div>
-                                </v-card-text>
-                            </v-card>
-                        </v-menu>
+            <v-menu min-width="200px">
+              <template #activator="{ props }">
+                <v-btn icon v-bind="props">
+                  <v-avatar
+                    class="bg-sidebar-bg"
+                    size="large"
+                  >
+                    <v-icon icon="mdi-account" />
+                  </v-avatar>
+                </v-btn>
+              </template>
+              <v-card>
+                <v-card-text>
+                  <div class="pa-2">
+                    <div class="d-flex align-center ga-4">
+                      <v-avatar
+                        class="bg-sidebar-bg border-grey-lighten-2"
+                        size="36"
+                      >
+                        <v-icon
+                          icon="mdi-account"
+                        />
+                      </v-avatar>
+                      <div v-if="authStore.user">
+                        <h3
+                          class="text-subtitle-1 font-weight-bold"
+                        >
+                          {{ authStore.user.name }}
+                        </h3>
+                        <p
+                          class="text-caption text-grey-darken-1"
+                        >
+                          {{ authStore.user.email }}
+                        </p>
+                      </div>
                     </div>
-                </div>
-            </v-app-bar>
 
-            <v-navigation-drawer
-                v-model="drawer"
-                app
-                permanent
-                width="260"
-                color="sidebar-bg"
-                class="border-e-sm"
-            >
-                <v-list nav density="comfortable" class="list-container">
-                    <v-list-item
-                        v-for="item in navItems"
-                        :key="item.title"
-                        :value="item.title"
-                        :active="item.active.value"
-                        :to="item.to"
-                        variant="text"
-                        active-color="primary"
-                        class="nav-item"
-                    >
-                        <template v-slot:prepend>
-                            <v-icon
-                                :icon="item.icon"
-                                size="20"
-                                class="mr-0 ms-4"
-                            ></v-icon>
+                    <v-divider class="my-3" />
+
+                    <v-list class="py-0" :lines="false">
+                      <v-list-item
+                        class="px-0"
+                        color="primary"
+                        to="/settings/profile"
+                      >
+                        <template #prepend>
+                          <v-icon
+                            icon="mdi-cog"
+                          />
                         </template>
+
                         <v-list-item-title
-                            class="text-body-1 font-normal text-grey-darken-3"
-                            >{{ item.title }}</v-list-item-title
+                          class="text-start"
                         >
-                    </v-list-item>
-                </v-list>
+                          Settings
+                        </v-list-item-title>
+                      </v-list-item>
+                      <v-list-item
+                        class="px-0"
+                        @click="handleLogout"
+                      >
+                        <template #prepend>
+                          <v-icon
+                            color="error"
+                            icon="mdi-logout"
+                          />
+                        </template>
 
-                <template v-slot:append>
-                    <v-divider></v-divider>
-                    <div class="pa-4">
-                        <v-btn
-                            prepend-icon="mdi-plus"
-                            class="text-none"
-                            color="primary"
-                            size="large"
-                            block
-                            to="/wallets/create/"
+                        <v-list-item-title
+                          class="text-error text-start"
                         >
-                            Create Wallet
-                        </v-btn>
-                    </div>
-                </template>
-            </v-navigation-drawer>
+                          Disconnect
+                        </v-list-item-title>
+                      </v-list-item>
+                    </v-list>
+                  </div>
+                </v-card-text>
+              </v-card>
+            </v-menu>
+          </div>
+        </div>
+      </v-app-bar>
 
-            <v-main class="bg-background">
-                <v-container class="pa-4 pa-md-8">
-                    <router-view />
-                </v-container>
-            </v-main>
-        </v-layout>
-    </v-app>
+      <v-navigation-drawer
+        v-model="drawer"
+        app
+        class="border-e-sm"
+        color="sidebar-bg"
+        permanent
+        width="260"
+      >
+        <v-list class="list-container" density="comfortable" nav>
+          <v-list-item
+            v-for="item in navItems"
+            :key="item.title"
+            :active="item.active.value"
+            active-color="primary"
+            class="nav-item"
+            :to="item.to"
+            :value="item.title"
+            variant="text"
+          >
+            <template #prepend>
+              <v-icon
+                class="mr-0 ms-4"
+                :icon="item.icon"
+                size="20"
+              />
+            </template>
+            <v-list-item-title
+              class="text-body-1 font-normal text-grey-darken-3"
+            >{{ item.title }}</v-list-item-title>
+          </v-list-item>
+        </v-list>
+
+        <template #append>
+          <v-divider />
+          <div class="pa-4">
+            <v-btn
+              block
+              class="text-none"
+              color="primary"
+              prepend-icon="mdi-plus"
+              size="large"
+              to="/wallets/create/"
+            >
+              Create Wallet
+            </v-btn>
+          </div>
+        </template>
+      </v-navigation-drawer>
+
+      <v-main class="bg-background">
+        <v-container class="pa-4 pa-md-8">
+          <router-view />
+        </v-container>
+      </v-main>
+    </v-layout>
+  </v-app>
 </template>
 
 <style scoped>
