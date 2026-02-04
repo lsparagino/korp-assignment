@@ -7,17 +7,6 @@ use Illuminate\Http\Request;
 
 class DataController extends Controller
 {
-    public function wallets()
-    {
-        return response()->json([
-            'company' => 'Acme Corp',
-            'wallets' => [
-                ['id' => 1, 'name' => 'Main Wallet', 'currency' => 'USD', 'balance' => 7200.00, 'status' => 'Active'],
-                ['id' => 2, 'name' => 'EUR Wallet', 'currency' => 'EUR', 'balance' => 4500.00, 'status' => 'Active'],
-                ['id' => 3, 'name' => 'Marketing Wallet', 'currency' => 'USD', 'balance' => 5300.00, 'status' => 'Frozen'],
-            ],
-        ]);
-    }
 
     public function transactions()
     {

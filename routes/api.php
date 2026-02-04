@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\DataController;
 use App\Http\Controllers\Api\PasswordResetController;
 use App\Http\Controllers\Api\TwoFactorController;
 use App\Http\Controllers\Api\VerificationController;
+use App\Http\Controllers\Api\WalletController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -43,7 +44,10 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Data Routes
     Route::get('/dashboard', [DataController::class, 'dashboard']);
-    Route::get('/wallets', [DataController::class, 'wallets']);
     Route::get('/transactions', [DataController::class, 'transactions']);
     Route::get('/team-members', [DataController::class, 'team']);
+
+    // Wallet Routes
+    Route::apiResource('wallets', WalletController::class);
+    Route::patch('/wallets/{wallet}/toggle-freeze', [WalletController::class, 'toggleFreeze']);
 });

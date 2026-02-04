@@ -45,7 +45,7 @@ class WalletPolicy
      */
     public function delete(User $user, Wallet $wallet): bool
     {
-        return $user->isAdmin();
+        return $user->isAdmin() && $wallet->balance == 0;
     }
 
     /**
