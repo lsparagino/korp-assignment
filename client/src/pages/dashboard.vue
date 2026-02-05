@@ -1,11 +1,13 @@
 <script lang="ts" setup>
   import { Wallet } from 'lucide-vue-next'
-  import { computed, onMounted, ref } from 'vue'
+  import { computed, onMounted, ref, watch } from 'vue'
   import TransactionTable from '@/components/TransactionTable.vue'
   import api from '@/plugins/api'
   import { useAuthStore } from '@/stores/auth'
+  import { useCompanyStore } from '@/stores/company'
 
   const auth = useAuthStore()
+  const companyStore = useCompanyStore()
   const isAdmin = computed(() => auth.user?.role === 'admin')
   const totalBalances = ref<any[]>([])
   const topWallets = ref<any[]>([])
@@ -14,6 +16,9 @@
   const processing = ref(true)
 
   async function fetchDashboardData () {
+    if (!companyStore.currentCompany) return
+
+    processing.value = true
     try {
       const response = await api.get('/dashboard')
       totalBalances.value = response.data.balances.map((b: any) => ({
@@ -58,13 +63,20 @@
     return 'text-grey-darken-1'
   }
 
-  onMounted(fetchDashboardData)
+  onMounted(async () => {
+    await companyStore.fetchCompanies()
+    fetchDashboardData()
+  })
+
+  watch(() => companyStore.currentCompany, () => {
+    fetchDashboardData()
+  })
 </script>
 
 <template>
   <div class="mb-8">
     <h1 class="text-h5 font-weight-bold text-grey-darken-2">
-      Dashboard – Acme Corp
+      Dashboard
     </h1>
   </div>
 

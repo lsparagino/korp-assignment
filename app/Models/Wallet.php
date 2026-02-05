@@ -15,6 +15,7 @@ class Wallet extends Model
         'name',
         'currency',
         'status',
+        'company_id',
     ];
 
     protected function casts(): array
@@ -59,5 +60,10 @@ class Wallet extends Model
     public function hasTransactions(): bool
     {
         return $this->fromTransactions()->exists() || $this->toTransactions()->exists();
+    }
+
+    public function company(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(Company::class);
     }
 }

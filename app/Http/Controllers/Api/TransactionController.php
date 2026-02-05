@@ -11,21 +11,34 @@ class TransactionController extends Controller
     {
         $perPage = $request->input('per_page', 10);
         $perPage = min((int) $perPage, 500);
+        $companyId = $request->input('company_id');
+
+        if (! $companyId) {
+            return \App\Http\Resources\TransactionResource::collection(collect());
+        }
+
+        if (! $request->user()->companies()->where('companies.id', $companyId)->exists()) {
+            abort(403, 'Unauthorized access to company.');
+        }
 
         // Determine which wallets the user can see transactions for
+        // We must scope this to the selected company
         if ($request->user()->isAdmin()) {
-            $walletIds = $request->user()->wallets()->pluck('id');
+            // Admin sees all wallets in the company
+            $walletIds = \App\Models\Wallet::where('company_id', $companyId)->pluck('id');
         } else {
-            $walletIds = $request->user()->wallets()->pluck('id')
-                ->merge($request->user()->assignedWallets()->pluck('wallets.id'))
-                ->unique();
+            // Member sees their own wallets in the company + assigned wallets in the company
+            $ownedApi = $request->user()->wallets()->where('company_id', $companyId)->pluck('id');
+            $assignedApi = $request->user()->assignedWallets()->where('company_id', $companyId)->pluck('wallets.id');
+
+            $walletIds = $ownedApi->merge($assignedApi)->unique();
         }
 
         // Get transactions for those wallets
         $query = \App\Models\Transaction::query()
             ->where(function ($q) use ($walletIds) {
                 $q->whereIn('from_wallet_id', $walletIds)
-                  ->orWhereIn('to_wallet_id', $walletIds);
+                    ->orWhereIn('to_wallet_id', $walletIds);
             });
 
         // Apply filters
@@ -38,7 +51,7 @@ class TransactionController extends Controller
         }
 
         if ($request->filled('date_to')) {
-            $query->where('created_at', '<=', $request->date_to . ' 23:59:59');
+            $query->where('created_at', '<=', $request->date_to.' 23:59:59');
         }
 
         if ($request->filled('amount_min')) {
@@ -50,7 +63,7 @@ class TransactionController extends Controller
         }
 
         if ($request->filled('reference')) {
-            $query->where('reference', 'LIKE', '%' . $request->reference . '%');
+            $query->where('reference', 'LIKE', '%'.$request->reference.'%');
         }
 
         if ($request->filled('from_wallet_id')) {

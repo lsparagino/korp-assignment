@@ -12,9 +12,31 @@ class TeamMemberController extends Controller
      */
     public function index(Request $request)
     {
+        $companyId = $request->input('company_id');
+
+        if (! $companyId) {
+            return response()->json([
+                'company' => config('app.name'),
+                'members' => [],
+                'pagination' => [],
+            ]);
+        }
+
+        // Ensure current user belongs to company
+        if (! $request->user()->companies()->where('companies.id', $companyId)->exists()) {
+            abort(403);
+        }
+
         $users = \App\Models\User::query()
-            ->with(['assignedWallets'])
-            ->withCount('assignedWallets')
+            ->whereHas('companies', function ($q) use ($companyId) {
+                $q->where('companies.id', $companyId);
+            })
+            ->with(['assignedWallets' => function ($q) use ($companyId) {
+                $q->where('company_id', $companyId);
+            }])
+            ->withCount(['assignedWallets' => function ($q) use ($companyId) {
+                $q->where('company_id', $companyId);
+            }])
             ->orderBy('name')
             ->paginate(10);
 
@@ -45,6 +67,11 @@ class TeamMemberController extends Controller
      */
     public function store(\App\Http\Requests\StoreTeamMemberRequest $request)
     {
+        $companyId = $request->input('company_id');
+        if (! $companyId || ! $request->user()->companies()->where('companies.id', $companyId)->exists()) {
+            abort(403, 'Unauthorized access to company.');
+        }
+
         $token = \Illuminate\Support\Str::random(64);
 
         $user = \App\Models\User::create([
@@ -55,6 +82,8 @@ class TeamMemberController extends Controller
             'invitation_token' => $token,
             'invited_at' => now(),
         ]);
+
+        $user->companies()->attach($companyId);
 
         if ($request->has('wallets')) {
             $user->assignedWallets()->sync($request->wallets);

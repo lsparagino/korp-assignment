@@ -44,6 +44,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user/two-factor-recovery-codes', [TwoFactorController::class, 'recoveryCodes']);
     Route::post('/user/two-factor-recovery-codes', [TwoFactorController::class, 'regenerateRecoveryCodes']);
 
+    // Company Routes
+    Route::get('/companies', [\App\Http\Controllers\Api\CompanyController::class, 'index']);
+
     // Data Routes
     Route::get('/dashboard', [DataController::class, 'dashboard'])->name('dashboard');
     Route::get('/transactions', [\App\Http\Controllers\Api\TransactionController::class, 'index']);

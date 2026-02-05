@@ -79,6 +79,11 @@ class User extends Authenticatable
         return $this->belongsToMany(Wallet::class, 'wallet_user');
     }
 
+    public function companies(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(Company::class, 'company_user')->withTimestamps();
+    }
+
     /**
      * Determine if the user has a pending invitation.
      */

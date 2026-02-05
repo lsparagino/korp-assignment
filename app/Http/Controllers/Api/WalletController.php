@@ -21,10 +21,21 @@ class WalletController extends Controller
 
         $perPage = $request->input('per_page', 10);
         $perPage = min((int) $perPage, 500);
+        $companyId = $request->input('company_id');
 
-        $query = $request->user()->isAdmin() 
-            ? $request->user()->wallets() 
-            : $request->user()->assignedWallets();
+        if (! $companyId) {
+            // Fallback or empty if company is required
+            return WalletResource::collection(collect());
+        }
+
+        // Ensure user belongs to this company
+        if (! $request->user()->companies()->where('companies.id', $companyId)->exists()) {
+            abort(403, 'Unauthorized access to company.');
+        }
+
+        $query = $request->user()->isAdmin()
+            ? Wallet::where('company_id', $companyId)
+            : $request->user()->assignedWallets()->where('company_id', $companyId);
 
         return WalletResource::collection(
             $query->latest()->paginate($perPage)
@@ -40,10 +51,16 @@ class WalletController extends Controller
             'currency' => ['required', 'string', \Illuminate\Validation\Rule::enum(\App\Enums\WalletCurrency::class)],
         ]);
 
+        $companyId = $request->input('company_id');
+        if (! $companyId || ! $request->user()->companies()->where('companies.id', $companyId)->exists()) {
+            abort(403, 'Unauthorized access to company.');
+        }
+
         $wallet = $request->user()->wallets()->create([
             ...$validated,
             'balance' => 0,
             'status' => WalletStatus::Active,
+            'company_id' => $companyId,
         ]);
 
         return new WalletResource($wallet);
@@ -75,8 +92,8 @@ class WalletController extends Controller
         $this->authorize('update', $wallet);
 
         $wallet->update([
-            'status' => $wallet->status === WalletStatus::Active 
-                ? WalletStatus::Frozen 
+            'status' => $wallet->status === WalletStatus::Active
+                ? WalletStatus::Frozen
                 : WalletStatus::Active,
         ]);
 

@@ -11,11 +11,19 @@ const api = axios.create({
 })
 
 // Request Interceptor
+import { useCompanyStore } from '@/stores/company'
+
 api.interceptors.request.use(config => {
   const authStore = useAuthStore()
   if (authStore.token) {
     config.headers.Authorization = `Bearer ${authStore.token}`
   }
+
+  const companyStore = useCompanyStore()
+  if (companyStore.currentCompany) {
+    config.params = { ...config.params, company_id: companyStore.currentCompany.id }
+  }
+
   return config
 })
 

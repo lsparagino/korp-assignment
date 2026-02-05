@@ -7,14 +7,16 @@
     Users,
     Wallet,
   } from 'lucide-vue-next'
-  import { computed, ref } from 'vue'
+  import { computed, onMounted, ref } from 'vue'
   import { useRoute, useRouter } from 'vue-router'
   import AppLogo from '@/components/AppLogo.vue'
   import { useAuthStore } from '@/stores/auth'
+  import { useCompanyStore } from '@/stores/company'
 
   const route = useRoute()
   const router = useRouter()
   const authStore = useAuthStore()
+  const companyStore = useCompanyStore()
   const drawer = ref(true)
 
   interface NavItem {
@@ -59,8 +61,9 @@
     })
   })
 
-  const selectedCompany = ref('Acme Corp')
-  const companies = ['Acme Corp', 'Globex Inc', 'Soylent Corp']
+  onMounted(() => {
+    companyStore.fetchCompanies()
+  })
 
   async function handleLogout () {
     // In a real app, you'd call the API logout first
@@ -80,7 +83,7 @@
 
           <div class="d-flex align-center ga-4 px-6">
             <!-- Company Selector -->
-            <v-menu offset-y>
+            <v-menu v-if="companyStore.hasCompanies" offset-y>
               <template #activator="{ props }">
                 <v-btn
                   class="text-none border-grey-lighten-2 text-grey-darken-3"
@@ -88,18 +91,18 @@
                   v-bind="props"
                   variant="outlined"
                 >
-                  {{ selectedCompany }}
+                  {{ companyStore.currentCompany?.name || 'Select Company' }}
                   <v-icon end :icon="ChevronDown" size="18" />
                 </v-btn>
               </template>
               <v-list>
                 <v-list-item
-                  v-for="company in companies"
-                  :key="company"
-                  @click="selectedCompany = company"
+                  v-for="company in companyStore.companies"
+                  :key="company.id"
+                  @click="companyStore.setCompany(company)"
                 >
                   <v-list-item-title>{{
-                    company
+                    company.name
                   }}</v-list-item-title>
                 </v-list-item>
               </v-list>
