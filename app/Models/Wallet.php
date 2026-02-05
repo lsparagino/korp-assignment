@@ -44,6 +44,15 @@ class Wallet extends Model
     {
         $out = $this->fromTransactions()->sum('amount');
         $in = $this->toTransactions()->sum('amount');
+
         return (float) ($out - $in);
+    }
+
+    /**
+     * The members assigned to this wallet.
+     */
+    public function members(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'wallet_user');
     }
 }

@@ -24,6 +24,8 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
+        'invitation_token',
+        'invited_at',
     ];
 
     /**
@@ -50,6 +52,7 @@ class User extends Authenticatable
             'password' => 'hashed',
             'two_factor_confirmed_at' => 'datetime',
             'role' => \App\Enums\UserRole::class,
+            'invited_at' => 'datetime',
         ];
     }
 
@@ -66,5 +69,21 @@ class User extends Authenticatable
     public function wallets(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(Wallet::class);
+    }
+
+    /**
+     * The wallets assigned to this member.
+     */
+    public function assignedWallets(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(Wallet::class, 'wallet_user');
+    }
+
+    /**
+     * Determine if the user has a pending invitation.
+     */
+    public function getIsPendingAttribute(): bool
+    {
+        return $this->invitation_token !== null;
     }
 }

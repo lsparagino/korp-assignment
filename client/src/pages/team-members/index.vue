@@ -2,16 +2,43 @@
   import { ExternalLink } from 'lucide-vue-next'
   import { onMounted, ref } from 'vue'
   import api from '@/plugins/api'
+  import TeamMemberModal from '@/components/TeamMemberModal.vue'
+  import Pagination from '@/components/Pagination.vue'
+  import ConfirmDialog from '@/components/ConfirmDialog.vue'
+  import { useAuthStore } from '@/stores/auth'
 
+  const authStore = useAuthStore()
   const company = ref('')
   const members = ref<any[]>([])
   const processing = ref(true)
+  const showModal = ref(false)
+  const selectedUser = ref<any>(null)
+  
+  const paginationData = ref({
+    currentPage: 1,
+    lastPage: 1,
+    total: 0
+  })
 
-  async function fetchTeam () {
+  const confirmDialog = ref({
+    show: false,
+    title: '',
+    message: '',
+    requiresPin: false,
+    onConfirm: () => {},
+  })
+
+  async function fetchTeam (page = 1) {
+    processing.value = true
     try {
-      const response = await api.get('/team-members')
+      const response = await api.get('/team-members', { params: { page } })
       company.value = response.data.company
       members.value = response.data.members
+      paginationData.value = {
+        currentPage: response.data.pagination.current_page,
+        lastPage: response.data.pagination.last_page,
+        total: response.data.pagination.total
+      }
     } catch (error) {
       console.error('Error fetching team:', error)
     } finally {
@@ -19,12 +46,25 @@
     }
   }
 
+  function openCreateModal () {
+    selectedUser.value = null
+    showModal.value = true
+  }
+
+  function openEditModal (member: any) {
+    // We need to fetch the member details or use the list data.
+    // The list data doesn't have the assigned wallet IDs currently.
+    // Let's assume the index returns them or handles them.
+    selectedUser.value = member
+    showModal.value = true
+  }
+
   function getRoleColor (role: string) {
-    switch (role) {
-      case 'Admin': {
+    switch (role.toLowerCase()) {
+      case 'admin': {
         return 'grey-lighten-2'
       }
-      case 'Member': {
+      case 'member': {
         return 'blue-lighten-4'
       }
       default: {
@@ -34,11 +74,11 @@
   }
 
   function getRoleTextColor (role: string) {
-    switch (role) {
-      case 'Admin': {
+    switch (role.toLowerCase()) {
+      case 'admin': {
         return 'grey-darken-3'
       }
-      case 'Member': {
+      case 'member': {
         return 'blue-darken-3'
       }
       default: {
@@ -47,7 +87,24 @@
     }
   }
 
-  onMounted(fetchTeam)
+  function deleteMember (member: any) {
+    confirmDialog.value = {
+      show: true,
+      title: 'Delete Member',
+      message: `Are you sure you want to permanently delete ${member.name}? This action cannot be undone.`,
+      requiresPin: true,
+      onConfirm: async () => {
+        try {
+          await api.delete(`/team-members/${member.id}`)
+          fetchTeam(paginationData.value.currentPage)
+        } catch (error) {
+          console.error('Error deleting member:', error)
+        }
+      }
+    }
+  }
+
+  onMounted(() => fetchTeam())
 </script>
 
 <template>
@@ -56,11 +113,13 @@
       Team Members - {{ company }}
     </h1>
     <v-btn
+      v-if="authStore.user?.role === 'admin'"
       class="text-none font-weight-bold"
       color="primary"
       prepend-icon="mdi-plus"
       rounded="lg"
       variant="flat"
+      @click="openCreateModal"
     >
       Add Member
     </v-btn>
@@ -91,7 +150,7 @@
             Wallet Access
           </th>
           <th
-            class="text-grey-darken-1 text-uppercase text-caption font-weight-bold text-left"
+            class="text-grey-darken-1 text-uppercase text-caption font-weight-bold text-right"
           >
             Actions
           </th>
@@ -101,6 +160,24 @@
         <tr v-for="member in members" :key="member.id">
           <td class="font-weight-bold text-grey-darken-3">
             {{ member.name }}
+            <v-chip
+              v-if="member.is_current"
+              class="ms-2"
+              color="grey-lighten-4"
+              size="x-small"
+              variant="flat"
+            >
+              YOU
+            </v-chip>
+            <v-chip
+              v-if="member.is_pending"
+              class="ms-2 text-uppercase"
+              color="orange-lighten-5"
+              size="x-small"
+              variant="flat"
+            >
+              <span class="text-orange-darken-3 font-weight-bold">Pending Invitation</span>
+            </v-chip>
           </td>
           <td class="text-grey-darken-2">{{ member.email }}</td>
           <td>
@@ -128,39 +205,60 @@
               >{{ member.wallet_access }}</span>
             </v-chip>
           </td>
-          <td>
-            <v-btn
-              class="text-none font-weight-black"
-              color="primary"
-              density="compact"
-              variant="text"
-            >
-              EDIT
-              <v-icon
-                class="ms-1"
-                end
-                :icon="ExternalLink"
-                size="14"
+          <td class="text-right">
+            <div class="d-flex justify-end ga-2">
+              <v-btn
+                v-if="!member.is_current && member.role === 'Member'"
+                color="primary"
+                density="comfortable"
+                icon="mdi-pencil"
+                size="small"
+                variant="text"
+                @click="openEditModal(member)"
               />
-            </v-btn>
+              <v-btn
+                v-if="!member.is_current && member.role === 'Member'"
+                color="error"
+                density="comfortable"
+                icon="mdi-delete"
+                size="small"
+                variant="text"
+                @click="deleteMember(member)"
+              />
+            </div>
           </td>
         </tr>
       </tbody>
     </v-table>
 
-    <div
-      class="pa-4 d-flex align-center justify-space-between bg-grey-lighten-5 border-t"
-    >
-      <span class="text-caption text-grey-darken-1">Showing {{ members.length }} of 100</span>
-      <v-pagination
-        active-color="primary"
-        class="my-0"
-        density="compact"
-        :length="3"
-        rounded="sm"
+    <div class="border-t">
+      <Pagination
+        :meta="{
+          current_page: paginationData.currentPage,
+          last_page: paginationData.lastPage,
+          per_page: 10,
+          total: paginationData.total,
+          from: (paginationData.currentPage - 1) * 10 + 1,
+          to: Math.min(paginationData.currentPage * 10, paginationData.total),
+        }"
+        @update:page="fetchTeam"
       />
     </div>
   </v-card>
+
+  <TeamMemberModal
+    v-model="showModal"
+    :user="selectedUser"
+    @saved="fetchTeam"
+  />
+
+  <ConfirmDialog
+    v-model="confirmDialog.show"
+    :message="confirmDialog.message"
+    :requires-pin="confirmDialog.requiresPin"
+    :title="confirmDialog.title"
+    @confirm="confirmDialog.onConfirm"
+  />
 </template>
 
 <route lang="yaml">

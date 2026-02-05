@@ -12,11 +12,18 @@ class TransactionController extends Controller
         $perPage = $request->input('per_page', 10);
         $perPage = min((int) $perPage, 500);
 
-        // Get transactions for all wallets owned by the user
+        // Determine which wallets the user can see transactions for
+        if ($request->user()->isAdmin()) {
+            $walletIds = $request->user()->wallets()->pluck('id');
+        } else {
+            $walletIds = $request->user()->assignedWallets()->pluck('id');
+        }
+
+        // Get transactions for those wallets
         $query = \App\Models\Transaction::query()
-            ->where(function ($q) use ($request) {
-                $q->whereIn('from_wallet_id', $request->user()->wallets()->pluck('id'))
-                  ->orWhereIn('to_wallet_id', $request->user()->wallets()->pluck('id'));
+            ->where(function ($q) use ($walletIds) {
+                $q->whereIn('from_wallet_id', $walletIds)
+                  ->orWhereIn('to_wallet_id', $walletIds);
             });
 
         // Apply filters

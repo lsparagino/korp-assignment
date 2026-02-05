@@ -19,6 +19,7 @@ declare module 'vue-router/auto-routes' {
    */
   export interface RouteNamedMap {
     '/': RouteRecordInfo<'/', '/', Record<never, never>, Record<never, never>>,
+    '/auth/accept-invitation': RouteRecordInfo<'/auth/accept-invitation', '/auth/accept-invitation', Record<never, never>, Record<never, never>>,
     '/auth/confirm-password': RouteRecordInfo<'/auth/confirm-password', '/auth/confirm-password', Record<never, never>, Record<never, never>>,
     '/auth/forgot-password': RouteRecordInfo<'/auth/forgot-password', '/auth/forgot-password', Record<never, never>, Record<never, never>>,
     '/auth/login': RouteRecordInfo<'/auth/login', '/auth/login', Record<never, never>, Record<never, never>>,
@@ -50,6 +51,10 @@ declare module 'vue-router/auto-routes' {
   export interface _RouteFileInfoMap {
     'src/pages/index.vue': {
       routes: '/'
+      views: never
+    }
+    'src/pages/auth/accept-invitation.vue': {
+      routes: '/auth/accept-invitation'
       views: never
     }
     'src/pages/auth/confirm-password.vue': {

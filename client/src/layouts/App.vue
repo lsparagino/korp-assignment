@@ -17,7 +17,15 @@
   const authStore = useAuthStore()
   const drawer = ref(true)
 
-  const navItems = [
+  interface NavItem {
+    title: string
+    icon: any
+    to: string
+    active: import('vue').ComputedRef<boolean>
+    role?: string
+  }
+
+  const navItems: NavItem[] = [
     {
       title: 'Dashboard',
       icon: LayoutDashboard,
@@ -29,7 +37,6 @@
       icon: Wallet,
       to: '/wallets/',
       active: computed(() => route.path.startsWith('/wallets')),
-      role: 'admin',
     },
     {
       title: 'Transactions',
@@ -42,7 +49,6 @@
       icon: Users,
       to: '/team-members/',
       active: computed(() => route.path.startsWith('/team-members')),
-      role: 'admin',
     },
   ]
 

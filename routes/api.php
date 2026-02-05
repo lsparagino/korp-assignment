@@ -45,7 +45,8 @@ Route::middleware('auth:sanctum')->group(function () {
     // Data Routes
     Route::get('/dashboard', [DataController::class, 'dashboard']);
     Route::get('/transactions', [\App\Http\Controllers\Api\TransactionController::class, 'index']);
-    Route::get('/team-members', [DataController::class, 'team']);
+    // Team Routes
+    Route::apiResource('team-members', \App\Http\Controllers\Api\TeamMemberController::class)->except(['show']);
 
     // Wallet Routes
     Route::apiResource('wallets', WalletController::class);

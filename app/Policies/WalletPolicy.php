@@ -21,7 +21,11 @@ class WalletPolicy
      */
     public function view(User $user, Wallet $wallet): bool
     {
-        return true;
+        if ($user->isAdmin()) {
+            return $wallet->user_id === $user->id;
+        }
+
+        return $user->assignedWallets()->where('wallet_id', $wallet->id)->exists();
     }
 
     /**
