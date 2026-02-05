@@ -1,10 +1,13 @@
 <script lang="ts" setup>
   import { Calendar, ChevronDown } from 'lucide-vue-next'
-  import { reactive, ref } from 'vue'
+  import { reactive, ref, watch } from 'vue'
+  import { useRoute, useRouter } from 'vue-router'
   import api from '@/plugins/api'
   import { usePagination } from '@/composables/usePagination'
   import Pagination from '@/components/Pagination.vue'
 
+  const route = useRoute()
+  const router = useRouter()
   const company = ref('')
   const transactions = ref<any[]>([])
   const processing = ref(false)
@@ -17,6 +20,45 @@
 
   const types = ['All', 'Debit', 'Credit']
 
+  const dateFromMenu = ref(false)
+  const dateToMenu = ref(false)
+  const dateFromValue = ref<any>(null)
+  const dateToValue = ref<any>(null)
+
+  // Sync date values from strings to Date objects when filterForm changes (e.g. on load)
+  watch(() => filterForm.date_from, (val) => {
+    if (val && !dateFromValue.value) {
+      dateFromValue.value = new Date(val)
+    } else if (!val) {
+      dateFromValue.value = null
+    }
+  })
+
+  watch(() => filterForm.date_to, (val) => {
+    if (val && !dateToValue.value) {
+      dateToValue.value = new Date(val)
+    } else if (!val) {
+      dateToValue.value = null
+    }
+  })
+
+  function onDateSelected (type: 'from' | 'to', value: any) {
+    if (!value) {
+      return
+    }
+
+    const date = new Date(value)
+    const formatted = date.toISOString().split('T')[0] as string
+
+    if (type === 'from') {
+      filterForm.date_from = formatted
+      dateFromMenu.value = false
+    } else {
+      filterForm.date_to = formatted
+      dateToMenu.value = false
+    }
+  }
+
   const {
     meta,
     handlePageChange,
@@ -24,12 +66,20 @@
     refresh
   } = usePagination(async (params) => {
     processing.value = true
+
+    // Sync filterForm with URL query params
+    filterForm.date_from = (route.query.date_from as string) || ''
+    filterForm.date_to = (route.query.date_to as string) || ''
+    const queryType = (route.query.type as string) || 'All'
+    filterForm.type = queryType.charAt(0).toUpperCase() + queryType.slice(1).toLowerCase()
+
     try {
       const response = await api.get('/transactions', {
         params: {
           ...params,
-          ...filterForm,
-          type: filterForm.type === 'All' ? undefined : filterForm.type.toLowerCase()
+          date_from: route.query.date_from,
+          date_to: route.query.date_to,
+          type: route.query.type
         }
       })
       
@@ -60,16 +110,28 @@
   })
 
   function handleFilter () {
-    handlePageChange(1) // Reset to page 1 and trigger fetch via URL change
+    const query = {
+      ...route.query,
+      page: '1',
+      date_from: filterForm.date_from || undefined,
+      date_to: filterForm.date_to || undefined,
+      type: filterForm.type === 'All' ? undefined : filterForm.type.toLowerCase()
+    }
+
+    // Remove undefined keys
+    Object.keys(query).forEach(key => (query as any)[key] === undefined && delete (query as any)[key])
+
+    router.push({ query })
   }
 
   function clearFilters () {
-    Object.assign(filterForm, {
-      date_from: '',
-      date_to: '',
-      type: 'All',
-    })
-    handlePageChange(1)
+    const query = { ...route.query }
+    delete query.date_from
+    delete query.date_to
+    delete query.type
+    query.page = '1'
+
+    router.push({ query })
   }
 </script>
 
@@ -90,22 +152,40 @@
           >
             Date From
           </label>
-          <v-text-field
-            v-model="filterForm.date_from"
-            density="comfortable"
-            hide-details
-            placeholder="YYYY-MM-DD"
-            rounded="lg"
-            variant="outlined"
+          <v-menu
+            v-model="dateFromMenu"
+            :close-on-content-click="false"
+            location="bottom"
+            min-width="auto"
+            transition="scale-transition"
           >
-            <template #append-inner>
-              <v-icon
-                color="grey-darken-1"
-                :icon="Calendar"
-                size="18"
-              />
+            <template #activator="{ props }">
+              <v-text-field
+                v-model="filterForm.date_from"
+                v-bind="props"
+                density="comfortable"
+                hide-details
+                placeholder="YYYY-MM-DD"
+                readonly
+                rounded="lg"
+                variant="outlined"
+              >
+                <template #append-inner>
+                  <v-icon
+                    color="grey-darken-1"
+                    :icon="Calendar"
+                    size="18"
+                  />
+                </template>
+              </v-text-field>
             </template>
-          </v-text-field>
+            <v-date-picker
+              v-model="dateFromValue"
+              color="primary"
+              hide-header
+              @update:model-value="onDateSelected('from', $event)"
+            />
+          </v-menu>
         </v-col>
 
         <v-col cols="12" md="4">
@@ -114,22 +194,40 @@
           >
             Date To
           </label>
-          <v-text-field
-            v-model="filterForm.date_to"
-            density="comfortable"
-            hide-details
-            placeholder="YYYY-MM-DD"
-            rounded="lg"
-            variant="outlined"
+          <v-menu
+            v-model="dateToMenu"
+            :close-on-content-click="false"
+            location="bottom"
+            min-width="auto"
+            transition="scale-transition"
           >
-            <template #append-inner>
-              <v-icon
-                color="grey-darken-1"
-                :icon="Calendar"
-                size="18"
-              />
+            <template #activator="{ props }">
+              <v-text-field
+                v-model="filterForm.date_to"
+                v-bind="props"
+                density="comfortable"
+                hide-details
+                placeholder="YYYY-MM-DD"
+                readonly
+                rounded="lg"
+                variant="outlined"
+              >
+                <template #append-inner>
+                  <v-icon
+                    color="grey-darken-1"
+                    :icon="Calendar"
+                    size="18"
+                  />
+                </template>
+              </v-text-field>
             </template>
-          </v-text-field>
+            <v-date-picker
+              v-model="dateToValue"
+              color="primary"
+              hide-header
+              @update:model-value="onDateSelected('to', $event)"
+            />
+          </v-menu>
         </v-col>
 
         <v-col cols="12" md="4">
