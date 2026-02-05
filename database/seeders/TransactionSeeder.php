@@ -22,13 +22,31 @@ class TransactionSeeder extends Seeder
             $matchingWallets = $wallets->where('currency', $wallet->currency)
                 ->where('id', '!=', $wallet->id);
 
-            if ($matchingWallets->isEmpty()) {
-                continue;
+            // Internal transactions
+            // Only create internal transactions if there are matching wallets of the same currency
+            if ($matchingWallets->isNotEmpty()) {
+                \App\Models\Transaction::factory(8)->create([
+                    'from_wallet_id' => $wallet->id,
+                    'to_wallet_id' => $matchingWallets->random()->id,
+                    'external' => false,
+                ]);
             }
 
-            \App\Models\Transaction::factory(10)->create([
+
+            // External Outbound
+            \App\Models\Transaction::factory(1)->create([
                 'from_wallet_id' => $wallet->id,
-                'to_wallet_id' => $matchingWallets->random()->id,
+                'to_wallet_id' => null,
+                'type' => \App\Enums\TransactionType::Debit,
+                'external' => true,
+            ]);
+
+            // External Inbound
+            \App\Models\Transaction::factory(1)->create([
+                'from_wallet_id' => null,
+                'to_wallet_id' => $wallet->id,
+                'type' => \App\Enums\TransactionType::Credit,
+                'external' => true,
             ]);
         }
     }

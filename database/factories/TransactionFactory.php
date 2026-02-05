@@ -16,13 +16,15 @@ class TransactionFactory extends Factory
      */
     public function definition(): array
     {
-        $amount = $this->faker->randomFloat(2, -1000, 1000);
-        $type = $amount >= 0 ? \App\Enums\TransactionType::Credit : \App\Enums\TransactionType::Debit;
         $date = $this->faker->dateTimeBetween('-1 year', 'now');
 
         return [
-            'amount' => $amount,
-            'type' => $type,
+            'type' => $this->faker->randomElement([\App\Enums\TransactionType::Credit, \App\Enums\TransactionType::Debit]),
+            'amount' => function (array $attributes) {
+                // Ensure magnitude is positive, then apply sign based on type
+                $magnitude = abs($this->faker->randomFloat(2, 1, 1000));
+                return $attributes['type'] === \App\Enums\TransactionType::Debit ? -$magnitude : $magnitude;
+            },
             'reference' => $this->faker->sentence(4),
             'from_wallet_id' => \App\Models\Wallet::factory(),
             'to_wallet_id' => function (array $attributes) {

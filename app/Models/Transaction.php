@@ -16,6 +16,7 @@ class Transaction extends Model
         'type',
         'amount',
         'reference',
+        'external',
     ];
 
     protected function casts(): array
@@ -23,6 +24,7 @@ class Transaction extends Model
         return [
             'type' => \App\Enums\TransactionType::class,
             'amount' => 'decimal:2',
+            'external' => 'boolean',
         ];
     }
 

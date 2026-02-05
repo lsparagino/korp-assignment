@@ -37,6 +37,8 @@
   }
 
   function getAmountColor (item: any) {
+    if (item.to_wallet_id === null) return 'text-red-darken-1'
+    if (item.from_wallet_id === null) return 'text-green-darken-1'
     return item.type.toLowerCase() === 'debit' ? 'text-red-darken-1' : 'text-green-darken-1'
   }
 
@@ -101,7 +103,7 @@
               <span
                 class="text-caption font-weight-medium"
                 :class="isAssigned(item.from_wallet_id) ? 'text-grey-darken-2' : 'text-grey-lighten-1'"
-              >{{ item.from_wallet?.name || 'External' }}</span>
+              >{{ item.from_wallet?.name || 'EXTERNAL' }}</span>
             </div>
           </td>
           <td>
@@ -121,7 +123,7 @@
               <span
                 class="text-caption font-weight-medium"
                 :class="isAssigned(item.to_wallet_id) ? 'text-grey-darken-2' : 'text-grey-lighten-1'"
-              >{{ item.to_wallet?.name || 'External' }}</span>
+              >{{ item.to_wallet?.name || 'EXTERNAL' }}</span>
             </div>
           </td>
           <td class="text-grey-darken-3 font-weight-bold">

@@ -45,7 +45,7 @@ class Wallet extends Model
         $out = $this->fromTransactions()->sum('amount');
         $in = $this->toTransactions()->sum('amount');
 
-        return (float) ($out - $in);
+        return (float) ($this->toTransactions()->sum('amount') + $this->fromTransactions()->sum('amount'));
     }
 
     /**
