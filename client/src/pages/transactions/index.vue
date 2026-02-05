@@ -231,7 +231,7 @@
               </v-avatar>
               <span
                 class="text-caption text-grey-darken-2 font-weight-medium"
-              >{{ item.from_wallet?.name || 'External' }}</span>
+              >{{ item.to_wallet?.name || 'External' }}</span>
             </div>
           </td>
           <td class="text-grey-darken-3 font-weight-bold">

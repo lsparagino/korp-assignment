@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('transactions', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('from_wallet_id')->nullable()->constrained('wallets')->onDelete('cascade');
-            $table->foreignId('to_wallet_id')->nullable()->constrained('wallets')->onDelete('cascade');
+            $table->foreignId('from_wallet_id')->constrained('wallets')->onDelete('cascade');
+            $table->foreignId('to_wallet_id')->constrained('wallets')->onDelete('cascade');
             $table->string('type'); // credit / debit
             $table->decimal('amount', 15, 2);
             $table->string('reference')->nullable();

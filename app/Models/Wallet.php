@@ -14,7 +14,6 @@ class Wallet extends Model
         'user_id',
         'name',
         'currency',
-        'balance',
         'status',
     ];
 
@@ -23,12 +22,28 @@ class Wallet extends Model
         return [
             'currency' => \App\Enums\WalletCurrency::class,
             'status' => \App\Enums\WalletStatus::class,
-            'balance' => 'decimal:2',
         ];
     }
 
     public function user(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function fromTransactions(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Transaction::class, 'from_wallet_id');
+    }
+
+    public function toTransactions(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Transaction::class, 'to_wallet_id');
+    }
+
+    public function getBalanceAttribute(): float
+    {
+        $out = $this->fromTransactions()->sum('amount');
+        $in = $this->toTransactions()->sum('amount');
+        return (float) ($out - $in);
     }
 }

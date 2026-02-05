@@ -18,10 +18,9 @@ class WalletFactory extends Factory
     {
         return [
             'user_id' => \App\Models\User::factory(),
-            'name' => $this->faker->words(2, true),
+            'name' => $this->faker->randomElement(['Savings', 'Offshore', 'Business', 'Person A', 'Person B']),
             'currency' => $this->faker->randomElement(\App\Enums\WalletCurrency::cases()),
             'status' => $this->faker->randomElement(\App\Enums\WalletStatus::cases()),
-            'balance' => $this->faker->randomFloat(2, 0, 10000),
         ];
     }
 }

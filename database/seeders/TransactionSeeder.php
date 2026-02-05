@@ -12,10 +12,17 @@ class TransactionSeeder extends Seeder
      */
     public function run(): void
     {
-        \App\Models\Wallet::all()->each(function (\App\Models\Wallet $wallet) {
+        $wallets = \App\Models\Wallet::all();
+
+        if ($wallets->count() < 2) {
+            return;
+        }
+
+        foreach ($wallets as $wallet) {
             \App\Models\Transaction::factory(10)->create([
                 'from_wallet_id' => $wallet->id,
+                'to_wallet_id' => $wallets->where('id', '!=', $wallet->id)->random()->id,
             ]);
-        });
+        }
     }
 }

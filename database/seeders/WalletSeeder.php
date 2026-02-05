@@ -17,8 +17,13 @@ class WalletSeeder extends Seeder
             'email' => 'test@example.com',
         ]);
 
-        \App\Models\Wallet::factory()->count(3)->create([
-            'user_id' => $user->id,
-        ]);
+        $names = ['Savings', 'Offshore', 'Business', 'Person A', 'Person B'];
+
+        foreach ($names as $name) {
+            \App\Models\Wallet::factory()->create([
+                'user_id' => $user->id,
+                'name' => $name,
+            ]);
+        }
     }
 }
