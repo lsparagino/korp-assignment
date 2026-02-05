@@ -8,9 +8,9 @@ class InvitationController extends Controller
     {
         $user = \App\Models\User::where('invitation_token', $token)->firstOrFail();
 
-        return \Inertia\Inertia::render('auth/accept-invitation', [
-            'token' => $token,
+        return response()->json([
             'email' => $user->email,
+            'name' => $user->name,
         ]);
     }
 
@@ -28,8 +28,13 @@ class InvitationController extends Controller
             'email_verified_at' => now(),
         ]);
 
-        auth()->login($user);
+        $token = $user->createToken('auth_token')->plainTextToken;
 
-        return redirect()->intended(route('dashboard', absolute: false));
+        return response()->json([
+            'message' => 'Account activated successfully',
+            'user' => $user,
+            'access_token' => $token,
+            'token_type' => 'Bearer',
+        ]);
     }
 }

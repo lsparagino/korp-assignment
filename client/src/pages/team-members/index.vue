@@ -1,6 +1,6 @@
 <script lang="ts" setup>
   import { ExternalLink } from 'lucide-vue-next'
-  import { onMounted, ref } from 'vue'
+  import { onMounted, ref, computed } from 'vue'
   import api from '@/plugins/api'
   import TeamMemberModal from '@/components/TeamMemberModal.vue'
   import Pagination from '@/components/Pagination.vue'
@@ -8,6 +8,7 @@
   import { useAuthStore } from '@/stores/auth'
 
   const authStore = useAuthStore()
+  const isAdmin = computed(() => authStore.user?.role === 'admin')
   const company = ref('')
   const members = ref<any[]>([])
   const processing = ref(true)
@@ -113,7 +114,7 @@
       Team Members - {{ company }}
     </h1>
     <v-btn
-      v-if="authStore.user?.role === 'admin'"
+      v-if="isAdmin"
       class="text-none font-weight-bold"
       color="primary"
       prepend-icon="mdi-plus"
@@ -150,6 +151,7 @@
             Wallet Access
           </th>
           <th
+            v-if="isAdmin"
             class="text-grey-darken-1 text-uppercase text-caption font-weight-bold text-right"
           >
             Actions
@@ -205,7 +207,7 @@
               >{{ member.wallet_access }}</span>
             </v-chip>
           </td>
-          <td class="text-right">
+          <td v-if="isAdmin" class="text-right">
             <div class="d-flex justify-end ga-2">
               <v-btn
                 v-if="!member.is_current && member.role === 'Member'"

@@ -80,27 +80,13 @@ class DataController extends Controller
             ->latest()
             ->limit(10)
             ->with(['fromWallet', 'toWallet'])
-            ->get()
-            ->map(function ($t) use ($walletIds) {
-                // Determine if this is a Debit or Credit relative to the user's view
-                // Actually, let's just use the absolute amount and the type from the transaction
-                // But for the dashboard, "To/From" should be clear.
-                return [
-                    'id' => $t->id,
-                    'date' => $t->created_at->format('Y-m-d'),
-                    'from' => $t->fromWallet->name,
-                    'to' => $t->toWallet->name,
-                    'amount' => (float) $t->amount,
-                    'currency' => $t->fromWallet->currency->value,
-                    'type' => $t->type->value,
-                ];
-            });
+            ->get();
 
         return response()->json([
             'balances' => $balancesByCurrency,
             'top_wallets' => $top3,
             'others' => $othersAggregated,
-            'transactions' => $recentTransactions,
+            'transactions' => \App\Http\Resources\TransactionResource::collection($recentTransactions),
         ]);
     }
 }

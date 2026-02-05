@@ -16,7 +16,9 @@ class TransactionController extends Controller
         if ($request->user()->isAdmin()) {
             $walletIds = $request->user()->wallets()->pluck('id');
         } else {
-            $walletIds = $request->user()->assignedWallets()->pluck('wallets.id');
+            $walletIds = $request->user()->wallets()->pluck('id')
+                ->merge($request->user()->assignedWallets()->pluck('wallets.id'))
+                ->unique();
         }
 
         // Get transactions for those wallets

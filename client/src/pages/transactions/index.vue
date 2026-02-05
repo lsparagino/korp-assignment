@@ -2,10 +2,13 @@
   import { Calendar, ChevronDown } from 'lucide-vue-next'
   import { computed, reactive, ref, watch } from 'vue'
   import { useRoute, useRouter } from 'vue-router'
-  import Pagination from '@/components/Pagination.vue'
+  import TransactionTable from '@/components/TransactionTable.vue'
   import { usePagination } from '@/composables/usePagination'
   import api from '@/plugins/api'
+  import { useAuthStore } from '@/stores/auth'
 
+  const auth = useAuthStore()
+  const isAdmin = computed(() => auth.user?.role === 'admin')
   const route = useRoute()
   const router = useRouter()
   const company = ref('')
@@ -156,21 +159,7 @@
 
         // company.value = response.data.company // If company is returned in response
 
-        transactions.value = response.data.data.map((t: any) => ({
-          ...t,
-          dateFormatted: new Intl.DateTimeFormat('en-US', {
-            dateStyle: 'medium',
-            timeStyle: 'short',
-          }).format(new Date(t.created_at)),
-          amountFormatted: new Intl.NumberFormat('en-US', {
-            style: 'currency',
-            currency: t.currency,
-          }).format(t.amount),
-          amountColor:
-            t.type === 'debit'
-              ? 'text-red-darken-1'
-              : 'text-green-darken-1',
-        }))
+        transactions.value = response.data.data
 
         if (response.data.meta) {
           meta.value = response.data.meta
@@ -219,11 +208,6 @@
     query.page = '1'
 
     router.push({ query })
-  }
-
-  function isAssigned (walletId: number | null) {
-    if (!walletId) return false
-    return wallets.value.some(w => w.id === walletId)
   }
 </script>
 
@@ -485,135 +469,17 @@
     </v-card-actions>
   </v-card>
 
-  <!-- Transactions List Card -->
-  <v-card border flat :loading="processing" rounded="lg">
-    <v-card-title class="pa-4 bg-grey-lighten-5 border-b">
-      <span class="text-subtitle-1 font-weight-bold text-grey-darken-3">Transactions List</span>
-    </v-card-title>
-
-    <v-table density="comfortable">
-      <thead>
-        <tr>
-          <th
-            class="text-grey-darken-1 text-uppercase text-caption font-weight-bold text-left"
-          >
-            Date
-          </th>
-          <th
-            class="text-grey-darken-1 text-uppercase text-caption font-weight-bold text-left"
-          >
-            From Wallet
-          </th>
-          <th
-            class="text-grey-darken-1 text-uppercase text-caption font-weight-bold text-left"
-          >
-            To Wallet
-          </th>
-          <th
-            class="text-grey-darken-1 text-uppercase text-caption font-weight-bold text-left"
-          >
-            Type
-          </th>
-          <th
-            class="text-grey-darken-1 text-uppercase text-caption font-weight-bold text-left"
-          >
-            Amount
-          </th>
-          <th
-            class="text-grey-darken-1 text-uppercase text-caption font-weight-bold text-left"
-          >
-            Reference
-          </th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="item in transactions" :key="item.id">
-          <td class="text-grey-darken-2">{{ item.dateFormatted }}</td>
-          <td>
-            <div class="d-flex align-center">
-              <v-avatar
-                class="me-2"
-                :color="isAssigned(item.from_wallet_id) ? 'primary' : 'grey-lighten-2'"
-                rounded="sm"
-                size="20"
-              >
-                <v-icon
-                  color="white"
-                  icon="mdi-wallet"
-                  size="12"
-                />
-              </v-avatar>
-              <span
-                class="text-caption font-weight-medium"
-                :class="isAssigned(item.from_wallet_id) ? 'text-grey-darken-2' : 'text-grey-lighten-1'"
-              >{{ item.from_wallet?.name || 'External' }}</span>
-            </div>
-          </td>
-          <td>
-            <div class="d-flex align-center">
-              <v-avatar
-                class="me-2"
-                :color="isAssigned(item.to_wallet_id) ? 'primary' : 'grey-lighten-2'"
-                rounded="sm"
-                size="20"
-              >
-                <v-icon
-                  color="white"
-                  icon="mdi-wallet"
-                  size="12"
-                />
-              </v-avatar>
-              <span
-                class="text-caption font-weight-medium"
-                :class="isAssigned(item.to_wallet_id) ? 'text-grey-darken-2' : 'text-grey-lighten-1'"
-              >{{ item.to_wallet?.name || 'External' }}</span>
-            </div>
-          </td>
-          <td class="text-grey-darken-3 font-weight-bold">
-            <v-chip
-              class="text-uppercase font-weight-bold"
-              :color="
-                item.type === 'debit'
-                  ? 'red-lighten-4'
-                  : 'green-lighten-4'
-              "
-              size="x-small"
-              variant="flat"
-            >
-              <span
-                :class="
-                  item.type === 'debit'
-                    ? 'text-red-darken-3'
-                    : 'text-green-darken-3'
-                "
-              >
-                {{ item.type }}
-              </span>
-            </v-chip>
-          </td>
-          <td :class="[item.amountColor, 'font-weight-black']">
-            {{ item.amountFormatted }}
-          </td>
-          <td class="text-grey-darken-2 text-caption">
-            {{ item.reference }}
-          </td>
-        </tr>
-        <tr v-if="!processing && transactions.length === 0">
-          <td class="py-8 text-grey-darken-1 text-center" colspan="6">
-            No transactions found.
-          </td>
-        </tr>
-      </tbody>
-    </v-table>
-
-    <div class="border-t">
-      <Pagination
-        :meta="meta"
-        @update:page="handlePageChange"
-        @update:per-page="handlePerPageChange"
-      />
-    </div>
-  </v-card>
+  <TransactionTable
+    :is-admin="isAdmin"
+    :items="transactions"
+    :loading="processing"
+    :meta="meta"
+    :show-pagination="true"
+    title="Transactions List"
+    :wallets="wallets"
+    @update:page="handlePageChange"
+    @update:per-page="handlePerPageChange"
+  />
 </template>
 
 <route lang="yaml">

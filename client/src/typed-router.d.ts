@@ -19,7 +19,7 @@ declare module 'vue-router/auto-routes' {
    */
   export interface RouteNamedMap {
     '/': RouteRecordInfo<'/', '/', Record<never, never>, Record<never, never>>,
-    '/auth/accept-invitation': RouteRecordInfo<'/auth/accept-invitation', '/auth/accept-invitation', Record<never, never>, Record<never, never>>,
+    '/auth/accept-invitation/[token]': RouteRecordInfo<'/auth/accept-invitation/[token]', '/auth/accept-invitation/:token', { token: ParamValue<true> }, { token: ParamValue<false> }>,
     '/auth/confirm-password': RouteRecordInfo<'/auth/confirm-password', '/auth/confirm-password', Record<never, never>, Record<never, never>>,
     '/auth/forgot-password': RouteRecordInfo<'/auth/forgot-password', '/auth/forgot-password', Record<never, never>, Record<never, never>>,
     '/auth/login': RouteRecordInfo<'/auth/login', '/auth/login', Record<never, never>, Record<never, never>>,
@@ -53,8 +53,8 @@ declare module 'vue-router/auto-routes' {
       routes: '/'
       views: never
     }
-    'src/pages/auth/accept-invitation.vue': {
-      routes: '/auth/accept-invitation'
+    'src/pages/auth/accept-invitation/[token].vue': {
+      routes: '/auth/accept-invitation/[token]'
       views: never
     }
     'src/pages/auth/confirm-password.vue': {

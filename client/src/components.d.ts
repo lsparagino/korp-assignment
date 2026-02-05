@@ -22,5 +22,6 @@ declare module 'vue' {
     RouterView: typeof import('vue-router')['RouterView']
     SettingsLayout: typeof import('./components/SettingsLayout.vue')['default']
     TeamMemberModal: typeof import('./components/TeamMemberModal.vue')['default']
+    TransactionTable: typeof import('./components/TransactionTable.vue')['default']
   }
 }

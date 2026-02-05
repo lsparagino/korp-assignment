@@ -30,7 +30,7 @@ router.beforeEach((to, from, next) => {
 
   // Normalize path by removing trailing slash if not root
   const path = to.path === '/' ? '/' : to.path.replace(/\/$/, '')
-  const authRequired = !publicPages.includes(path)
+  const authRequired = !publicPages.includes(path) && !to.meta.public
   const loggedIn = authStore.isAuthenticated
 
   if (authRequired && !loggedIn) {

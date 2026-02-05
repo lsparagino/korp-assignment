@@ -24,6 +24,8 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/forgot-password', [PasswordResetController::class, 'forgotPassword']);
 Route::post('/reset-password', [PasswordResetController::class, 'resetPassword']);
+Route::get('/invitation/{token}', [\App\Http\Controllers\InvitationController::class, 'show'])->name('invitation.verify');
+Route::post('/accept-invitation/{token}', [\App\Http\Controllers\InvitationController::class, 'store'])->name('invitation.accept');
 
 // Protected Routes
 Route::middleware('auth:sanctum')->group(function () {
@@ -43,7 +45,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/user/two-factor-recovery-codes', [TwoFactorController::class, 'regenerateRecoveryCodes']);
 
     // Data Routes
-    Route::get('/dashboard', [DataController::class, 'dashboard']);
+    Route::get('/dashboard', [DataController::class, 'dashboard'])->name('dashboard');
     Route::get('/transactions', [\App\Http\Controllers\Api\TransactionController::class, 'index']);
     // Team Routes
     Route::apiResource('team-members', \App\Http\Controllers\Api\TeamMemberController::class)->except(['show']);
