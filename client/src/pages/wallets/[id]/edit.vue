@@ -41,7 +41,7 @@
 
   async function fetchWallet () {
     try {
-      const response = await api.get(`/wallets/${route.params.id}`)
+      const response = await api.get(`/wallets/${(route.params as any).id}`)
       wallet.value = response.data.data
       form.name = response.data.data.name
       form.currency = response.data.data.currency
@@ -58,7 +58,7 @@
     errors.value = {}
 
     try {
-      await api.put(`/wallets/${route.params.id}`, form)
+      await api.put(`/wallets/${(route.params as any).id}`, form)
       router.push('/wallets/')
     } catch (error: any) {
       if (error.response?.status === 422) {
