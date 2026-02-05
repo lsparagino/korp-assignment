@@ -73,9 +73,9 @@
 </script>
 
 <template>
-  <v-app>
-    <v-layout>
-      <v-app-bar>
+  <v-app class="app-container">
+    <v-layout class="h-100 overflow-hidden">
+      <v-app-bar flat border="b-sm">
         <div
           class="d-flex h-100 w-100 justify-space-between overflow-hidden"
         >
@@ -92,7 +92,7 @@
                   variant="outlined"
                 >
                   {{ companyStore.currentCompany?.name || 'Select Company' }}
-                  <v-icon end :icon="ChevronDown" size="18" />
+                  <v-icon end icon="mdi-chevron-down" size="18" />
                 </v-btn>
               </template>
               <v-list>
@@ -110,7 +110,7 @@
 
             <!-- Notifications -->
             <v-btn color="grey-darken-2" disabled icon variant="text">
-              <v-icon :icon="Bell" />
+              <v-icon icon="mdi-bell-outline" />
             </v-btn>
 
             <!-- User Avatar -->
@@ -205,38 +205,38 @@
       <v-navigation-drawer
         v-model="drawer"
         app
-        class="border-e-sm"
+        class="border-e-sm overflow-hidden"
         color="sidebar-bg"
         permanent
         width="260"
       >
-        <v-list class="list-container" density="comfortable" nav>
-          <v-list-item
-            v-for="item in filteredNavItems"
-            :key="item.title"
-            :active="item.active.value"
-            active-color="primary"
-            class="nav-item"
-            :to="item.to"
-            :value="item.title"
-            variant="text"
-          >
-            <template #prepend>
-              <v-icon
-                class="mr-0 ms-4"
-                :icon="item.icon"
-                size="20"
-              />
-            </template>
-            <v-list-item-title
-              class="text-body-1 font-normal text-grey-darken-3"
-            >{{ item.title }}</v-list-item-title>
-          </v-list-item>
-        </v-list>
+        <div class="d-flex flex-column h-100">
+          <v-list class="list-container flex-grow-1 overflow-y-auto" density="comfortable" nav>
+            <v-list-item
+              v-for="item in filteredNavItems"
+              :key="item.title"
+              :active="item.active.value"
+              active-color="primary"
+              class="nav-item"
+              :to="item.to"
+              :value="item.title"
+              variant="text"
+            >
+              <template #prepend>
+                <v-icon
+                  class="mr-0 ms-4"
+                  :icon="item.icon"
+                  size="20"
+                />
+              </template>
+              <v-list-item-title
+                class="text-body-1 font-normal text-grey-darken-3"
+              >{{ item.title }}</v-list-item-title>
+            </v-list-item>
+          </v-list>
 
-        <template #append>
           <v-divider />
-          <div v-if="authStore.user?.role === 'admin'" class="pa-4">
+          <div v-if="authStore.user?.role === 'admin'" class="pa-4 flex-shrink-0">
             <v-btn
               block
               class="text-none"
@@ -248,10 +248,10 @@
               Create Wallet
             </v-btn>
           </div>
-        </template>
+        </div>
       </v-navigation-drawer>
 
-      <v-main class="bg-background">
+      <v-main class="bg-background h-100 overflow-y-auto">
         <v-container class="pa-4 pa-md-8">
           <router-view />
         </v-container>
@@ -261,6 +261,15 @@
 </template>
 
 <style scoped>
+.app-container {
+  height: 100vh;
+  overflow: hidden;
+}
+
+.h-100 {
+  height: 100% !important;
+}
+
 .list-container {
     background: transparent;
     padding: 1rem 1rem 1rem 0;

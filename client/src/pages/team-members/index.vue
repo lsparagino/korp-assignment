@@ -6,10 +6,11 @@
   import Pagination from '@/components/Pagination.vue'
   import ConfirmDialog from '@/components/ConfirmDialog.vue'
   import { useAuthStore } from '@/stores/auth'
+  import { useCompanyStore } from '@/stores/company'
 
   const authStore = useAuthStore()
+  const companyStore = useCompanyStore()
   const isAdmin = computed(() => authStore.user?.role === 'admin')
-  const company = ref('')
   const members = ref<any[]>([])
   const processing = ref(true)
   const showModal = ref(false)
@@ -33,7 +34,6 @@
     processing.value = true
     try {
       const response = await api.get('/team-members', { params: { page } })
-      company.value = response.data.company
       members.value = response.data.members
       paginationData.value = {
         currentPage: response.data.pagination.current_page,
@@ -111,7 +111,7 @@
 <template>
   <div class="d-flex align-center justify-space-between mb-8">
     <h1 class="text-h5 font-weight-bold text-grey-darken-2">
-      Team Members - {{ company }}
+      Team Members <span v-if="companyStore.currentCompany" class="text-grey-darken-1">- {{ companyStore.currentCompany.name }}</span>
     </h1>
     <v-btn
       v-if="isAdmin"

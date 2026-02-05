@@ -6,12 +6,13 @@
   import { usePagination } from '@/composables/usePagination'
   import api from '@/plugins/api'
   import { useAuthStore } from '@/stores/auth'
+  import { useCompanyStore } from '@/stores/company'
 
   const auth = useAuthStore()
+  const companyStore = useCompanyStore()
   const isAdmin = computed(() => auth.user?.role === 'admin')
   const route = useRoute()
   const router = useRouter()
-  const company = ref('')
   const transactions = ref<any[]>([])
   const processing = ref(false)
 
@@ -214,7 +215,7 @@
 <template>
   <div class="mb-8">
     <h1 class="text-h5 font-weight-bold text-grey-darken-2">
-      Transactions - {{ company }}
+      Transactions <span v-if="companyStore.currentCompany" class="text-grey-darken-1">- {{ companyStore.currentCompany.name }}</span>
     </h1>
   </div>
 

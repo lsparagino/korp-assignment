@@ -6,10 +6,11 @@
   import { usePagination } from '@/composables/usePagination'
   import api from '@/plugins/api'
   import { useAuthStore } from '@/stores/auth'
+  import { useCompanyStore } from '@/stores/company'
 
   const authStore = useAuthStore()
+  const companyStore = useCompanyStore()
 
-  const company = ref('')
   const wallets = ref<any[]>([])
 
   const {
@@ -107,7 +108,7 @@
 <template>
   <div class="d-flex align-center justify-space-between mb-8">
     <h1 class="text-h5 font-weight-bold text-grey-darken-2">
-      Wallets - {{ company }}
+      Wallets <span v-if="companyStore.currentCompany" class="text-grey-darken-1">- {{ companyStore.currentCompany.name }}</span>
     </h1>
     <v-btn
       v-if="authStore.user?.role === 'admin'"

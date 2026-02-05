@@ -76,7 +76,7 @@
 <template>
   <div class="mb-8">
     <h1 class="text-h5 font-weight-bold text-grey-darken-2">
-      Dashboard
+      Dashboard <span v-if="companyStore.currentCompany" class="text-grey-darken-1">- {{ companyStore.currentCompany.name }}</span>
     </h1>
   </div>
 
