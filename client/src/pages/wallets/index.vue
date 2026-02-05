@@ -219,6 +219,7 @@
                 @click="toggleStatus(wallet)"
               />
               <v-btn
+                v-if="wallet.can_delete"
                 color="error"
                 density="comfortable"
                 icon="mdi-delete"

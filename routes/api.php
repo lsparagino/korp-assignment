@@ -53,4 +53,9 @@ Route::middleware('auth:sanctum')->group(function () {
     // Wallet Routes
     Route::apiResource('wallets', WalletController::class);
     Route::patch('/wallets/{wallet}/toggle-freeze', [WalletController::class, 'toggleFreeze']);
+
+    // Settings Routes
+    Route::patch('/settings/profile', [\App\Http\Controllers\Settings\ProfileController::class, 'update']);
+    Route::delete('/settings/profile', [\App\Http\Controllers\Settings\ProfileController::class, 'destroy']);
+    Route::put('/settings/password', [\App\Http\Controllers\Settings\PasswordController::class, 'update']);
 });

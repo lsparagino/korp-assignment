@@ -17,6 +17,7 @@
     try {
       const response = await api.get('/dashboard')
       totalBalances.value = response.data.balances.map((b: any) => ({
+        amountRaw: b.amount,
         amount: new Intl.NumberFormat('en-US', {
           style: 'currency',
           currency: b.currency,
@@ -26,6 +27,7 @@
 
       topWallets.value = response.data.top_wallets.map((w: any) => ({
         ...w,
+        balanceRaw: w.balance,
         balanceFormatted: new Intl.NumberFormat('en-US', {
           style: 'currency',
           currency: w.currency,
@@ -35,6 +37,7 @@
 
       otherWallets.value = response.data.others.map((o: any) => ({
         ...o,
+        amountRaw: o.amount,
         amountFormatted: new Intl.NumberFormat('en-US', {
           style: 'currency',
           currency: o.currency,
@@ -47,6 +50,12 @@
     } finally {
       processing.value = false
     }
+  }
+
+  function getAmountColor (amount: number) {
+    if (amount > 0) return 'text-green-darken-1'
+    if (amount < 0) return 'text-red-darken-1'
+    return 'text-grey-darken-1'
   }
 
   onMounted(fetchDashboardData)
@@ -75,7 +84,10 @@
       :key="balance.currency"
       class="mb-2"
     >
-      <span class="text-h4 font-weight-black mr-2">{{
+      <span
+        class="text-h4 font-weight-black mr-2"
+        :class="getAmountColor(balance.amountRaw)"
+      >{{
         balance.amount
       }}</span>
       <span
@@ -85,8 +97,43 @@
   </v-card>
 
   <v-row class="mb-6">
-    <v-col v-for="wallet in topWallets" :key="wallet.name" cols="12" md="4">
-      <v-card border class="pa-4" flat rounded="lg">
+    <!-- Empty State -->
+    <v-col v-if="!processing && topWallets.length === 0" cols="12">
+      <v-card
+        border
+        class="pa-8 d-flex flex-column align-center justify-center text-center"
+        flat
+        rounded="lg"
+      >
+        <v-avatar color="grey-lighten-4" class="mb-4" size="64">
+          <v-icon color="grey-darken-1" :icon="Wallet" size="32" />
+        </v-avatar>
+        <div class="text-h6 font-weight-bold text-grey-darken-3 mb-2">No wallets found</div>
+        <p class="text-body-2 text-grey-darken-1 mb-6">
+          You don't have any wallets assigned yet.
+        </p>
+        <v-btn
+          v-if="isAdmin"
+          class="text-none font-weight-bold"
+          color="primary"
+          prepend-icon="mdi-plus"
+          to="/wallets/create"
+          variant="flat"
+        >
+          Create Wallet
+        </v-btn>
+      </v-card>
+    </v-col>
+
+    <!-- Wallet Cards -->
+    <v-col
+      v-for="wallet in topWallets"
+      :key="wallet.name"
+      cols="12"
+      md="3"
+      sm="6"
+    >
+      <v-card border class="pa-4 h-100" flat rounded="lg">
         <div class="d-flex align-center mb-6">
           <v-avatar
             class="me-3"
@@ -96,12 +143,15 @@
           >
             <v-icon color="white" :icon="Wallet" size="18" />
           </v-avatar>
-          <span class="font-weight-bold text-grey-darken-3">{{
+          <span class="font-weight-bold text-grey-darken-3 text-truncate">{{
             wallet.name
           }}</span>
         </div>
         <div>
-          <span class="text-h5 font-weight-black mr-2">{{
+          <span
+            class="text-h5 font-weight-black mr-2"
+            :class="getAmountColor(wallet.balanceRaw)"
+          >{{
             wallet.balanceFormatted
           }}</span>
           <span
@@ -112,8 +162,13 @@
     </v-col>
 
     <!-- Other Wallets Badge -->
-    <v-col v-if="otherWallets.length > 0" cols="12" md="4">
-      <v-card border class="pa-4 bg-grey-lighten-4" flat rounded="lg">
+    <v-col
+      v-if="otherWallets.length > 0"
+      cols="12"
+      md="3"
+      sm="6"
+    >
+      <v-card border class="pa-4 bg-grey-lighten-4 h-100" flat rounded="lg">
         <div class="d-flex align-center mb-4">
           <v-avatar
             class="me-3"
@@ -126,7 +181,10 @@
           <span class="font-weight-bold text-grey-darken-3">Other Wallets</span>
         </div>
         <div v-for="other in otherWallets" :key="other.currency" class="mb-1">
-          <span class="text-subtitle-1 font-weight-black mr-2">{{
+          <span
+            class="text-subtitle-1 font-weight-black mr-2"
+            :class="getAmountColor(other.amountRaw)"
+          >{{
             other.amountFormatted
           }}</span>
           <span

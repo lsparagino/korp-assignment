@@ -19,9 +19,16 @@ class TransactionSeeder extends Seeder
         }
 
         foreach ($wallets as $wallet) {
+            $matchingWallets = $wallets->where('currency', $wallet->currency)
+                ->where('id', '!=', $wallet->id);
+
+            if ($matchingWallets->isEmpty()) {
+                continue;
+            }
+
             \App\Models\Transaction::factory(10)->create([
                 'from_wallet_id' => $wallet->id,
-                'to_wallet_id' => $wallets->where('id', '!=', $wallet->id)->random()->id,
+                'to_wallet_id' => $matchingWallets->random()->id,
             ]);
         }
     }

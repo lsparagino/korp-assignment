@@ -25,7 +25,12 @@ class TransactionFactory extends Factory
             'type' => $type,
             'reference' => $this->faker->sentence(4),
             'from_wallet_id' => \App\Models\Wallet::factory(),
-            'to_wallet_id' => \App\Models\Wallet::factory(),
+            'to_wallet_id' => function (array $attributes) {
+                $fromWallet = \App\Models\Wallet::find($attributes['from_wallet_id']);
+                return \App\Models\Wallet::factory()->create([
+                    'currency' => $fromWallet?->currency ?? 'USD',
+                ])->id;
+            },
             'created_at' => $date,
             'updated_at' => $date,
         ];

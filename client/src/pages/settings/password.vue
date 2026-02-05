@@ -20,7 +20,7 @@
     recentlySuccessful.value = false
 
     try {
-      await api.put('/user/password', form)
+      await api.put('/settings/password', form)
       recentlySuccessful.value = true
       Object.assign(form, {
         current_password: '',

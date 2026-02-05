@@ -55,4 +55,9 @@ class Wallet extends Model
     {
         return $this->belongsToMany(User::class, 'wallet_user');
     }
+
+    public function hasTransactions(): bool
+    {
+        return $this->fromTransactions()->exists() || $this->toTransactions()->exists();
+    }
 }
