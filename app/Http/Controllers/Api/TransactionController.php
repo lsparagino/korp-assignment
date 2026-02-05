@@ -32,6 +32,26 @@ class TransactionController extends Controller
             $query->where('created_at', '<=', $request->date_to . ' 23:59:59');
         }
 
+        if ($request->filled('amount_min')) {
+            $query->where('amount', '>=', $request->amount_min);
+        }
+
+        if ($request->filled('amount_max')) {
+            $query->where('amount', '<=', $request->amount_max);
+        }
+
+        if ($request->filled('reference')) {
+            $query->where('reference', 'LIKE', '%' . $request->reference . '%');
+        }
+
+        if ($request->filled('from_wallet_id')) {
+            $query->where('from_wallet_id', $request->from_wallet_id);
+        }
+
+        if ($request->filled('to_wallet_id')) {
+            $query->where('to_wallet_id', $request->to_wallet_id);
+        }
+
         $transactions = $query->with(['fromWallet', 'toWallet'])
             ->latest()
             ->paginate($perPage);

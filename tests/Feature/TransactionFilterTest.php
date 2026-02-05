@@ -120,4 +120,56 @@ class TransactionFilterTest extends TestCase
         $response->assertJsonCount(1, 'data');
         $this->assertEquals('2025-01-15 10:00:00', Transaction::find($response->json('data.0.id'))->created_at->toDateTimeString());
     }
+
+    public function test_can_filter_transactions_by_amount_range(): void
+    {
+        Transaction::factory()->create(['to_wallet_id' => $this->wallet->id, 'amount' => 50]);
+        Transaction::factory()->create(['to_wallet_id' => $this->wallet->id, 'amount' => 150]);
+        Transaction::factory()->create(['to_wallet_id' => $this->wallet->id, 'amount' => 250]);
+
+        $response = $this->actingAs($this->user)
+            ->getJson('/api/v0/transactions?amount_min=100&amount_max=200');
+
+        $response->assertStatus(200);
+        $response->assertJsonCount(1, 'data');
+        $this->assertEquals(150, (float) Transaction::find($response->json('data.0.id'))->amount);
+    }
+
+    public function test_can_filter_transactions_by_reference(): void
+    {
+        Transaction::factory()->create(['to_wallet_id' => $this->wallet->id, 'reference' => 'Invoice 123']);
+        Transaction::factory()->create(['to_wallet_id' => $this->wallet->id, 'reference' => 'Refund 456']);
+
+        $response = $this->actingAs($this->user)
+            ->getJson('/api/v0/transactions?reference=Refund');
+
+        $response->assertStatus(200);
+        $response->assertJsonCount(1, 'data');
+        $this->assertStringContainsString('Refund', Transaction::find($response->json('data.0.id'))->reference);
+    }
+
+    public function test_can_filter_transactions_by_wallets(): void
+    {
+        $wallet1 = Wallet::factory()->create(['user_id' => $this->user->id]);
+        $wallet2 = Wallet::factory()->create(['user_id' => $this->user->id]);
+
+        Transaction::factory()->create(['from_wallet_id' => $wallet1->id, 'to_wallet_id' => $wallet2->id]);
+        Transaction::factory()->create(['from_wallet_id' => $wallet2->id, 'to_wallet_id' => $wallet1->id]);
+
+        // Filter by from_wallet_id
+        $response = $this->actingAs($this->user)
+            ->getJson("/api/v0/transactions?from_wallet_id={$wallet1->id}");
+
+        $response->assertStatus(200);
+        $response->assertJsonCount(1, 'data');
+        $this->assertEquals($wallet1->id, $response->json('data.0.from_wallet_id'));
+
+        // Filter by to_wallet_id
+        $response = $this->actingAs($this->user)
+            ->getJson("/api/v0/transactions?to_wallet_id={$wallet1->id}");
+
+        $response->assertStatus(200);
+        $response->assertJsonCount(1, 'data');
+        $this->assertEquals($wallet1->id, $response->json('data.0.to_wallet_id'));
+    }
 }

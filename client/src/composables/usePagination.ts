@@ -20,8 +20,8 @@ export function usePagination (
   const route = useRoute()
   const router = useRouter()
 
-  const perPageOptions = options.perPageOptions || [5, 10, 25, 50, 100, 250, 500]
-  const defaultPerPage = options.defaultPerPage || perPageOptions[0] || 10
+  const perPageOptions = options.perPageOptions || [25, 50, 100, 250, 500]
+  const defaultPerPage = options.defaultPerPage || perPageOptions[0] || 25
 
   const page = ref(1)
   const perPage = ref(defaultPerPage)
