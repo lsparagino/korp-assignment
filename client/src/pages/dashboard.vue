@@ -4,7 +4,8 @@
   import api from '@/plugins/api'
 
   const totalBalances = ref<any[]>([])
-  const wallets = ref<any[]>([])
+  const topWallets = ref<any[]>([])
+  const otherWallets = ref<any[]>([])
   const transactions = ref<any[]>([])
   const processing = ref(true)
 
@@ -18,7 +19,8 @@
         }).format(b.amount),
         currency: b.currency,
       }))
-      wallets.value = response.data.wallets.map((w: any) => ({
+
+      topWallets.value = response.data.top_wallets.map((w: any) => ({
         ...w,
         balanceFormatted: new Intl.NumberFormat('en-US', {
           style: 'currency',
@@ -26,13 +28,22 @@
         }).format(w.balance),
         color: w.currency === 'USD' ? 'primary' : 'blue-darken-3',
       }))
+
+      otherWallets.value = response.data.others.map((o: any) => ({
+        ...o,
+        amountFormatted: new Intl.NumberFormat('en-US', {
+          style: 'currency',
+          currency: o.currency,
+        }).format(o.amount),
+      }))
+
       transactions.value = response.data.transactions.map((t: any) => ({
         ...t,
         amountFormatted: new Intl.NumberFormat('en-US', {
           style: 'currency',
           currency: t.currency,
         }).format(t.amount),
-        amountColor: t.type === 'Debit' ? 'red-darken-1' : 'green-darken-1',
+        amountColor: t.type.toLowerCase() === 'debit' ? 'red-darken-1' : 'green-darken-1',
       }))
     } catch (error) {
       console.error('Error fetching dashboard data:', error)
@@ -76,9 +87,8 @@
     </div>
   </v-card>
 
-  <!-- Wallets Grid -->
   <v-row class="mb-6">
-    <v-col v-for="wallet in wallets" :key="wallet.name" cols="12" md="4">
+    <v-col v-for="wallet in topWallets" :key="wallet.name" cols="12" md="4">
       <v-card border class="pa-4" flat rounded="lg">
         <div class="d-flex align-center mb-6">
           <v-avatar
@@ -100,6 +110,31 @@
           <span
             class="text-caption font-weight-bold text-grey-darken-1 text-uppercase"
           >{{ wallet.currency }}</span>
+        </div>
+      </v-card>
+    </v-col>
+
+    <!-- Other Wallets Badge -->
+    <v-col v-if="otherWallets.length > 0" cols="12" md="4">
+      <v-card border class="pa-4 bg-grey-lighten-4" flat rounded="lg">
+        <div class="d-flex align-center mb-4">
+          <v-avatar
+            class="me-3"
+            color="grey-darken-1"
+            rounded="lg"
+            size="32"
+          >
+            <v-icon color="white" icon="mdi-plus" size="18" />
+          </v-avatar>
+          <span class="font-weight-bold text-grey-darken-3">Other Wallets</span>
+        </div>
+        <div v-for="other in otherWallets" :key="other.currency" class="mb-1">
+          <span class="text-subtitle-1 font-weight-black mr-2">{{
+            other.amountFormatted
+          }}</span>
+          <span
+            class="text-caption font-weight-bold text-grey-darken-1 text-uppercase"
+          >{{ other.currency }}</span>
         </div>
       </v-card>
     </v-col>
@@ -139,33 +174,43 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-for="item in transactions" :key="item.date + item.to">
+        <tr v-for="item in transactions" :key="item.id">
           <td class="text-grey-darken-2">{{ item.date }}</td>
           <td>
-            <div class="d-flex align-center">
-              <span
-                class="text-caption text-grey-darken-2 font-weight-medium"
-              >{{ item.to }}</span>
+            <div class="d-flex flex-column">
+              <span class="text-caption font-weight-bold text-grey-darken-3">
+                {{ item.from }} &rarr; {{ item.to }}
+              </span>
             </div>
           </td>
-          <td class="text-grey-darken-2">{{ item.type }}</td>
+          <td class="text-grey-darken-2">
+            <v-chip class="text-uppercase" density="comfortable" size="x-small" variant="flat">
+              {{ item.type }}
+            </v-chip>
+          </td>
           <td :class="`text-${item.amountColor} font-weight-bold`">
             {{ item.amountFormatted }}
           </td>
+        </tr>
+        <tr v-if="transactions.length === 0 && !processing">
+          <td class="text-center py-4 text-grey" colspan="4">No recent transactions.</td>
         </tr>
       </tbody>
     </v-table>
 
     <div
-      class="pa-4 d-flex align-center justify-space-between bg-grey-lighten-4 border-t"
+      v-if="transactions.length > 0"
+      class="pa-4 d-flex align-center justify-end bg-grey-lighten-4 border-t"
     >
-      <span class="text-caption text-grey-darken-1">Showing {{ transactions.length }} of 100</span>
-      <v-pagination
-        active-color="primary"
-        class="my-0"
-        density="compact"
-        :length="3"
-      />
+      <v-btn
+        class="text-none"
+        color="primary"
+        size="small"
+        to="/transactions"
+        variant="text"
+      >
+        View All Transactions
+      </v-btn>
     </div>
   </v-card>
 </template>

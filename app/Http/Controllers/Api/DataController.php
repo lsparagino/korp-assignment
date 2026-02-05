@@ -32,23 +32,75 @@ class DataController extends Controller
         ]);
     }
 
-    public function dashboard()
+    public function dashboard(Request $request): \Illuminate\Http\JsonResponse
     {
+        $user = $request->user();
+
+        // 1. Determine authorized wallets
+        if ($user->isAdmin()) {
+            $walletsQuery = $user->wallets();
+        } else {
+            $walletsQuery = $user->assignedWallets();
+        }
+
+        $allWallets = $walletsQuery->get();
+        $walletIds = $allWallets->pluck('id');
+
+        // 2. Calculate Total Balances by currency
+        $balancesByCurrency = $allWallets->groupBy(fn($w) => $w->currency->value)
+            ->map(fn($group) => $group->sum(fn($w) => $w->balance))
+            ->map(fn($total, $currency) => ['currency' => $currency, 'amount' => $total])
+            ->values();
+
+        // 3. Best performing wallets (Top 3)
+        $sortedWallets = $allWallets->sortByDesc(fn($w) => $w->balance);
+        $top3 = $sortedWallets->take(3)->map(fn($w) => [
+            'name' => $w->name,
+            'balance' => $w->balance,
+            'currency' => $w->currency->value,
+        ])->values();
+
+        // 4. Other Wallets Badge aggregation
+        $others = $sortedWallets->slice(3);
+        $othersAggregated = [];
+        if ($others->count() > 0) {
+           $othersAggregated = $others->groupBy(fn($w) => $w->currency->value)
+                ->map(fn($group, $currency) => [
+                    'currency' => $currency,
+                    'amount' => $group->sum(fn($w) => $w->balance)
+                ])->values();
+        }
+
+        // 5. 10 most recent transactions
+        $recentTransactions = \App\Models\Transaction::query()
+            ->where(function ($q) use ($walletIds) {
+                $q->whereIn('from_wallet_id', $walletIds)
+                  ->orWhereIn('to_wallet_id', $walletIds);
+            })
+            ->latest()
+            ->limit(10)
+            ->with(['fromWallet', 'toWallet'])
+            ->get()
+            ->map(function ($t) use ($walletIds) {
+                // Determine if this is a Debit or Credit relative to the user's view
+                // Actually, let's just use the absolute amount and the type from the transaction
+                // But for the dashboard, "To/From" should be clear.
+                return [
+                    'id' => $t->id,
+                    'date' => $t->created_at->format('Y-m-d'),
+                    'from' => $t->fromWallet->name,
+                    'to' => $t->toWallet->name,
+                    'amount' => (float) $t->amount,
+                    'currency' => $t->fromWallet->currency->value,
+                    'type' => $t->type->value,
+                ];
+            });
+
         return response()->json([
-            'balances' => [
-                ['currency' => 'USD', 'amount' => 25480.50],
-                ['currency' => 'EUR', 'amount' => 12750.00],
-            ],
-            'wallets' => [
-                ['name' => 'Main Wallet', 'balance' => 15240.50, 'currency' => 'USD'],
-                ['name' => 'EUR Wallet', 'balance' => 12750.00, 'currency' => 'EUR'],
-                ['name' => 'Marketing', 'balance' => 10240.00, 'currency' => 'USD'],
-            ],
-            'transactions' => [
-                ['date' => '2024-03-20', 'to' => 'Adobe Systems', 'amount' => -120.00, 'currency' => 'USD', 'type' => 'Debit'],
-                ['date' => '2024-03-19', 'to' => 'Client Payment', 'amount' => 2500.00, 'currency' => 'USD', 'type' => 'Credit'],
-                ['date' => '2024-03-18', 'to' => 'Marketing Ads', 'amount' => -500.00, 'currency' => 'USD', 'type' => 'Debit'],
-            ],
+            'balances' => $balancesByCurrency,
+            'top_wallets' => $top3,
+            'others' => $othersAggregated,
+            'transactions' => $recentTransactions,
         ]);
     }
 }
