@@ -37,6 +37,7 @@
             style: 'currency',
             currency: w.currency,
           }).format(w.balance),
+          balanceColor: w.balance > 0 ? 'text-green-darken-1' : (w.balance < 0 ? 'text-red-darken-1' : 'text-grey-darken-3'),
           statusColor:
             w.status === 'active' ? 'green-lighten-4' : 'red-lighten-4',
           statusTextColor:
@@ -172,7 +173,7 @@
               {{ wallet.name }}
             </div>
           </td>
-          <td class="font-weight-black text-grey-darken-3">
+          <td class="font-weight-black" :class="wallet.balanceColor">
             {{ wallet.balanceFormatted }}
           </td>
           <td>
