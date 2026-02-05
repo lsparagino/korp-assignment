@@ -14,7 +14,19 @@ resource "google_cloud_run_service" "backend" {
         }
         env {
           name  = "APP_DEBUG"
-          value = "false"
+          value = "true"
+        }
+        env {
+          name  = "LOG_CHANNEL"
+          value = "stderr"
+        }
+        env {
+          name  = "APP_URL"
+          value = "https://api-korp.sparagino.it"
+        }
+        env {
+          name  = "CLIENT_URL"
+          value = "https://client-korp.sparagino.it"
         }
         env {
           name = "APP_KEY"

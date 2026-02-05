@@ -40,21 +40,21 @@ Copy the entire output (e.g., `base64:un6U...`) and paste it into your `terrafor
     terraform apply
     ```
 
-## Step 2: Build & Push Containers
-We now have TWO containers to push.
+## Step 2: Build & Push Containers (Automated)
+I've provided a PowerShell script to automate the authentication, build, and push process for both containers.
 
-### Backend API
-```bash
-gcloud auth configure-docker asia-southeast1-docker.pkg.dev
-docker build -t asia-southeast1-docker.pkg.dev/[PROJECT_ID]/korp-repo/api:latest .
-docker push asia-southeast1-docker.pkg.dev/[PROJECT_ID]/korp-repo/api:latest
+```powershell
+# Run from the project root
+.\deployment\gcp\deploy.ps1 -ProjectId "your-project-id"
 ```
 
-### Frontend Client
-```bash
-docker build -f frontend.Dockerfile -t asia-southeast1-docker.pkg.dev/[PROJECT_ID]/korp-repo/client:latest .
-docker push asia-southeast1-docker.pkg.dev/[PROJECT_ID]/korp-repo/client:latest
-```
+### What this script does:
+1.  **Authenticates** Docker with Google Artifact Registry.
+2.  **Builds** the Backend API image.
+3.  **Builds** the Frontend Client image (using `frontend.Dockerfile`).
+4.  **Pushes** both images to your `korp-repo` in Singapore (`asia-southeast1`).
+
+---
 
 ## Step 3: DNS Configuration (Manual on AWS Route53)
 After running Terraform, Google Cloud Run will provide DNS records for domain verification and mapping.
@@ -74,10 +74,10 @@ To run the migrations over the private VPC network, use the **Private IP address
 # Deploy a temporary job for migrations
 gcloud run jobs create migrate \
   --image asia-southeast1-docker.pkg.dev/[PROJECT_ID]/korp-repo/api:latest \
-  --command "php,artisan,migrate,--force" \
+  --command "php,artisan,migrate:fresh,--seed,--force" \
   --region asia-southeast1 \
   --vpc-connector korp-connector \
-  --set-env-vars "DB_HOST=[DB_PRIVATE_IP],DB_DATABASE=korp,DB_USERNAME=korp_user,DB_PASSWORD=[YOUR_DB_PASSWORD]"
+  --set-env-vars "DB_CONNECTION=mysql,DB_HOST=[DB_PRIVATE_IP],DB_DATABASE=korp,DB_USERNAME=korp_user,DB_PASSWORD=[YOUR_DB_PASSWORD]"
 
 gcloud run jobs execute migrate --region asia-southeast1
 ```
