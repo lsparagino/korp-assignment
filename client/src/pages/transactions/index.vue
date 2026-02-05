@@ -220,6 +220,11 @@
 
     router.push({ query })
   }
+
+  function isAssigned (walletId: number | null) {
+    if (!walletId) return false
+    return wallets.value.some(w => w.id === walletId)
+  }
 </script>
 
 <template>
@@ -497,7 +502,12 @@
           <th
             class="text-grey-darken-1 text-uppercase text-caption font-weight-bold text-left"
           >
-            Wallet
+            From Wallet
+          </th>
+          <th
+            class="text-grey-darken-1 text-uppercase text-caption font-weight-bold text-left"
+          >
+            To Wallet
           </th>
           <th
             class="text-grey-darken-1 text-uppercase text-caption font-weight-bold text-left"
@@ -523,7 +533,7 @@
             <div class="d-flex align-center">
               <v-avatar
                 class="me-2"
-                color="primary"
+                :color="isAssigned(item.from_wallet_id) ? 'primary' : 'grey-lighten-2'"
                 rounded="sm"
                 size="20"
               >
@@ -534,7 +544,28 @@
                 />
               </v-avatar>
               <span
-                class="text-caption text-grey-darken-2 font-weight-medium"
+                class="text-caption font-weight-medium"
+                :class="isAssigned(item.from_wallet_id) ? 'text-grey-darken-2' : 'text-grey-lighten-1'"
+              >{{ item.from_wallet?.name || 'External' }}</span>
+            </div>
+          </td>
+          <td>
+            <div class="d-flex align-center">
+              <v-avatar
+                class="me-2"
+                :color="isAssigned(item.to_wallet_id) ? 'primary' : 'grey-lighten-2'"
+                rounded="sm"
+                size="20"
+              >
+                <v-icon
+                  color="white"
+                  icon="mdi-wallet"
+                  size="12"
+                />
+              </v-avatar>
+              <span
+                class="text-caption font-weight-medium"
+                :class="isAssigned(item.to_wallet_id) ? 'text-grey-darken-2' : 'text-grey-lighten-1'"
               >{{ item.to_wallet?.name || 'External' }}</span>
             </div>
           </td>
@@ -568,7 +599,7 @@
           </td>
         </tr>
         <tr v-if="!processing && transactions.length === 0">
-          <td class="py-8 text-grey-darken-1 text-center" colspan="5">
+          <td class="py-8 text-grey-darken-1 text-center" colspan="6">
             No transactions found.
           </td>
         </tr>
