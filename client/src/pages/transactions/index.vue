@@ -1,11 +1,13 @@
 <script lang="ts" setup>
   import { Calendar, ChevronDown } from 'lucide-vue-next'
-  import { onMounted, reactive, ref } from 'vue'
+  import { reactive, ref } from 'vue'
   import api from '@/plugins/api'
+  import { usePagination } from '@/composables/usePagination'
+  import Pagination from '@/components/Pagination.vue'
 
   const company = ref('')
   const transactions = ref<any[]>([])
-  const processing = ref(true)
+  const processing = ref(false)
 
   const filterForm = reactive({
     date_from: '',
@@ -15,28 +17,60 @@
 
   const types = ['All', 'Debit', 'Credit']
 
-  async function fetchTransactions () {
+  const {
+    meta,
+    handlePageChange,
+    handlePerPageChange,
+    refresh
+  } = usePagination(async (params) => {
     processing.value = true
     try {
-      const response = await api.get('/transactions', { params: filterForm })
-      company.value = response.data.company
-      transactions.value = response.data.transactions.map((t: any) => ({
+      const response = await api.get('/transactions', {
+        params: {
+          ...params,
+          ...filterForm,
+          type: filterForm.type === 'All' ? undefined : filterForm.type.toLowerCase()
+        }
+      })
+      
+      // company.value = response.data.company // If company is returned in response
+      
+      transactions.value = response.data.data.map((t: any) => ({
         ...t,
+        dateFormatted: new Intl.DateTimeFormat('en-US', {
+          dateStyle: 'medium',
+          timeStyle: 'short',
+        }).format(new Date(t.created_at)),
         amountFormatted: new Intl.NumberFormat('en-US', {
           style: 'currency',
           currency: t.currency,
         }).format(t.amount),
         amountColor:
-          t.amount < 0 ? 'text-red-darken-1' : 'text-green-darken-1',
+          t.type === 'debit' ? 'text-red-darken-1' : 'text-green-darken-1',
       }))
+
+      if (response.data.meta) {
+        meta.value = response.data.meta
+      }
     } catch (error) {
       console.error('Error fetching transactions:', error)
     } finally {
       processing.value = false
     }
+  })
+
+  function handleFilter () {
+    handlePageChange(1) // Reset to page 1 and trigger fetch via URL change
   }
 
-  onMounted(fetchTransactions)
+  function clearFilters () {
+    Object.assign(filterForm, {
+      date_from: '',
+      date_to: '',
+      type: 'All',
+    })
+    handlePageChange(1)
+  }
 </script>
 
 <template>
@@ -60,7 +94,7 @@
             v-model="filterForm.date_from"
             density="comfortable"
             hide-details
-            placeholder=" / / "
+            placeholder="YYYY-MM-DD"
             rounded="lg"
             variant="outlined"
           >
@@ -84,7 +118,7 @@
             v-model="filterForm.date_to"
             density="comfortable"
             hide-details
-            placeholder=" / / "
+            placeholder="YYYY-MM-DD"
             rounded="lg"
             variant="outlined"
           >
@@ -126,13 +160,7 @@
         color="grey-darken-1"
         rounded="lg"
         variant="outlined"
-        @click="
-          Object.assign(filterForm, {
-            date_from: '',
-            date_to: '',
-            type: 'All',
-          })
-        "
+        @click="clearFilters"
       >
         Clear
       </v-btn>
@@ -141,7 +169,7 @@
         color="primary"
         rounded="lg"
         variant="flat"
-        @click="fetchTransactions"
+        @click="handleFilter"
       >
         Filter
       </v-btn>
@@ -186,7 +214,7 @@
       </thead>
       <tbody>
         <tr v-for="item in transactions" :key="item.id">
-          <td class="text-grey-darken-2">{{ item.date }}</td>
+          <td class="text-grey-darken-2">{{ item.dateFormatted }}</td>
           <td>
             <div class="d-flex align-center">
               <v-avatar
@@ -203,30 +231,39 @@
               </v-avatar>
               <span
                 class="text-caption text-grey-darken-2 font-weight-medium"
-              >{{ item.wallet }}</span>
+              >{{ item.from_wallet?.name || 'External' }}</span>
             </div>
           </td>
           <td class="text-grey-darken-3 font-weight-bold">
-            {{ item.type }}
+            <v-chip
+              class="text-uppercase font-weight-bold"
+              :color="item.type === 'debit' ? 'red-lighten-4' : 'green-lighten-4'"
+              size="x-small"
+              variant="flat"
+            >
+              <span :class="item.type === 'debit' ? 'text-red-darken-3' : 'text-green-darken-3'">
+                {{ item.type }}
+              </span>
+            </v-chip>
           </td>
           <td :class="[item.amountColor, 'font-weight-black']">
             {{ item.amountFormatted }}
           </td>
-          <td class="text-grey-darken-2">{{ item.reference }}</td>
+          <td class="text-grey-darken-2 text-caption">{{ item.reference }}</td>
+        </tr>
+        <tr v-if="!processing && transactions.length === 0">
+          <td colspan="5" class="text-center py-8 text-grey-darken-1">
+            No transactions found.
+          </td>
         </tr>
       </tbody>
     </v-table>
 
-    <div
-      class="pa-4 d-flex align-center justify-space-between bg-grey-lighten-5 border-t"
-    >
-      <span class="text-caption text-grey-darken-1">Showing {{ transactions.length }} of 100 transactions</span>
-      <v-pagination
-        active-color="primary"
-        class="my-0"
-        density="compact"
-        :length="3"
-        rounded="sm"
+    <div class="border-t">
+      <Pagination
+        :meta="meta"
+        @update:page="handlePageChange"
+        @update:per-page="handlePerPageChange"
       />
     </div>
   </v-card>

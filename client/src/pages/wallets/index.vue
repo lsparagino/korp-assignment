@@ -24,7 +24,7 @@
       // company.value = response.data.company // If company is returned in response
 
       wallets.value = response.data.data.map((w: any) => {
-        const currencyColors: Record<string, { bg: string; text: string }> = {
+        const currencyColors: Record<string, { bg: string, text: string }> = {
           USD: { bg: 'blue-lighten-4', text: 'blue-darken-3' },
           EUR: { bg: 'orange-lighten-4', text: 'orange-darken-3' },
           GBP: { bg: 'indigo-lighten-4', text: 'indigo-darken-3' },
