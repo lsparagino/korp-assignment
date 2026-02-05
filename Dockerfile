@@ -33,9 +33,14 @@ RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cac
 # Copy configs
 COPY deployment/gcp/nginx.conf /etc/nginx/http.d/default.conf
 COPY deployment/gcp/supervisord.conf /etc/supervisord.conf
+COPY deployment/gcp/php-optimizations.ini /usr/local/etc/php/conf.d/optimizations.ini
+COPY deployment/gcp/entrypoint.sh /usr/local/bin/entrypoint.sh
+
+# Set execution permissions for the entrypoint
+RUN chmod +x /usr/local/bin/entrypoint.sh
 
 # Expose port 8080
 EXPOSE 8080
 
-# Start supervisor
-CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]
+# Use optimized entrypoint
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]

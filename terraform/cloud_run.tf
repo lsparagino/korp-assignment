@@ -14,7 +14,7 @@ resource "google_cloud_run_service" "backend" {
         }
         env {
           name  = "APP_DEBUG"
-          value = "true"
+          value = "false"
         }
         env {
           name  = "LOG_CHANNEL"
@@ -91,6 +91,13 @@ resource "google_cloud_run_service" "backend" {
           name  = "MAIL_FROM_ADDRESS"
           value = var.mail_from_address
         }
+
+        resources {
+          limits = {
+            cpu    = "2000m"
+            memory = "1024Mi"
+          }
+        }
       }
     }
 
@@ -98,6 +105,9 @@ resource "google_cloud_run_service" "backend" {
       annotations = {
         "run.googleapis.com/vpc-access-connector" = google_vpc_access_connector.connector.name
         "run.googleapis.com/vpc-access-egress"    = "private-ranges-only"
+        "run.googleapis.com/execution-environment" = "gen2"
+        "run.googleapis.com/cpu-throttling"       = "false"
+        "autoscaling.knative.dev/minScale"         = "1"
       }
     }
   }
