@@ -26,9 +26,7 @@
           </p>
         </div>
 
-        <v-card border class="pa-6 pa-sm-10" flat rounded="xl">
-          <router-view />
-        </v-card>
+        <router-view />
       </v-container>
     </v-main>
   </v-app>

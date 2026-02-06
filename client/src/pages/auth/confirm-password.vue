@@ -31,37 +31,39 @@
 </script>
 
 <template>
-  <v-form @submit.prevent="submit">
-    <div class="d-flex flex-column ga-6">
-      <v-text-field
-        v-model="form.password"
-        autocomplete="current-password"
-        autofocus
-        color="primary"
-        density="comfortable"
-        :error-messages="errors.password"
-        hide-details="auto"
-        label="Password"
-        name="password"
-        placeholder="Password"
-        required
-        type="password"
-        variant="outlined"
-      />
+  <AuthCard>
+    <v-form @submit.prevent="submit">
+      <div class="d-flex flex-column ga-6">
+        <v-text-field
+          v-model="form.password"
+          autocomplete="current-password"
+          autofocus
+          color="primary"
+          density="comfortable"
+          :error-messages="errors.password"
+          hide-details="auto"
+          label="Password"
+          name="password"
+          placeholder="Password"
+          required
+          type="password"
+          variant="outlined"
+        />
 
-      <v-btn
-        block
-        class="text-none font-weight-bold"
-        color="primary"
-        height="48"
-        :loading="processing"
-        rounded="lg"
-        type="submit"
-      >
-        Confirm Password
-      </v-btn>
-    </div>
-  </v-form>
+        <v-btn
+          block
+          class="text-none font-weight-bold"
+          color="primary"
+          height="48"
+          :loading="processing"
+          rounded="lg"
+          type="submit"
+        >
+          Confirm Password
+        </v-btn>
+      </div>
+    </v-form>
+  </AuthCard>
 </template>
 
 <route lang="yaml">

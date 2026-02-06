@@ -43,72 +43,64 @@
 </script>
 
 <template>
-  <v-alert
-    v-if="status"
-    class="mb-4"
-    density="compact"
-    type="success"
-    variant="tonal"
-  >
-    {{ status }}
-  </v-alert>
+  <AuthCard :status="status">
+    <v-form @submit.prevent="submit">
+      <div class="d-flex flex-column ga-6">
+        <v-text-field
+          v-model="form.email"
+          color="primary"
+          density="comfortable"
+          hide-details="auto"
+          label="Email"
+          name="email"
+          readonly
+          type="email"
+          variant="outlined"
+        />
 
-  <v-form @submit.prevent="submit">
-    <div class="d-flex flex-column ga-6">
-      <v-text-field
-        v-model="form.email"
-        color="primary"
-        density="comfortable"
-        hide-details="auto"
-        label="Email"
-        name="email"
-        readonly
-        type="email"
-        variant="outlined"
-      />
+        <v-text-field
+          v-model="form.password"
+          autofocus
+          color="primary"
+          density="comfortable"
+          :error-messages="errors.password"
+          hide-details="auto"
+          label="Password"
+          name="password"
+          placeholder="Password"
+          required
+          type="password"
+          variant="outlined"
+        />
 
-      <v-text-field
-        v-model="form.password"
-        autofocus
-        color="primary"
-        density="comfortable"
-        :error-messages="errors.password"
-        hide-details="auto"
-        label="Password"
-        name="password"
-        placeholder="Password"
-        required
-        type="password"
-        variant="outlined"
-      />
+        <v-text-field
+          v-model="form.password_confirmation"
+          color="primary"
+          density="comfortable"
+          :error-messages="errors.password_confirmation"
+          hide-details="auto"
+          label="Confirm password"
+          name="password_confirmation"
+          placeholder="Confirm password"
+          required
+          type="password"
+          variant="outlined"
+        />
 
-      <v-text-field
-        v-model="form.password_confirmation"
-        color="primary"
-        density="comfortable"
-        :error-messages="errors.password_confirmation"
-        hide-details="auto"
-        label="Confirm password"
-        name="password_confirmation"
-        placeholder="Confirm password"
-        required
-        type="password"
-        variant="outlined"
-      />
-
-      <v-btn
-        block
-        class="mt-4 text-none font-weight-bold"
-        color="primary"
-        height="48"
-        :loading="processing"
-        rounded="lg"
-        type="submit"
-      >
-        Reset password
-      </v-btn>
-    </div>
-  </v-form>
+        <v-btn
+          block
+          class="mt-4 text-none font-weight-bold"
+          color="primary"
+          height="48"
+          :loading="processing"
+          rounded="lg"
+          type="submit"
+        >
+          Reset password
+        </v-btn>
+      </div>
+    </v-form>
+  </AuthCard>
 </template>
 
 <route lang="yaml">

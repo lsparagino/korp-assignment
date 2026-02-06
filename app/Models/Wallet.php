@@ -66,4 +66,21 @@ class Wallet extends Model
     {
         return $this->belongsTo(Company::class);
     }
+
+    /**
+     * Scope a query to wallets accessible to the given user in a specific company.
+     */
+    public function scopeScopedToUser($query, User $user, $companyId)
+    {
+        $query->where('company_id', $companyId);
+
+        if ($user->isAdmin()) {
+            return $query;
+        }
+
+        return $query->where(function ($q) use ($user) {
+            $q->where('user_id', $user->id)
+                ->orWhereHas('members', fn ($mq) => $mq->where('users.id', $user->id));
+        });
+    }
 }

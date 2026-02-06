@@ -28,40 +28,31 @@
 </script>
 
 <template>
-  <v-alert
-    v-if="status === 'verification-link-sent'"
-    class="mb-4"
-    density="compact"
-    type="success"
-    variant="tonal"
-  >
-    A new verification link has been sent to the email address you provided
-    during registration.
-  </v-alert>
+  <AuthCard :status="status === 'verification-link-sent' ? 'A new verification link has been sent to the email address you provided during registration.' : ''">
+    <div class="d-flex flex-column ga-6 align-center">
+      <v-btn
+        block
+        class="text-none font-weight-bold"
+        color="secondary"
+        height="48"
+        :loading="processing"
+        rounded="lg"
+        variant="tonal"
+        @click="resend"
+      >
+        Resend verification email
+      </v-btn>
 
-  <div class="d-flex flex-column ga-6 align-center">
-    <v-btn
-      block
-      class="text-none font-weight-bold"
-      color="secondary"
-      height="48"
-      :loading="processing"
-      rounded="lg"
-      variant="tonal"
-      @click="resend"
-    >
-      Resend verification email
-    </v-btn>
-
-    <v-btn
-      class="text-body-2 font-weight-bold"
-      color="primary"
-      variant="text"
-      @click="handleLogout"
-    >
-      Log out
-    </v-btn>
-  </div>
+      <v-btn
+        class="text-body-2 font-weight-bold"
+        color="primary"
+        variant="text"
+        @click="handleLogout"
+      >
+        Log out
+      </v-btn>
+    </div>
+  </AuthCard>
 </template>
 
 <route lang="yaml">

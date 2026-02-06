@@ -46,90 +46,82 @@
 </script>
 
 <template>
-  <v-alert
-    v-if="status"
-    class="mb-4"
-    density="compact"
-    type="error"
-    variant="tonal"
-  >
-    {{ status }}
-  </v-alert>
-
-  <v-form @submit.prevent="submit">
-    <div class="d-flex flex-column ga-4">
-      <v-text-field
-        v-model="form.email"
-        autofocus
-        color="primary"
-        density="comfortable"
-        :error-messages="errors.email"
-        hide-details="auto"
-        label="Email address"
-        name="email"
-        placeholder="email@example.com"
-        required
-        type="email"
-        variant="outlined"
-      />
-
-      <div>
-        <div class="d-flex align-center justify-space-between mb-1">
-          <span
-            class="text-caption font-weight-medium text-grey-darken-3"
-          >Password</span>
-          <router-link
-            class="text-caption font-weight-bold text-decoration-none text-primary"
-            to="/auth/forgot-password"
-          >
-            Forgot password?
-          </router-link>
-        </div>
+  <AuthCard :error="status">
+    <v-form @submit.prevent="submit">
+      <div class="d-flex flex-column ga-4">
         <v-text-field
-          v-model="form.password"
+          v-model="form.email"
+          autofocus
           color="primary"
           density="comfortable"
-          :error-messages="errors.password"
+          :error-messages="errors.email"
           hide-details="auto"
-          name="password"
-          placeholder="Password"
+          label="Email address"
+          name="email"
+          placeholder="email@example.com"
           required
-          type="password"
+          type="email"
           variant="outlined"
         />
+
+        <div>
+          <div class="d-flex align-center justify-space-between mb-1">
+            <span
+              class="text-caption font-weight-medium text-grey-darken-3"
+            >Password</span>
+            <router-link
+              class="text-caption font-weight-bold text-decoration-none text-primary"
+              to="/auth/forgot-password"
+            >
+              Forgot password?
+            </router-link>
+          </div>
+          <v-text-field
+            v-model="form.password"
+            color="primary"
+            density="comfortable"
+            :error-messages="errors.password"
+            hide-details="auto"
+            name="password"
+            placeholder="Password"
+            required
+            type="password"
+            variant="outlined"
+          />
+        </div>
+
+        <v-checkbox
+          v-model="form.remember"
+          class="ms-n3"
+          color="primary"
+          density="comfortable"
+          hide-details
+          label="Remember me"
+          name="remember"
+        />
+
+        <v-btn
+          block
+          class="mt-4 text-none font-weight-bold"
+          color="primary"
+          height="48"
+          :loading="processing"
+          rounded="lg"
+          type="submit"
+        >
+          Log in
+        </v-btn>
       </div>
+    </v-form>
 
-      <v-checkbox
-        v-model="form.remember"
-        class="ms-n3"
-        color="primary"
-        density="comfortable"
-        hide-details
-        label="Remember me"
-        name="remember"
-      />
-
-      <v-btn
-        block
-        class="mt-4 text-none font-weight-bold"
-        color="primary"
-        height="48"
-        :loading="processing"
-        rounded="lg"
-        type="submit"
-      >
-        Log in
-      </v-btn>
-    </div>
-
-    <div class="mt-6 text-center">
+    <template #footer>
       <span class="text-body-2 text-grey-darken-1">Don't have an account?</span>
       <router-link
         class="text-body-2 font-weight-bold ms-1 text-decoration-none text-primary"
         to="/auth/register"
       >Sign up</router-link>
-    </div>
-  </v-form>
+    </template>
+  </AuthCard>
 </template>
 
 <route lang="yaml">

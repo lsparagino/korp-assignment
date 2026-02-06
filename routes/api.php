@@ -47,17 +47,21 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/user/two-factor-recovery-codes', [TwoFactorController::class, 'regenerateRecoveryCodes']);
 
     // Company Routes
-    Route::get('/companies', [\App\Http\Controllers\Api\CompanyController::class, 'index']);
+    Route::middleware('company')->group(function () {
+        // Company Routes
+        Route::get('/companies', [\App\Http\Controllers\Api\CompanyController::class, 'index']);
 
-    // Data Routes
-    Route::get('/dashboard', [DataController::class, 'dashboard'])->name('dashboard');
-    Route::get('/transactions', [\App\Http\Controllers\Api\TransactionController::class, 'index']);
-    // Team Routes
-    Route::apiResource('team-members', \App\Http\Controllers\Api\TeamMemberController::class)->except(['show']);
+        // Data Routes
+        Route::get('/dashboard', [DataController::class, 'dashboard'])->name('dashboard');
+        Route::apiResource('transactions', \App\Http\Controllers\Api\TransactionController::class)->only(['index']);
 
-    // Wallet Routes
-    Route::apiResource('wallets', WalletController::class);
-    Route::patch('/wallets/{wallet}/toggle-freeze', [WalletController::class, 'toggleFreeze']);
+        // Team Routes
+        Route::apiResource('team-members', \App\Http\Controllers\Api\TeamMemberController::class);
+
+        // Wallet Routes
+        Route::apiResource('wallets', WalletController::class);
+        Route::patch('/wallets/{wallet}/toggle-freeze', [WalletController::class, 'toggleFreeze']);
+    });
 
     // Settings Routes
     Route::patch('/settings/profile', [\App\Http\Controllers\Settings\ProfileController::class, 'update']);

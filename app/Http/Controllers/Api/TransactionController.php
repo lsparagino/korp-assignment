@@ -13,33 +13,11 @@ class TransactionController extends Controller
         $perPage = min((int) $perPage, 500);
         $companyId = $request->input('company_id');
 
-        if (! $companyId) {
-            return \App\Http\Resources\TransactionResource::collection(collect());
-        }
+        // Wallet scoping using model scope
+        $walletIds = \App\Models\Wallet::scopedToUser($request->user(), $companyId)->pluck('id');
 
-        if (! $request->user()->companies()->where('companies.id', $companyId)->exists()) {
-            abort(403, 'Unauthorized access to company.');
-        }
-
-        // Determine which wallets the user can see transactions for
-        // We must scope this to the selected company
-        if ($request->user()->isAdmin()) {
-            // Admin sees all wallets in the company
-            $walletIds = \App\Models\Wallet::where('company_id', $companyId)->pluck('id');
-        } else {
-            // Member sees their own wallets in the company + assigned wallets in the company
-            $ownedApi = $request->user()->wallets()->where('company_id', $companyId)->pluck('id');
-            $assignedApi = $request->user()->assignedWallets()->where('company_id', $companyId)->pluck('wallets.id');
-
-            $walletIds = $ownedApi->merge($assignedApi)->unique();
-        }
-
-        // Get transactions for those wallets
-        $query = \App\Models\Transaction::query()
-            ->where(function ($q) use ($walletIds) {
-                $q->whereIn('from_wallet_id', $walletIds)
-                    ->orWhereIn('to_wallet_id', $walletIds);
-            });
+        // Base query using transaction scope
+        $query = \App\Models\Transaction::forWallets($walletIds);
 
         // Apply filters
         if ($request->filled('type')) {
@@ -79,5 +57,35 @@ class TransactionController extends Controller
             ->paginate($perPage);
 
         return \App\Http\Resources\TransactionResource::collection($transactions);
+    }
+
+    public function dashboard(Request $request, \App\Services\WalletService $walletService): \Illuminate\Http\JsonResponse
+    {
+        $user = $request->user();
+        $companyId = $request->input('company_id');
+
+        // Wallets are scoped by the 'company' middleware already, but we still need the list
+        $allWallets = \App\Models\Wallet::scopedToUser($user, $companyId)->get();
+        $walletIds = $allWallets->pluck('id');
+
+        // Fetch metrics using Service
+        $balancesByCurrency = $walletService->getBalancesByCurrency($allWallets);
+        $top3 = $walletService->getTopWallets($allWallets);
+        $othersAggregated = $walletService->getOthersAggregation($allWallets);
+
+        // Recent transactions using Scope
+        $recentTransactions = \App\Models\Transaction::forWallets($walletIds)
+            ->latest()
+            ->limit(10)
+            ->with(['fromWallet', 'toWallet'])
+            ->get();
+
+        return response()->json([
+            'balances' => $balancesByCurrency,
+            'top_wallets' => $top3,
+            'others' => $othersAggregated,
+            'transactions' => \App\Http\Resources\TransactionResource::collection($recentTransactions),
+            'wallets' => $allWallets,
+        ]);
     }
 }

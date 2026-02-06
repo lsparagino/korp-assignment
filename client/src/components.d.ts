@@ -13,6 +13,7 @@ declare module 'vue' {
   export interface GlobalComponents {
     AppFooter: typeof import('./components/AppFooter.vue')['default']
     AppLogo: typeof import('./components/AppLogo.vue')['default']
+    AuthCard: typeof import('./components/AuthCard.vue')['default']
     ConfirmDialog: typeof import('./components/ConfirmDialog.vue')['default']
     DeleteUser: typeof import('./components/DeleteUser.vue')['default']
     Heading: typeof import('./components/Heading.vue')['default']
