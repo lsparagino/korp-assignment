@@ -53,8 +53,8 @@
 
   <v-card border class="pa-8" flat rounded="lg">
     <v-form @submit.prevent="submit">
-      <v-row>
-        <v-col cols="12" md="6">
+      <v-row justify="center">
+        <v-col cols="12" lg="5" md="8">
           <div class="d-flex flex-column ga-6">
             <v-text-field
               v-model="form.name"
@@ -112,36 +112,6 @@
               </v-btn>
             </div>
           </div>
-        </v-col>
-
-        <v-col
-          class="d-none d-md-flex align-center justify-center"
-          cols="12"
-          md="6"
-        >
-          <v-sheet
-            class="pa-8 w-100 text-center"
-            color="grey-lighten-4"
-            max-width="320"
-            rounded="xl"
-          >
-            <v-icon
-              class="mb-4"
-              color="grey-lighten-1"
-              :icon="Wallet"
-              size="64"
-            />
-            <div
-              class="text-subtitle-1 font-weight-bold text-grey-darken-3 mb-2"
-            >
-              Wallet Preview
-            </div>
-            <p class="text-body-2 text-grey-darken-1 mb-6">
-              You're creating a new wallet. You'll be able to
-              receive and send payments in
-              {{ form.currency }} once it's created.
-            </p>
-          </v-sheet>
         </v-col>
       </v-row>
     </v-form>

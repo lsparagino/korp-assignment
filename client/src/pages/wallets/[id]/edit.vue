@@ -147,8 +147,8 @@
     rounded="lg"
   >
     <v-form @submit.prevent="submit">
-      <v-row>
-        <v-col cols="12" md="6">
+      <v-row justify="center">
+        <v-col cols="12" lg="5" md="8">
           <div class="d-flex flex-column ga-6">
             <v-text-field
               v-model="form.name"
@@ -205,67 +205,42 @@
                 Cancel
               </v-btn>
             </div>
+
+            <v-divider class="my-4" />
+
+            <div class="pa-6 bg-grey-lighten-4 rounded-lg border">
+              <div class="text-subtitle-1 font-weight-bold text-grey-darken-3 mb-1">
+                Management Actions
+              </div>
+              <p class="text-caption text-grey-darken-1 mb-6">
+                Manage the status or permanently delete this wallet.
+              </p>
+
+              <div class="d-flex flex-column flex-sm-row ga-3">
+                <v-btn
+                  class="flex-grow-1 text-none"
+                  :color="wallet?.status === 'active' ? 'warning' : 'success'"
+                  :prepend-icon="wallet?.status === 'active' ? Snowflake : 'mdi-fire'"
+                  rounded="lg"
+                  variant="flat"
+                  @click="handleToggleStatus"
+                >
+                  {{ wallet?.status === 'active' ? 'Freeze Wallet' : 'Unfreeze Wallet' }}
+                </v-btn>
+
+                <v-btn
+                  class="flex-grow-1 text-none"
+                  color="error"
+                  :prepend-icon="Trash2"
+                  rounded="lg"
+                  variant="tonal"
+                  @click="handleDelete"
+                >
+                  Delete Wallet
+                </v-btn>
+              </div>
+            </div>
           </div>
-        </v-col>
-
-        <v-col
-          class="d-none d-md-flex align-center justify-center"
-          cols="12"
-          md="6"
-        >
-          <v-sheet
-            class="pa-8 w-100 text-center"
-            color="grey-lighten-4"
-            max-width="320"
-            rounded="xl"
-          >
-            <v-icon
-              class="mb-4"
-              color="grey-lighten-1"
-              :icon="Wallet"
-              size="64"
-            />
-            <div
-              class="text-subtitle-1 font-weight-bold text-grey-darken-3 mb-2"
-            >
-              Update Wallet
-            </div>
-            <p class="text-body-2 text-grey-darken-1 mb-6">
-              Modify the name or currency of this wallet.
-            </p>
-
-            <v-divider class="mb-6" />
-
-            <div class="text-subtitle-2 font-weight-bold text-grey-darken-3 mb-4 text-left">
-              Management Actions
-            </div>
-
-            <div class="d-flex flex-column ga-2">
-              <v-btn
-                block
-                class="justify-start text-none"
-                :color="wallet?.status === 'active' ? 'warning' : 'success'"
-                :prepend-icon="wallet?.status === 'active' ? Snowflake : 'mdi-fire'"
-                rounded="lg"
-                variant="outlined"
-                @click="handleToggleStatus"
-              >
-                {{ wallet?.status === 'active' ? 'Freeze Wallet' : 'Unfreeze Wallet' }}
-              </v-btn>
-
-              <v-btn
-                block
-                class="justify-start text-none"
-                color="error"
-                :prepend-icon="Trash2"
-                rounded="lg"
-                variant="outlined"
-                @click="handleDelete"
-              >
-                Delete Wallet
-              </v-btn>
-            </div>
-          </v-sheet>
         </v-col>
       </v-row>
     </v-form>
