@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia'
+import api from '@/plugins/api'
 
 interface User {
   id: number
@@ -21,22 +22,31 @@ export const useAuthStore = defineStore('auth', {
   },
 
   actions: {
-    setToken (token: string) {
+    setToken(token: string) {
       this.token = token
       localStorage.setItem('access_token', token)
     },
 
-    setUser (user: User) {
+    setUser(user: User) {
       this.user = user
       localStorage.setItem('user', JSON.stringify(user))
     },
 
-    setTwoFactor (userId: number) {
+    setTwoFactor(userId: number) {
       this.requiresTwoFactor = true
       this.twoFactorUserId = userId
     },
 
-    clearToken () {
+    async fetchUser() {
+      try {
+        const response = await api.get('/user')
+        this.setUser(response.data.data || response.data)
+      } catch (error) {
+        console.error('Failed to fetch user:', error)
+      }
+    },
+
+    clearToken() {
       this.token = null
       this.user = null
       this.requiresTwoFactor = false

@@ -21,6 +21,7 @@ use Illuminate\Support\Facades\Route;
 
 // Public Auth Routes
 Route::post('/login', [AuthController::class, 'login']);
+Route::post('/two-factor-challenge', [AuthController::class, 'twoFactorChallenge']);
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/forgot-password', [PasswordResetController::class, 'forgotPassword']);
 Route::post('/reset-password', [PasswordResetController::class, 'resetPassword']);
@@ -39,6 +40,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Two Factor Authentication
     Route::post('/user/two-factor-authentication', [TwoFactorController::class, 'store']);
+    Route::post('/user/confirmed-two-factor-authentication', [TwoFactorController::class, 'confirm']);
     Route::delete('/user/two-factor-authentication', [TwoFactorController::class, 'destroy']);
     Route::get('/user/two-factor-qr-code', [TwoFactorController::class, 'qrCode']);
     Route::get('/user/two-factor-recovery-codes', [TwoFactorController::class, 'recoveryCodes']);

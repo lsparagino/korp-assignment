@@ -63,3 +63,9 @@ variable "client_image_tag" {
   type        = string
   default     = "latest"
 }
+
+variable "app_name" {
+  description = "The name of the application"
+  type        = string
+  default     = "Korp"
+}

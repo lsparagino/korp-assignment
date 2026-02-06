@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Laravel\Fortify\Actions\ConfirmTwoFactorAuthentication;
 use Laravel\Fortify\Actions\DisableTwoFactorAuthentication;
 use Laravel\Fortify\Actions\EnableTwoFactorAuthentication;
 use Laravel\Fortify\Actions\GenerateNewRecoveryCodes;
@@ -15,7 +16,14 @@ class TwoFactorController extends Controller
     {
         $enable($request->user());
 
-        return response()->json(['message' => '2FA enabled']);
+        return response()->json(['message' => '2FA enabled, please confirm']);
+    }
+
+    public function confirm(Request $request, ConfirmTwoFactorAuthentication $confirm)
+    {
+        $confirm($request->user(), $request->code);
+
+        return response()->json(['message' => '2FA confirmed']);
     }
 
     public function destroy(Request $request, DisableTwoFactorAuthentication $disable)

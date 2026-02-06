@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use Laravel\Fortify\Contracts\CreatesNewUsers;
 use Laravel\Fortify\Fortify;
+use Laravel\Fortify\Contracts\TwoFactorAuthenticationProvider;
 
 class AuthController extends Controller
 {
@@ -34,6 +35,48 @@ class AuthController extends Controller
             return response()->json([
                 'two_factor' => true,
                 'user_id' => $user->id,
+            ]);
+        }
+
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        return response()->json([
+            'access_token' => $token,
+            'token_type' => 'Bearer',
+            'user' => $user,
+        ]);
+    }
+
+    public function twoFactorChallenge(Request $request)
+    {
+        $request->validate([
+            'user_id' => 'required|exists:users,id',
+            'code' => 'nullable|string',
+            'recovery_code' => 'nullable|string',
+        ]);
+
+        $user = User::findOrFail($request->user_id);
+
+        if ($request->recovery_code) {
+            if (! $user->validRecoveryCode($request->recovery_code)) {
+                throw ValidationException::withMessages([
+                    'recovery_code' => [__('The provided recovery code was invalid.')],
+                ]);
+            }
+
+            $user->replaceRecoveryCode($request->recovery_code);
+        } elseif ($request->code) {
+            if (! app(TwoFactorAuthenticationProvider::class)->verify(
+                Fortify::currentEncrypter()->decrypt($user->two_factor_secret),
+                $request->code
+            )) {
+                throw ValidationException::withMessages([
+                    'code' => [__('The provided two factor authentication code was invalid.')],
+                ]);
+            }
+        } else {
+            throw ValidationException::withMessages([
+                'code' => [__('Please provide a code or recovery code.')],
             ]);
         }
 

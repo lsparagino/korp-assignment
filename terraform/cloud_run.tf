@@ -102,6 +102,14 @@ resource "google_cloud_run_service" "backend" {
           name  = "MAIL_FROM_ADDRESS"
           value = var.mail_from_address
         }
+        env {
+          name  = "APP_NAME"
+          value = var.app_name
+        }
+        env {
+          name  = "MAIL_FROM_NAME"
+          value = var.app_name
+        }
 
         resources {
           limits = {

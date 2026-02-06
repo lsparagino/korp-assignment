@@ -91,4 +91,17 @@ class User extends Authenticatable
     {
         return $this->invitation_token !== null;
     }
+
+    /**
+     * Determine if the given recovery code is valid.
+     *
+     * @param  string  $code
+     * @return bool
+     */
+    public function validRecoveryCode($code): bool
+    {
+        return collect($this->recoveryCodes())->first(function ($recoveryCode) use ($code) {
+            return hash_equals($recoveryCode, $code);
+        }) !== null;
+    }
 }
