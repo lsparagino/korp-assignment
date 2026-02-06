@@ -44,11 +44,15 @@ class TransactionController extends Controller
             $query->where('reference', 'LIKE', '%'.$request->reference.'%');
         }
 
-        if ($request->filled('from_wallet_id')) {
+        if ($request->input('from_wallet_id') === 'external') {
+            $query->whereNull('from_wallet_id');
+        } elseif ($request->filled('from_wallet_id')) {
             $query->where('from_wallet_id', $request->from_wallet_id);
         }
 
-        if ($request->filled('to_wallet_id')) {
+        if ($request->input('to_wallet_id') === 'external') {
+            $query->whereNull('to_wallet_id');
+        } elseif ($request->filled('to_wallet_id')) {
             $query->where('to_wallet_id', $request->to_wallet_id);
         }
 

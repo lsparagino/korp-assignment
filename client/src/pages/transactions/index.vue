@@ -34,6 +34,10 @@
   const dateToValue = ref<any>(null)
   const advancedPanel = ref<number[]>([])
   const wallets = ref<any[]>([])
+  const walletOptions = computed(() => [
+    { id: 'external', name: 'External' },
+    ...wallets.value,
+  ])
 
   async function fetchWallets () {
     try {
@@ -134,10 +138,10 @@
       filterForm.amount_max = (route.query.amount_max as string) || ''
       filterForm.reference = (route.query.reference as string) || ''
       filterForm.from_wallet_id = route.query.from_wallet_id
-        ? Number(route.query.from_wallet_id)
+        ? (route.query.from_wallet_id === 'external' ? 'external' as any : Number(route.query.from_wallet_id))
         : null
       filterForm.to_wallet_id = route.query.to_wallet_id
-        ? Number(route.query.to_wallet_id)
+        ? (route.query.to_wallet_id === 'external' ? 'external' as any : Number(route.query.to_wallet_id))
         : null
 
       try {
@@ -262,6 +266,7 @@
               >
                 <template #append-inner>
                   <v-icon
+                    class="cursor-pointer"
                     color="grey-darken-1"
                     :icon="Calendar"
                     size="18"
@@ -304,6 +309,7 @@
               >
                 <template #append-inner>
                   <v-icon
+                    class="cursor-pointer"
                     color="grey-darken-1"
                     :icon="Calendar"
                     size="18"
@@ -333,11 +339,7 @@
             :items="types"
             rounded="lg"
             variant="outlined"
-          >
-            <template #append-inner>
-              <v-icon :icon="ChevronDown" size="18" />
-            </template>
-          </v-select>
+          />
         </v-col>
       </v-row>
 
@@ -419,7 +421,7 @@
                   hide-details
                   item-title="name"
                   item-value="id"
-                  :items="wallets"
+                  :items="walletOptions"
                   placeholder="Select source wallet"
                   rounded="lg"
                   variant="outlined"
@@ -438,7 +440,7 @@
                   hide-details
                   item-title="name"
                   item-value="id"
-                  :items="wallets"
+                  :items="walletOptions"
                   placeholder="Select destination wallet"
                   rounded="lg"
                   variant="outlined"
