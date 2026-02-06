@@ -28,7 +28,13 @@
 </script>
 
 <template>
-  <AuthCard :status="status === 'verification-link-sent' ? 'A new verification link has been sent to the email address you provided during registration.' : ''">
+  <AuthCard
+    :status="
+      status === 'verification-link-sent'
+        ? 'A new verification link has been sent to the email address you provided during registration.'
+        : ''
+    "
+  >
     <div class="d-flex flex-column ga-6 align-center">
       <v-btn
         block

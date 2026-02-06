@@ -16,7 +16,7 @@
 
 <template>
   <v-row class="ma-0">
-    <v-col class="pa-0 pr-md-4 mb-4 mb-md-0" cols="12" md="3">
+    <v-col class="pa-0 pr-md-4 mb-md-0 mb-4" cols="12" md="3">
       <v-list bg-color="white" border nav rounded="lg">
         <v-list-item
           v-for="item in settingsNav"

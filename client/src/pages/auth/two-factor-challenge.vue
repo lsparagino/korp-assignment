@@ -43,7 +43,10 @@
 
     try {
       const payload = showRecoveryInput.value
-        ? { recovery_code: recoveryCode.value, user_id: authStore.twoFactorUserId }
+        ? {
+          recovery_code: recoveryCode.value,
+          user_id: authStore.twoFactorUserId,
+        }
         : { code: code.value, user_id: authStore.twoFactorUserId }
 
       const response = await api.post('/two-factor-challenge', payload)

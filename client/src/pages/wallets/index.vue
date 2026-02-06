@@ -13,49 +13,59 @@
 
   const wallets = ref<any[]>([])
 
-  const {
-    meta,
-    processing,
-    handlePageChange,
-    handlePerPageChange,
-    refresh,
-  } = usePagination(async params => {
-    try {
-      const response = await api.get('/wallets', { params })
+  const { meta, processing, handlePageChange, handlePerPageChange, refresh }
+    = usePagination(async params => {
+      try {
+        const response = await api.get('/wallets', { params })
 
-      // company.value = response.data.company // If company is returned in response
+        // company.value = response.data.company // If company is returned in response
 
-      wallets.value = response.data.data.map((w: any) => {
-        const currencyColors: Record<string, { bg: string, text: string }> = {
-          USD: { bg: 'blue-lighten-4', text: 'blue-darken-3' },
-          EUR: { bg: 'orange-lighten-4', text: 'orange-darken-3' },
-          GBP: { bg: 'indigo-lighten-4', text: 'indigo-darken-3' },
+        wallets.value = response.data.data.map((w: any) => {
+          const currencyColors: Record<
+            string,
+            { bg: string, text: string }
+          > = {
+            USD: { bg: 'blue-lighten-4', text: 'blue-darken-3' },
+            EUR: { bg: 'orange-lighten-4', text: 'orange-darken-3' },
+            GBP: { bg: 'indigo-lighten-4', text: 'indigo-darken-3' },
+          }
+          const colors = currencyColors[w.currency] || {
+            bg: 'grey-lighten-3',
+            text: 'grey-darken-3',
+          }
+
+          return {
+            ...w,
+            balanceFormatted: new Intl.NumberFormat('en-US', {
+              style: 'currency',
+              currency: w.currency,
+            }).format(w.balance),
+            balanceColor:
+              w.balance > 0
+                ? 'text-green-darken-1'
+                : (w.balance < 0
+                  ? 'text-red-darken-1'
+                  : 'text-grey-darken-3'),
+            statusColor:
+              w.status === 'active'
+                ? 'green-lighten-4'
+                : 'red-lighten-4',
+            statusTextColor:
+              w.status === 'active'
+                ? 'green-darken-3'
+                : 'red-darken-3',
+            currencyColor: colors.bg,
+            currencyTextColor: colors.text,
+          }
+        })
+
+        if (response.data.meta) {
+          meta.value = response.data.meta
         }
-        const colors = currencyColors[w.currency] || { bg: 'grey-lighten-3', text: 'grey-darken-3' }
-
-        return {
-          ...w,
-          balanceFormatted: new Intl.NumberFormat('en-US', {
-            style: 'currency',
-            currency: w.currency,
-          }).format(w.balance),
-          balanceColor: w.balance > 0 ? 'text-green-darken-1' : (w.balance < 0 ? 'text-red-darken-1' : 'text-grey-darken-3'),
-          statusColor:
-            w.status === 'active' ? 'green-lighten-4' : 'red-lighten-4',
-          statusTextColor:
-            w.status === 'active' ? 'green-darken-3' : 'red-darken-3',
-          currencyColor: colors.bg,
-          currencyTextColor: colors.text,
-        }
-      })
-
-      if (response.data.meta) {
-        meta.value = response.data.meta
+      } catch (error) {
+        console.error('Error fetching wallets:', error)
       }
-    } catch (error) {
-      console.error('Error fetching wallets:', error)
-    }
-  })
+    })
 
   // Dialog state
   const confirmDialog = ref({
@@ -96,7 +106,10 @@
           refresh()
         } catch (error: any) {
           if (error.response?.status === 403) {
-            alert(error.response.data.message || 'You are not authorized to delete this wallet (it might not be empty).')
+            alert(
+              error.response.data.message
+                || 'You are not authorized to delete this wallet (it might not be empty).',
+            )
           } else {
             console.error('Error deleting wallet:', error)
           }
@@ -107,9 +120,15 @@
 </script>
 
 <template>
-  <div class="d-flex flex-column flex-sm-row align-start align-sm-center justify-space-between ga-4 mb-8">
+  <div
+    class="d-flex flex-column flex-sm-row align-start align-sm-center justify-space-between ga-4 mb-8"
+  >
     <h1 class="text-h5 font-weight-bold text-grey-darken-2">
-      Wallets <span v-if="companyStore.currentCompany" class="text-grey-darken-1">- {{ companyStore.currentCompany.name }}</span>
+      Wallets
+      <span
+        v-if="companyStore.currentCompany"
+        class="text-grey-darken-1"
+      >- {{ companyStore.currentCompany.name }}</span>
     </h1>
     <v-btn
       v-if="authStore.user?.role === 'admin'"
@@ -202,8 +221,11 @@
               >{{ wallet.status }}</span>
             </v-chip>
           </td>
-          <td v-if="authStore.user?.role === 'admin'" class="text-right">
-            <div class="d-flex justify-end ga-2">
+          <td
+            v-if="authStore.user?.role === 'admin'"
+            class="text-right"
+          >
+            <div class="d-flex ga-2 justify-end">
               <v-btn
                 color="primary"
                 density="comfortable"
@@ -213,9 +235,17 @@
                 variant="text"
               />
               <v-btn
-                :color="wallet.status === 'active' ? 'warning' : 'success'"
+                :color="
+                  wallet.status === 'active'
+                    ? 'warning'
+                    : 'success'
+                "
                 density="comfortable"
-                :icon="wallet.status === 'active' ? 'mdi-snowflake' : 'mdi-fire'"
+                :icon="
+                  wallet.status === 'active'
+                    ? 'mdi-snowflake'
+                    : 'mdi-fire'
+                "
                 size="small"
                 variant="text"
                 @click="toggleStatus(wallet)"

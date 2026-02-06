@@ -68,11 +68,14 @@
     }
   }
 
-  watch(() => props.modelValue, newVal => {
-    if (newVal) {
-      reset()
-    }
-  })
+  watch(
+    () => props.modelValue,
+    newVal => {
+      if (newVal) {
+        reset()
+      }
+    },
+  )
 
   onMounted(() => {
     if (props.requiresPin) {
@@ -93,10 +96,17 @@
           {{ message }}
         </p>
 
-        <div v-if="requiresPin" class="bg-grey-lighten-4 pa-6 rounded-lg border border-dashed border-grey-lighten-1">
-          <div class="text-center mb-4">
-            <span class="text-caption text-uppercase font-weight-bold text-grey-darken-1">Verification Required</span>
-            <div class="text-h4 font-weight-black tracking-widest text-primary my-2">
+        <div
+          v-if="requiresPin"
+          class="bg-grey-lighten-4 pa-6 border-grey-lighten-1 rounded-lg border border-dashed"
+        >
+          <div class="mb-4 text-center">
+            <span
+              class="text-caption text-uppercase font-weight-bold text-grey-darken-1"
+            >Verification Required</span>
+            <div
+              class="text-h4 font-weight-black text-primary my-2 tracking-widest"
+            >
               {{ expectedPin }}
             </div>
             <p class="text-caption text-grey-darken-1">
@@ -130,7 +140,7 @@
           {{ cancelText }}
         </v-btn>
         <v-btn
-          class="text-none font-weight-bold px-8 ml-2"
+          class="text-none font-weight-bold ml-2 px-8"
           :color="confirmColor"
           :disabled="!isPinValid"
           rounded="lg"
@@ -145,10 +155,10 @@
 </template>
 
 <style scoped>
-  .centered-input :deep(input) {
+.centered-input :deep(input) {
     text-align: center;
     font-size: 1.5rem;
     letter-spacing: 0.5rem;
     font-weight: bold;
-  }
+}
 </style>

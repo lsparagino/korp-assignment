@@ -70,27 +70,36 @@
     fetchDashboardData()
   })
 
-  watch(() => companyStore.currentCompany, () => {
-    fetchDashboardData()
-  })
+  watch(
+    () => companyStore.currentCompany,
+    () => {
+      fetchDashboardData()
+    },
+  )
 </script>
 
 <template>
   <div class="mb-8">
     <h1 class="text-h5 font-weight-bold text-grey-darken-2">
-      Dashboard <span v-if="companyStore.currentCompany" class="text-grey-darken-1">- {{ companyStore.currentCompany.name }}</span>
+      Dashboard
+      <span
+        v-if="companyStore.currentCompany"
+        class="text-grey-darken-1"
+      >- {{ companyStore.currentCompany.name }}</span>
     </h1>
   </div>
 
   <!-- Total Balance Card -->
   <v-card
     border
-    class="mb-6 pa-4 pa-sm-8"
+    class="pa-4 pa-sm-8 mb-6"
     flat
     :loading="processing"
     rounded="lg"
   >
-    <div class="text-subtitle-1 font-weight-bold text-grey-darken-3 mb-4 mb-sm-6">
+    <div
+      class="text-subtitle-1 font-weight-bold text-grey-darken-3 mb-sm-6 mb-4"
+    >
       Total Balance
     </div>
     <div
@@ -101,9 +110,7 @@
       <span
         class="text-h5 text-sm-h4 font-weight-black mr-2"
         :class="getAmountColor(balance.amountRaw)"
-      >{{
-        balance.amount
-      }}</span>
+      >{{ balance.amount }}</span>
       <span
         class="text-body-1 text-sm-subtitle-1 font-weight-medium text-grey-darken-1"
       >{{ balance.currency }}</span>
@@ -119,10 +126,12 @@
         flat
         rounded="lg"
       >
-        <v-avatar color="grey-lighten-4" class="mb-4" size="64">
+        <v-avatar class="mb-4" color="grey-lighten-4" size="64">
           <v-icon color="grey-darken-1" :icon="Wallet" size="32" />
         </v-avatar>
-        <div class="text-h6 font-weight-bold text-grey-darken-3 mb-2">No wallets found</div>
+        <div class="text-h6 font-weight-bold text-grey-darken-3 mb-2">
+          No wallets found
+        </div>
         <p class="text-body-2 text-grey-darken-1 mb-6">
           You don't have any wallets assigned yet.
         </p>
@@ -157,17 +166,15 @@
           >
             <v-icon color="white" :icon="Wallet" size="18" />
           </v-avatar>
-          <span class="font-weight-bold text-grey-darken-3 text-truncate">{{
-            wallet.name
-          }}</span>
+          <span
+            class="font-weight-bold text-grey-darken-3 text-truncate"
+          >{{ wallet.name }}</span>
         </div>
         <div>
           <span
             class="text-h5 font-weight-black mr-2"
             :class="getAmountColor(wallet.balanceRaw)"
-          >{{
-            wallet.balanceFormatted
-          }}</span>
+          >{{ wallet.balanceFormatted }}</span>
           <span
             class="text-caption font-weight-bold text-grey-darken-1 text-uppercase"
           >{{ wallet.currency }}</span>
@@ -176,13 +183,13 @@
     </v-col>
 
     <!-- Other Wallets Badge -->
-    <v-col
-      v-if="otherWallets.length > 0"
-      cols="12"
-      lg="3"
-      sm="6"
-    >
-      <v-card border class="pa-4 bg-grey-lighten-4 h-100" flat rounded="lg">
+    <v-col v-if="otherWallets.length > 0" cols="12" lg="3" sm="6">
+      <v-card
+        border
+        class="pa-4 bg-grey-lighten-4 h-100"
+        flat
+        rounded="lg"
+      >
         <div class="d-flex align-center mb-4">
           <v-avatar
             class="me-3"
@@ -194,13 +201,15 @@
           </v-avatar>
           <span class="font-weight-bold text-grey-darken-3">Other Wallets</span>
         </div>
-        <div v-for="other in otherWallets" :key="other.currency" class="mb-1">
+        <div
+          v-for="other in otherWallets"
+          :key="other.currency"
+          class="mb-1"
+        >
           <span
             class="text-subtitle-1 font-weight-black mr-2"
             :class="getAmountColor(other.amountRaw)"
-          >{{
-            other.amountFormatted
-          }}</span>
+          >{{ other.amountFormatted }}</span>
           <span
             class="text-caption font-weight-bold text-grey-darken-1 text-uppercase"
           >{{ other.currency }}</span>
@@ -220,7 +229,7 @@
     <template #footer>
       <div
         v-if="transactions.length > 0"
-        class="pa-4 d-flex align-center justify-end bg-grey-lighten-4 border-t"
+        class="pa-4 d-flex align-center bg-grey-lighten-4 justify-end border-t"
       >
         <v-btn
           class="text-none"

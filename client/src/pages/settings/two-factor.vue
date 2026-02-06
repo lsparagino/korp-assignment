@@ -87,7 +87,10 @@
         variant="small"
       />
 
-      <div v-if="!enabled && !confirming" class="d-flex flex-column ga-4 align-start">
+      <div
+        v-if="!enabled && !confirming"
+        class="d-flex flex-column ga-4 align-start"
+      >
         <v-chip
           class="font-weight-bold"
           color="error"
@@ -109,7 +112,10 @@
         </v-btn>
       </div>
 
-      <div v-else-if="confirming" class="d-flex flex-column ga-4 align-start">
+      <div
+        v-else-if="confirming"
+        class="d-flex flex-column ga-4 align-start"
+      >
         <v-chip
           class="font-weight-bold"
           color="warning"
@@ -117,11 +123,14 @@
           variant="flat"
         >Setup in Progress</v-chip>
         <p class="text-body-2 text-grey-darken-1">
-          Scan the QR code with your authenticator app and enter the code below to confirm.
+          Scan the QR code with your authenticator app and enter the
+          code below to confirm.
         </p>
 
         <div v-if="qrCode" class="w-100">
-          <div class="pa-4 bg-white mb-4 rounded-lg border d-inline-block">
+          <div
+            class="pa-4 d-inline-block mb-4 rounded-lg border bg-white"
+          >
             <div v-html="qrCode.svg" />
           </div>
 
@@ -154,7 +163,10 @@
               <v-btn
                 class="text-none font-weight-bold"
                 variant="text"
-                @click="confirming = false; qrCode = null"
+                @click="
+                  confirming = false;
+                  qrCode = null;
+                "
               >
                 Cancel
               </v-btn>

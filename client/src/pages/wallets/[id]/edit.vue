@@ -102,7 +102,10 @@
           router.push('/wallets/')
         } catch (error: any) {
           if (error.response?.status === 403) {
-            alert(error.response.data.message || 'You are not authorized to delete this wallet (it might not be empty).')
+            alert(
+              error.response.data.message
+                || 'You are not authorized to delete this wallet (it might not be empty).',
+            )
           } else {
             console.error('Error deleting wallet:', error)
           }
@@ -117,7 +120,7 @@
 <template>
   <div class="mb-8">
     <v-btn
-      class="mb-4 text-none px-0"
+      class="text-none mb-4 px-0"
       color="primary"
       prepend-icon="mdi-arrow-left"
       to="/wallets/"
@@ -125,9 +128,7 @@
     >
       Back to Wallets
     </v-btn>
-    <h1 class="text-h5 font-weight-bold text-grey-darken-2">
-      Edit Wallet
-    </h1>
+    <h1 class="text-h5 font-weight-bold text-grey-darken-2">Edit Wallet</h1>
   </div>
 
   <v-card
@@ -210,23 +211,38 @@
             <v-divider class="my-4" />
 
             <div class="pa-6 bg-grey-lighten-4 rounded-lg border">
-              <div class="text-subtitle-1 font-weight-bold text-grey-darken-3 mb-1">
+              <div
+                class="text-subtitle-1 font-weight-bold text-grey-darken-3 mb-1"
+              >
                 Management Actions
               </div>
               <p class="text-caption text-grey-darken-1 mb-6">
-                Manage the status or permanently delete this wallet.
+                Manage the status or permanently delete this
+                wallet.
               </p>
 
               <div class="d-flex flex-column flex-sm-row ga-3">
                 <v-btn
                   class="flex-grow-1 text-none"
-                  :color="wallet?.status === 'active' ? 'warning' : 'success'"
-                  :prepend-icon="wallet?.status === 'active' ? Snowflake : 'mdi-fire'"
+                  :color="
+                    wallet?.status === 'active'
+                      ? 'warning'
+                      : 'success'
+                  "
+                  :prepend-icon="
+                    wallet?.status === 'active'
+                      ? Snowflake
+                      : 'mdi-fire'
+                  "
                   rounded="lg"
                   variant="flat"
                   @click="handleToggleStatus"
                 >
-                  {{ wallet?.status === 'active' ? 'Freeze Wallet' : 'Unfreeze Wallet' }}
+                  {{
+                    wallet?.status === 'active'
+                      ? 'Freeze Wallet'
+                      : 'Unfreeze Wallet'
+                  }}
                 </v-btn>
 
                 <v-btn
@@ -252,7 +268,8 @@
                 variant="tonal"
               >
                 <div class="text-caption">
-                  Only wallets with no transaction history can be deleted.
+                  Only wallets with no transaction history can
+                  be deleted.
                 </div>
               </v-alert>
             </div>

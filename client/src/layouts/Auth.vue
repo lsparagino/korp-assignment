@@ -8,7 +8,7 @@
   <v-app>
     <v-main class="bg-grey-lighten-4 d-flex align-center justify-center">
       <v-container class="max-w-sm px-4">
-        <div class="mb-8 text-center px-4">
+        <div class="mb-8 px-4 text-center">
           <router-link class="d-inline-block mb-4" to="/">
             <img
               alt="SecureWallet"

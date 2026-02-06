@@ -89,7 +89,7 @@
 
         <v-btn
           block
-          class="mt-4 text-none font-weight-bold"
+          class="text-none font-weight-bold mt-4"
           color="primary"
           height="48"
           :loading="processing"

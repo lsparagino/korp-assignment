@@ -1,12 +1,5 @@
 <script lang="ts" setup>
-  import {
-    Bell,
-    ChevronDown,
-    LayoutDashboard,
-    Repeat,
-    Users,
-    Wallet,
-  } from 'lucide-vue-next'
+  import { LayoutDashboard, Repeat, Users, Wallet } from 'lucide-vue-next'
   import { computed, onMounted, ref } from 'vue'
   import { useRoute, useRouter } from 'vue-router'
   import AppLogo from '@/components/AppLogo.vue'
@@ -79,7 +72,9 @@
         <div
           class="d-flex h-100 w-100 align-center justify-space-between overflow-hidden"
         >
-          <div class="d-flex align-center h-100 ga-2 ga-sm-4 px-1 px-sm-4">
+          <div
+            class="d-flex align-center h-100 ga-2 ga-sm-4 px-sm-4 px-1"
+          >
             <v-app-bar-nav-icon
               class="hidden-md-and-up"
               @click="drawer = !drawer"
@@ -87,7 +82,7 @@
             <AppLogo />
           </div>
 
-          <div class="d-flex align-center ga-2 ga-sm-4 px-2 px-sm-6">
+          <div class="d-flex align-center ga-2 ga-sm-4 px-sm-6 px-2">
             <!-- Company Selector (Desktop) -->
             <v-menu v-if="companyStore.hasCompanies" offset-y>
               <template #activator="{ props }">
@@ -97,8 +92,15 @@
                   v-bind="props"
                   variant="outlined"
                 >
-                  {{ companyStore.currentCompany?.name || 'Select Company' }}
-                  <v-icon end icon="mdi-chevron-down" size="18" />
+                  {{
+                    companyStore.currentCompany?.name ||
+                      'Select Company'
+                  }}
+                  <v-icon
+                    end
+                    icon="mdi-chevron-down"
+                    size="18"
+                  />
                 </v-btn>
               </template>
               <v-list>
@@ -115,7 +117,12 @@
             </v-menu>
 
             <!-- Notifications -->
-            <v-btn color="grey-darken-2" disabled icon variant="text">
+            <v-btn
+              color="grey-darken-2"
+              disabled
+              icon
+              variant="text"
+            >
               <v-icon icon="mdi-bell-outline" />
             </v-btn>
 
@@ -154,8 +161,13 @@
                           {{ authStore.user.email }}
                         </p>
                         <v-chip
-                          class="mt-1 text-uppercase font-weight-bold"
-                          :color="authStore.user.role === 'admin' ? 'primary' : 'grey-darken-1'"
+                          class="text-uppercase font-weight-bold mt-1"
+                          :color="
+                            authStore.user.role ===
+                              'admin'
+                              ? 'primary'
+                              : 'grey-darken-1'
+                          "
                           size="x-small"
                           variant="flat"
                         >
@@ -218,7 +230,10 @@
       >
         <div class="d-flex flex-column h-100">
           <!-- Company Selector (Mobile) -->
-          <div v-if="companyStore.hasCompanies" class="pa-4 hidden-md-and-up border-b-sm">
+          <div
+            v-if="companyStore.hasCompanies"
+            class="pa-4 hidden-md-and-up border-b-sm"
+          >
             <v-menu offset-y>
               <template #activator="{ props }">
                 <v-btn
@@ -229,9 +244,16 @@
                   variant="outlined"
                 >
                   <span class="text-truncate">
-                    {{ companyStore.currentCompany?.name || 'Select Company' }}
+                    {{
+                      companyStore.currentCompany?.name ||
+                        'Select Company'
+                    }}
                   </span>
-                  <v-icon end icon="mdi-chevron-down" size="18" />
+                  <v-icon
+                    end
+                    icon="mdi-chevron-down"
+                    size="18"
+                  />
                 </v-btn>
               </template>
               <v-list>
@@ -248,7 +270,11 @@
             </v-menu>
           </div>
 
-          <v-list class="list-container flex-grow-1 overflow-y-auto" density="comfortable" nav>
+          <v-list
+            class="list-container flex-grow-1 overflow-y-auto"
+            density="comfortable"
+            nav
+          >
             <v-list-item
               v-for="item in filteredNavItems"
               :key="item.title"
@@ -267,13 +293,16 @@
                 />
               </template>
               <v-list-item-title
-                class="text-body-1 font-normal text-grey-darken-3"
+                class="text-body-1 text-grey-darken-3 font-normal"
               >{{ item.title }}</v-list-item-title>
             </v-list-item>
           </v-list>
 
           <v-divider />
-          <div v-if="authStore.user?.role === 'admin'" class="pa-4 flex-shrink-0">
+          <div
+            v-if="authStore.user?.role === 'admin'"
+            class="pa-4 flex-shrink-0"
+          >
             <v-btn
               block
               class="text-none"
@@ -299,12 +328,12 @@
 
 <style scoped>
 .app-container {
-  height: 100vh;
-  overflow: hidden;
+    height: 100vh;
+    overflow: hidden;
 }
 
 .h-100 {
-  height: 100% !important;
+    height: 100% !important;
 }
 
 .list-container {

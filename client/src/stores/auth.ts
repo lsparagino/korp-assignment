@@ -22,22 +22,22 @@ export const useAuthStore = defineStore('auth', {
   },
 
   actions: {
-    setToken(token: string) {
+    setToken (token: string) {
       this.token = token
       localStorage.setItem('access_token', token)
     },
 
-    setUser(user: User) {
+    setUser (user: User) {
       this.user = user
       localStorage.setItem('user', JSON.stringify(user))
     },
 
-    setTwoFactor(userId: number) {
+    setTwoFactor (userId: number) {
       this.requiresTwoFactor = true
       this.twoFactorUserId = userId
     },
 
-    async fetchUser() {
+    async fetchUser () {
       try {
         const response = await api.get('/user')
         this.setUser(response.data.data || response.data)
@@ -46,7 +46,7 @@ export const useAuthStore = defineStore('auth', {
       }
     },
 
-    clearToken() {
+    clearToken () {
       this.token = null
       this.user = null
       this.requiresTwoFactor = false

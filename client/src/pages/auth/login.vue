@@ -102,7 +102,7 @@
 
         <v-btn
           block
-          class="mt-4 text-none font-weight-bold"
+          class="text-none font-weight-bold mt-4"
           color="primary"
           height="48"
           :loading="processing"
@@ -117,7 +117,7 @@
     <template #footer>
       <span class="text-body-2 text-grey-darken-1">Don't have an account?</span>
       <router-link
-        class="text-body-2 font-weight-bold ms-1 text-decoration-none text-primary"
+        class="text-body-2 font-weight-bold text-decoration-none text-primary ms-1"
         to="/auth/register"
       >Sign up</router-link>
     </template>

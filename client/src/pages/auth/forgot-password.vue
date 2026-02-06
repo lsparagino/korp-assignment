@@ -70,7 +70,7 @@
     <template #footer>
       <span class="text-body-2 text-grey-darken-1">Or, return to</span>
       <router-link
-        class="text-body-2 font-weight-bold ms-1 text-decoration-none text-primary"
+        class="text-body-2 font-weight-bold text-decoration-none text-primary ms-1"
         to="/auth/login"
       >log in</router-link>
     </template>

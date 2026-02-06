@@ -38,7 +38,7 @@
 <template>
   <div class="mb-8">
     <v-btn
-      class="mb-4 text-none px-0"
+      class="text-none mb-4 px-0"
       color="primary"
       prepend-icon="mdi-arrow-left"
       to="/wallets/"

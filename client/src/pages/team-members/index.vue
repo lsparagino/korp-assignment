@@ -1,10 +1,9 @@
 <script lang="ts" setup>
-  import { ExternalLink } from 'lucide-vue-next'
-  import { onMounted, ref, computed } from 'vue'
-  import api from '@/plugins/api'
-  import TeamMemberModal from '@/components/TeamMemberModal.vue'
-  import Pagination from '@/components/Pagination.vue'
+  import { computed, onMounted, ref } from 'vue'
   import ConfirmDialog from '@/components/ConfirmDialog.vue'
+  import Pagination from '@/components/Pagination.vue'
+  import TeamMemberModal from '@/components/TeamMemberModal.vue'
+  import api from '@/plugins/api'
   import { useAuthStore } from '@/stores/auth'
   import { useCompanyStore } from '@/stores/company'
 
@@ -15,11 +14,11 @@
   const processing = ref(true)
   const showModal = ref(false)
   const selectedUser = ref<any>(null)
-  
+
   const paginationData = ref({
     currentPage: 1,
     lastPage: 1,
-    total: 0
+    total: 0,
   })
 
   const confirmDialog = ref({
@@ -38,7 +37,7 @@
       paginationData.value = {
         currentPage: response.data.pagination.current_page,
         lastPage: response.data.pagination.last_page,
-        total: response.data.pagination.total
+        total: response.data.pagination.total,
       }
     } catch (error) {
       console.error('Error fetching team:', error)
@@ -101,7 +100,7 @@
         } catch (error) {
           console.error('Error deleting member:', error)
         }
-      }
+      },
     }
   }
 
@@ -109,9 +108,15 @@
 </script>
 
 <template>
-  <div class="d-flex flex-column flex-sm-row align-start align-sm-center justify-space-between ga-4 mb-8">
+  <div
+    class="d-flex flex-column flex-sm-row align-start align-sm-center justify-space-between ga-4 mb-8"
+  >
     <h1 class="text-h5 font-weight-bold text-grey-darken-2">
-      Team Members <span v-if="companyStore.currentCompany" class="text-grey-darken-1">- {{ companyStore.currentCompany.name }}</span>
+      Team Members
+      <span
+        v-if="companyStore.currentCompany"
+        class="text-grey-darken-1"
+      >- {{ companyStore.currentCompany.name }}</span>
     </h1>
     <v-btn
       v-if="isAdmin"
@@ -174,12 +179,14 @@
               </v-chip>
               <v-chip
                 v-if="member.is_pending"
-                class="ms-2 text-uppercase"
+                class="text-uppercase ms-2"
                 color="orange-lighten-5"
                 size="x-small"
                 variant="flat"
               >
-                <span class="text-orange-darken-3 font-weight-bold">Pending Invitation</span>
+                <span
+                  class="text-orange-darken-3 font-weight-bold"
+                >Pending Invitation</span>
               </v-chip>
             </td>
             <td class="text-grey-darken-2">{{ member.email }}</td>
@@ -209,9 +216,12 @@
               </v-chip>
             </td>
             <td v-if="isAdmin" class="text-right">
-              <div class="d-flex justify-end ga-2">
+              <div class="d-flex ga-2 justify-end">
                 <v-btn
-                  v-if="!member.is_current && member.role === 'Member'"
+                  v-if="
+                    !member.is_current &&
+                      member.role === 'Member'
+                  "
                   color="primary"
                   density="comfortable"
                   icon="mdi-pencil"
@@ -220,7 +230,10 @@
                   @click="openEditModal(member)"
                 />
                 <v-btn
-                  v-if="!member.is_current && member.role === 'Member'"
+                  v-if="
+                    !member.is_current &&
+                      member.role === 'Member'
+                  "
                   color="error"
                   density="comfortable"
                   icon="mdi-delete"
@@ -243,7 +256,10 @@
           per_page: 10,
           total: paginationData.total,
           from: (paginationData.currentPage - 1) * 10 + 1,
-          to: Math.min(paginationData.currentPage * 10, paginationData.total),
+          to: Math.min(
+            paginationData.currentPage * 10,
+            paginationData.total,
+          ),
         }"
         @update:page="fetchTeam"
       />

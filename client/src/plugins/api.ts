@@ -2,6 +2,9 @@ import axios from 'axios'
 import router from '@/router'
 import { useAuthStore } from '@/stores/auth'
 
+// Request Interceptor
+import { useCompanyStore } from '@/stores/company'
+
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL,
   headers: {
@@ -9,9 +12,6 @@ const api = axios.create({
     'Accept': 'application/json',
   },
 })
-
-// Request Interceptor
-import { useCompanyStore } from '@/stores/company'
 
 api.interceptors.request.use(config => {
   const authStore = useAuthStore()
@@ -21,7 +21,10 @@ api.interceptors.request.use(config => {
 
   const companyStore = useCompanyStore()
   if (companyStore.currentCompany) {
-    config.params = { ...config.params, company_id: companyStore.currentCompany.id }
+    config.params = {
+      ...config.params,
+      company_id: companyStore.currentCompany.id,
+    }
   }
 
   return config

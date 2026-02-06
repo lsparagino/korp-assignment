@@ -10,7 +10,7 @@ export interface PaginationMeta {
   to: number | null
 }
 
-export function usePagination(
+export function usePagination (
   fetchData: (params: { page: number, per_page: number }) => Promise<void>,
   options: {
     defaultPerPage?: number

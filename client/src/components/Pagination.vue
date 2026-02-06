@@ -32,16 +32,18 @@
 
 <template>
   <div
-    class="d-flex flex-column flex-sm-row align-center justify-space-between py-4 ga-4 px-4"
+    class="d-flex flex-column flex-sm-row align-center justify-space-between ga-4 px-4 py-4"
   >
     <div class="d-flex align-center text-caption text-grey-darken-1">
       Showing {{ meta.from || 0 }} to {{ meta.to || 0 }} of
       {{ meta.total }} entries
     </div>
 
-    <div class="d-flex flex-column flex-sm-row align-center ga-4 w-100 w-sm-auto justify-end">
-      <div class="d-flex align-center order-1 order-sm-0">
-        <span class="text-caption text-grey-darken-1 me-2 text-no-wrap">Per page:</span>
+    <div
+      class="d-flex flex-column flex-sm-row align-center ga-4 w-100 w-sm-auto justify-end"
+    >
+      <div class="d-flex align-center order-sm-0 order-1">
+        <span class="text-caption text-grey-darken-1 text-no-wrap me-2">Per page:</span>
         <v-select
           v-model="perPageModel"
           class="page-size-selector"

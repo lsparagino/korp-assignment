@@ -150,7 +150,11 @@
               Delete Account
             </v-card-title>
             <v-card-subtitle class="text-body-1 opacity-100">
-              Are you sure you want to delete your account? Once your account is deleted, all of its resources and data will be permanently deleted. Please enter your password to confirm you would like to permanently delete your account.
+              Are you sure you want to delete your account? Once
+              your account is deleted, all of its resources and
+              data will be permanently deleted. Please enter your
+              password to confirm you would like to permanently
+              delete your account.
             </v-card-subtitle>
 
             <v-form class="mt-6" @submit.prevent="deleteAccount">
@@ -169,7 +173,7 @@
                 variant="outlined"
               />
 
-              <div class="d-flex justify-end ga-3 mt-8">
+              <div class="d-flex ga-3 mt-8 justify-end">
                 <v-btn
                   class="text-none font-weight-bold"
                   variant="text"

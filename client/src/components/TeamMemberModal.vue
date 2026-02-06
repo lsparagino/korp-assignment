@@ -19,24 +19,25 @@
   })
   const errors = ref<Record<string, string[]>>({})
 
-  watch(() => props.modelValue, (val) => {
-    dialog.value = val
-    if (val) {
-      fetchWallets()
-      errors.value = {}
-      if (props.user) {
-        form.value = {
-          name: props.user.name,
-          email: props.user.email,
-          wallets: props.user.assigned_wallets || [],
-        }
-      } else {
-        form.value = { name: '', email: '', wallets: [] }
+  watch(
+    () => props.modelValue,
+    val => {
+      dialog.value = val
+      if (val) {
+        fetchWallets()
+        errors.value = {}
+        form.value = props.user
+          ? {
+            name: props.user.name,
+            email: props.user.email,
+            wallets: props.user.assigned_wallets || [],
+          }
+          : { name: '', email: '', wallets: [] }
       }
-    }
-  })
+    },
+  )
 
-  watch(dialog, (val) => {
+  watch(dialog, val => {
     emit('update:modelValue', val)
   })
 
@@ -53,11 +54,9 @@
     processing.value = true
     errors.value = {}
     try {
-      if (props.user) {
-        await api.put(`/team-members/${props.user.id}`, form.value)
-      } else {
-        await api.post('/team-members', form.value)
-      }
+      await (props.user
+        ? api.put(`/team-members/${props.user.id}`, form.value)
+        : api.post('/team-members', form.value))
       emit('saved')
       dialog.value = false
     } catch (error: any) {
@@ -97,8 +96,13 @@
             variant="outlined"
           />
 
-          <div class="text-subtitle-1 font-weight-bold mb-2">Wallet Access</div>
-          <div v-if="errors.wallets" class="text-caption text-error mb-2">
+          <div class="text-subtitle-1 font-weight-bold mb-2">
+            Wallet Access
+          </div>
+          <div
+            v-if="errors.wallets"
+            class="text-caption text-error mb-2"
+          >
             {{ errors.wallets[0] }}
           </div>
           <v-row dense>

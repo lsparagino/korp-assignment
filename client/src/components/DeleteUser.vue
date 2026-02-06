@@ -31,7 +31,7 @@
 </script>
 
 <template>
-  <div class="mt-12 pt-12 border-t">
+  <div class="mt-12 border-t pt-12">
     <Heading
       description="Permanently delete your account. Any data you have in SecureWallet will be lost forever."
       title="Delete Account"

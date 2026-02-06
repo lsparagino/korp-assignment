@@ -120,9 +120,8 @@
     }
   }
 
-  const { meta, handlePageChange, handlePerPageChange, refresh, processing } = usePagination(
-    async params => {
-
+  const { meta, handlePageChange, handlePerPageChange, refresh, processing }
+    = usePagination(async params => {
       // Sync filterForm with URL query params
       filterForm.date_from = (route.query.date_from as string) || ''
       filterForm.date_to = (route.query.date_to as string) || ''
@@ -166,8 +165,7 @@
       } catch (error) {
         console.error('Error fetching transactions:', error)
       }
-    },
-  )
+    })
 
   function handleFilter () {
     const query = {
@@ -187,7 +185,8 @@
     }
 
     // Remove undefined keys
-    for (const key of Object.keys(query)) (query as any)[key] === undefined && delete (query as any)[key]
+    for (const key of Object.keys(query))
+      (query as any)[key] === undefined && delete (query as any)[key]
 
     router.push({ query })
   }
@@ -211,7 +210,11 @@
 <template>
   <div class="mb-8">
     <h1 class="text-h5 font-weight-bold text-grey-darken-2">
-      Transactions <span v-if="companyStore.currentCompany" class="text-grey-darken-1">- {{ companyStore.currentCompany.name }}</span>
+      Transactions
+      <span
+        v-if="companyStore.currentCompany"
+        class="text-grey-darken-1"
+      >- {{ companyStore.currentCompany.name }}</span>
     </h1>
   </div>
 
@@ -219,7 +222,9 @@
   <v-card border class="mb-6" flat rounded="lg">
     <v-card-text class="pa-6">
       <div class="d-flex align-center justify-space-between mb-4">
-        <span class="text-subtitle-2 font-weight-bold text-grey-darken-3">Filter Options</span>
+        <span
+          class="text-subtitle-2 font-weight-bold text-grey-darken-3"
+        >Filter Options</span>
         <v-chip
           v-if="activeFiltersCount > 0"
           color="primary"
@@ -233,7 +238,7 @@
       <v-row>
         <v-col cols="12" md="4">
           <label
-            class="text-caption font-weight-bold text-grey-darken-2 mb-2 d-block"
+            class="text-caption font-weight-bold text-grey-darken-2 d-block mb-2"
           >
             Date From
           </label>
@@ -275,7 +280,7 @@
 
         <v-col cols="12" md="4">
           <label
-            class="text-caption font-weight-bold text-grey-darken-2 mb-2 d-block"
+            class="text-caption font-weight-bold text-grey-darken-2 d-block mb-2"
           >
             Date To
           </label>
@@ -317,7 +322,7 @@
 
         <v-col cols="12" md="4">
           <label
-            class="text-caption font-weight-bold text-grey-darken-2 mb-2 d-block"
+            class="text-caption font-weight-bold text-grey-darken-2 d-block mb-2"
           >
             Type
           </label>
@@ -339,9 +344,10 @@
       <v-expansion-panels v-model="advancedPanel" class="mt-4">
         <v-expansion-panel border elevation="0">
           <v-expansion-panel-title
-            class="text-caption font-weight-bold min-h-0 text-primary"
+            class="text-caption font-weight-bold text-primary min-h-0"
           >
-            <v-icon class="mr-3" icon="mdi-filter-cog" />Advanced Filters
+            <v-icon class="mr-3" icon="mdi-filter-cog" />Advanced
+            Filters
             <v-chip
               v-if="activeAdvancedFiltersCount > 0"
               class="ms-2"
@@ -357,7 +363,7 @@
             <v-row>
               <v-col cols="12" md="6">
                 <label
-                  class="text-caption font-weight-bold text-grey-darken-2 mb-2 d-block"
+                  class="text-caption font-weight-bold text-grey-darken-2 d-block mb-2"
                 >
                   Amount Range
                 </label>
@@ -385,7 +391,7 @@
               </v-col>
               <v-col cols="12" md="6">
                 <label
-                  class="text-caption font-weight-bold text-grey-darken-2 mb-2 d-block"
+                  class="text-caption font-weight-bold text-grey-darken-2 d-block mb-2"
                 >
                   Reference
                 </label>
@@ -402,7 +408,7 @@
             <v-row class="mt-4">
               <v-col cols="12" md="6">
                 <label
-                  class="text-caption font-weight-bold text-grey-darken-2 mb-2 d-block"
+                  class="text-caption font-weight-bold text-grey-darken-2 d-block mb-2"
                 >
                   From Wallet
                 </label>
@@ -421,7 +427,7 @@
               </v-col>
               <v-col cols="12" md="6">
                 <label
-                  class="text-caption font-weight-bold text-grey-darken-2 mb-2 d-block"
+                  class="text-caption font-weight-bold text-grey-darken-2 d-block mb-2"
                 >
                   To Wallet
                 </label>
