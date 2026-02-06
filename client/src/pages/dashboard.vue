@@ -13,6 +13,7 @@
   const topWallets = ref<any[]>([])
   const otherWallets = ref<any[]>([])
   const transactions = ref<any[]>([])
+  const wallets = ref<any[]>([])
   const processing = ref(true)
 
   async function fetchDashboardData () {
@@ -50,6 +51,7 @@
       }))
 
       transactions.value = response.data.transactions
+      wallets.value = response.data.wallets
     } catch (error) {
       console.error('Error fetching dashboard data:', error)
     } finally {
@@ -213,6 +215,7 @@
     :items="transactions"
     :loading="processing"
     title="Recent Transactions"
+    :wallets="wallets"
   >
     <template #footer>
       <div

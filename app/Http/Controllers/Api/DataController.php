@@ -77,6 +77,7 @@ class DataController extends Controller
             'top_wallets' => $top3,
             'others' => $othersAggregated,
             'transactions' => \App\Http\Resources\TransactionResource::collection($recentTransactions),
+            'wallets' => $allWallets,
         ]);
     }
 }
