@@ -83,12 +83,12 @@
   <!-- Total Balance Card -->
   <v-card
     border
-    class="mb-6 pa-6"
+    class="mb-6 pa-4 pa-sm-8"
     flat
     :loading="processing"
     rounded="lg"
   >
-    <div class="text-subtitle-1 font-weight-bold text-grey-darken-3 mb-6">
+    <div class="text-subtitle-1 font-weight-bold text-grey-darken-3 mb-4 mb-sm-6">
       Total Balance
     </div>
     <div
@@ -97,13 +97,13 @@
       class="mb-2"
     >
       <span
-        class="text-h4 font-weight-black mr-2"
+        class="text-h5 text-sm-h4 font-weight-black mr-2"
         :class="getAmountColor(balance.amountRaw)"
       >{{
         balance.amount
       }}</span>
       <span
-        class="text-subtitle-1 font-weight-medium text-grey-darken-1"
+        class="text-body-1 text-sm-subtitle-1 font-weight-medium text-grey-darken-1"
       >{{ balance.currency }}</span>
     </div>
   </v-card>
@@ -142,7 +142,7 @@
       v-for="wallet in topWallets"
       :key="wallet.name"
       cols="12"
-      md="3"
+      lg="3"
       sm="6"
     >
       <v-card border class="pa-4 h-100" flat rounded="lg">
@@ -177,7 +177,7 @@
     <v-col
       v-if="otherWallets.length > 0"
       cols="12"
-      md="3"
+      lg="3"
       sm="6"
     >
       <v-card border class="pa-4 bg-grey-lighten-4 h-100" flat rounded="lg">

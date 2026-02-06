@@ -39,8 +39,8 @@
       {{ meta.total }} entries
     </div>
 
-    <div class="d-flex align-center ga-4 w-100 w-sm-auto justify-end">
-      <div class="d-flex align-center">
+    <div class="d-flex flex-column flex-sm-row align-center ga-4 w-100 w-sm-auto justify-end">
+      <div class="d-flex align-center order-1 order-sm-0">
         <span class="text-caption text-grey-darken-1 me-2 text-no-wrap">Per page:</span>
         <v-select
           v-model="perPageModel"
@@ -55,6 +55,7 @@
       <v-pagination
         v-model="page"
         active-color="primary"
+        class="order-0 order-sm-1"
         density="compact"
         :length="meta.last_page"
         :total-visible="5"

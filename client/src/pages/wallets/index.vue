@@ -107,7 +107,7 @@
 </script>
 
 <template>
-  <div class="d-flex align-center justify-space-between mb-8">
+  <div class="d-flex flex-column flex-sm-row align-start align-sm-center justify-space-between ga-4 mb-8">
     <h1 class="text-h5 font-weight-bold text-grey-darken-2">
       Wallets <span v-if="companyStore.currentCompany" class="text-grey-darken-1">- {{ companyStore.currentCompany.name }}</span>
     </h1>

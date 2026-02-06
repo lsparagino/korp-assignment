@@ -7,8 +7,8 @@
 <template>
   <v-app>
     <v-main class="bg-grey-lighten-4 d-flex align-center justify-center">
-      <v-container class="max-w-sm">
-        <div class="mb-8 text-center">
+      <v-container class="max-w-sm px-4">
+        <div class="mb-8 text-center px-4">
           <router-link class="d-inline-block mb-4" to="/">
             <img
               alt="SecureWallet"
@@ -26,7 +26,7 @@
           </p>
         </div>
 
-        <v-card border class="pa-8" flat rounded="xl">
+        <v-card border class="pa-6 pa-sm-10" flat rounded="xl">
           <router-view />
         </v-card>
       </v-container>
@@ -36,7 +36,7 @@
 
 <style scoped>
 .max-w-sm {
-    max-width: 448px !important;
+    max-width: 500px !important;
 }
 
 .logo-img {

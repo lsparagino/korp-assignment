@@ -17,7 +17,7 @@
   const router = useRouter()
   const authStore = useAuthStore()
   const companyStore = useCompanyStore()
-  const drawer = ref(true)
+  const drawer = ref(null) as any
 
   interface NavItem {
     title: string
@@ -75,18 +75,24 @@
 <template>
   <v-app class="app-container">
     <v-layout class="h-100 overflow-hidden">
-      <v-app-bar flat border="b-sm">
+      <v-app-bar border="b-sm" flat>
         <div
-          class="d-flex h-100 w-100 justify-space-between overflow-hidden"
+          class="d-flex h-100 w-100 align-center justify-space-between overflow-hidden"
         >
-          <AppLogo />
+          <div class="d-flex align-center h-100 ga-2 ga-sm-4 px-1 px-sm-4">
+            <v-app-bar-nav-icon
+              class="hidden-md-and-up"
+              @click="drawer = !drawer"
+            />
+            <AppLogo />
+          </div>
 
-          <div class="d-flex align-center ga-4 px-6">
-            <!-- Company Selector -->
+          <div class="d-flex align-center ga-2 ga-sm-4 px-2 px-sm-6">
+            <!-- Company Selector (Desktop) -->
             <v-menu v-if="companyStore.hasCompanies" offset-y>
               <template #activator="{ props }">
                 <v-btn
-                  class="text-none border-grey-lighten-2 text-grey-darken-3"
+                  class="text-none border-grey-lighten-2 text-grey-darken-3 hidden-sm-and-down"
                   rounded="lg"
                   v-bind="props"
                   variant="outlined"
@@ -207,10 +213,41 @@
         app
         class="border-e-sm overflow-hidden"
         color="sidebar-bg"
-        permanent
+        :permanent="$vuetify.display.mdAndUp"
         width="260"
       >
         <div class="d-flex flex-column h-100">
+          <!-- Company Selector (Mobile) -->
+          <div v-if="companyStore.hasCompanies" class="pa-4 hidden-md-and-up border-b-sm">
+            <v-menu offset-y>
+              <template #activator="{ props }">
+                <v-btn
+                  block
+                  class="text-none border-grey-lighten-2 text-grey-darken-3"
+                  rounded="lg"
+                  v-bind="props"
+                  variant="outlined"
+                >
+                  <span class="text-truncate">
+                    {{ companyStore.currentCompany?.name || 'Select Company' }}
+                  </span>
+                  <v-icon end icon="mdi-chevron-down" size="18" />
+                </v-btn>
+              </template>
+              <v-list>
+                <v-list-item
+                  v-for="company in companyStore.companies"
+                  :key="company.id"
+                  @click="companyStore.setCompany(company)"
+                >
+                  <v-list-item-title>{{
+                    company.name
+                  }}</v-list-item-title>
+                </v-list-item>
+              </v-list>
+            </v-menu>
+          </div>
+
           <v-list class="list-container flex-grow-1 overflow-y-auto" density="comfortable" nav>
             <v-list-item
               v-for="item in filteredNavItems"

@@ -109,7 +109,7 @@
 </script>
 
 <template>
-  <div class="d-flex align-center justify-space-between mb-8">
+  <div class="d-flex flex-column flex-sm-row align-start align-sm-center justify-space-between ga-4 mb-8">
     <h1 class="text-h5 font-weight-bold text-grey-darken-2">
       Team Members <span v-if="companyStore.currentCompany" class="text-grey-darken-1">- {{ companyStore.currentCompany.name }}</span>
     </h1>
@@ -127,111 +127,113 @@
   </div>
 
   <v-card border flat :loading="processing" rounded="lg">
-    <v-table density="comfortable">
-      <thead class="bg-grey-lighten-4">
-        <tr>
-          <th
-            class="text-grey-darken-1 text-uppercase text-caption font-weight-bold text-left"
-          >
-            Name
-          </th>
-          <th
-            class="text-grey-darken-1 text-uppercase text-caption font-weight-bold text-left"
-          >
-            Email
-          </th>
-          <th
-            class="text-grey-darken-1 text-uppercase text-caption font-weight-bold text-left"
-          >
-            Role
-          </th>
-          <th
-            class="text-grey-darken-1 text-uppercase text-caption font-weight-bold text-left"
-          >
-            Wallet Access
-          </th>
-          <th
-            v-if="isAdmin"
-            class="text-grey-darken-1 text-uppercase text-caption font-weight-bold text-right"
-          >
-            Actions
-          </th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="member in members" :key="member.id">
-          <td class="font-weight-bold text-grey-darken-3">
-            {{ member.name }}
-            <v-chip
-              v-if="member.is_current"
-              class="ms-2"
-              color="grey-lighten-4"
-              size="x-small"
-              variant="flat"
+    <div class="overflow-x-auto">
+      <v-table density="comfortable">
+        <thead class="bg-grey-lighten-4">
+          <tr>
+            <th
+              class="text-grey-darken-1 text-uppercase text-caption font-weight-bold text-left"
             >
-              YOU
-            </v-chip>
-            <v-chip
-              v-if="member.is_pending"
-              class="ms-2 text-uppercase"
-              color="orange-lighten-5"
-              size="x-small"
-              variant="flat"
+              Name
+            </th>
+            <th
+              class="text-grey-darken-1 text-uppercase text-caption font-weight-bold text-left"
             >
-              <span class="text-orange-darken-3 font-weight-bold">Pending Invitation</span>
-            </v-chip>
-          </td>
-          <td class="text-grey-darken-2">{{ member.email }}</td>
-          <td>
-            <v-chip
-              class="font-weight-bold"
-              :color="getRoleColor(member.role)"
-              size="small"
-              variant="flat"
+              Email
+            </th>
+            <th
+              class="text-grey-darken-1 text-uppercase text-caption font-weight-bold text-left"
             >
-              <span
+              Role
+            </th>
+            <th
+              class="text-grey-darken-1 text-uppercase text-caption font-weight-bold text-left"
+            >
+              Wallet Access
+            </th>
+            <th
+              v-if="isAdmin"
+              class="text-grey-darken-1 text-uppercase text-caption font-weight-bold text-right"
+            >
+              Actions
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="member in members" :key="member.id">
+            <td class="font-weight-bold text-grey-darken-3">
+              {{ member.name }}
+              <v-chip
+                v-if="member.is_current"
+                class="ms-2"
+                color="grey-lighten-4"
+                size="x-small"
+                variant="flat"
+              >
+                YOU
+              </v-chip>
+              <v-chip
+                v-if="member.is_pending"
+                class="ms-2 text-uppercase"
+                color="orange-lighten-5"
+                size="x-small"
+                variant="flat"
+              >
+                <span class="text-orange-darken-3 font-weight-bold">Pending Invitation</span>
+              </v-chip>
+            </td>
+            <td class="text-grey-darken-2">{{ member.email }}</td>
+            <td>
+              <v-chip
                 class="font-weight-bold"
-                :class="`text-${getRoleTextColor(member.role)}`"
-              >{{ member.role }}</span>
-            </v-chip>
-          </td>
-          <td>
-            <v-chip
-              class="font-weight-bold"
-              color="green-lighten-5"
-              size="small"
-              variant="flat"
-            >
-              <span
-                class="text-green-darken-3 font-weight-bold"
-              >{{ member.wallet_access }}</span>
-            </v-chip>
-          </td>
-          <td v-if="isAdmin" class="text-right">
-            <div class="d-flex justify-end ga-2">
-              <v-btn
-                v-if="!member.is_current && member.role === 'Member'"
-                color="primary"
-                density="comfortable"
-                icon="mdi-pencil"
+                :color="getRoleColor(member.role)"
                 size="small"
-                variant="text"
-                @click="openEditModal(member)"
-              />
-              <v-btn
-                v-if="!member.is_current && member.role === 'Member'"
-                color="error"
-                density="comfortable"
-                icon="mdi-delete"
+                variant="flat"
+              >
+                <span
+                  class="font-weight-bold"
+                  :class="`text-${getRoleTextColor(member.role)}`"
+                >{{ member.role }}</span>
+              </v-chip>
+            </td>
+            <td>
+              <v-chip
+                class="font-weight-bold"
+                color="green-lighten-5"
                 size="small"
-                variant="text"
-                @click="deleteMember(member)"
-              />
-            </div>
-          </td>
-        </tr>
-      </tbody>
-    </v-table>
+                variant="flat"
+              >
+                <span
+                  class="text-green-darken-3 font-weight-bold"
+                >{{ member.wallet_access }}</span>
+              </v-chip>
+            </td>
+            <td v-if="isAdmin" class="text-right">
+              <div class="d-flex justify-end ga-2">
+                <v-btn
+                  v-if="!member.is_current && member.role === 'Member'"
+                  color="primary"
+                  density="comfortable"
+                  icon="mdi-pencil"
+                  size="small"
+                  variant="text"
+                  @click="openEditModal(member)"
+                />
+                <v-btn
+                  v-if="!member.is_current && member.role === 'Member'"
+                  color="error"
+                  density="comfortable"
+                  icon="mdi-delete"
+                  size="small"
+                  variant="text"
+                  @click="deleteMember(member)"
+                />
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </v-table>
+    </div>
 
     <div class="border-t">
       <Pagination

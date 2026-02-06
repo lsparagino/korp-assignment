@@ -1,7 +1,7 @@
 <script lang="ts" setup></script>
 
 <template>
-  <div class="d-flex align-center">
+  <div class="d-flex align-center h-100">
     <img alt="SecureWallet" class="logo" src="/images/sw_logo.png">
   </div>
 </template>
@@ -11,5 +11,6 @@
     width: 100%;
     height: 100%;
     object-fit: contain;
+    max-height: 40px;
 }
 </style>
