@@ -4,7 +4,8 @@ param (
     [string]$ProjectId,
 
     [string]$Region = "asia-southeast1",
-    [string]$RepoName = "korp-repo"
+    [string]$RepoName = "korp-repo",
+    [switch]$Apply
 )
 
 $ErrorActionPreference = "Stop"
@@ -40,5 +41,22 @@ docker push $clientImageVersion
 
 Write-Host "`n--- Success! ---" -ForegroundColor Green
 Write-Host "Images are now in Artifact Registry."
-Write-Host "Run the following command to update Cloud Run:" -ForegroundColor Yellow
-Write-Host "terraform apply -var=""api_image_tag=$Tag"" -var=""client_image_tag=$Tag""" -ForegroundColor Green
+
+$terraformCmd = "terraform apply -var=""api_image_tag=$Tag"" -var=""client_image_tag=$Tag"""
+
+if ($Apply) {
+    Write-Host "`n--- Running Terraform Apply ---" -ForegroundColor Cyan
+    $currentDir = Get-Location
+    try {
+        Set-Location "terraform"
+        Write-Host "Executing: $terraformCmd" -ForegroundColor Yellow
+        Invoke-Expression "$terraformCmd -auto-approve"
+    }
+    finally {
+        Set-Location $currentDir
+    }
+}
+else {
+    Write-Host "Run the following command to update Cloud Run:" -ForegroundColor Yellow
+    Write-Host $terraformCmd -ForegroundColor Green
+}

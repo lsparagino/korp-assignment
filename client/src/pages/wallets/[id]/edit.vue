@@ -11,6 +11,7 @@
     currency: string
     balance: number
     status: string
+    can_delete: boolean
   }
 
   const route = useRoute()
@@ -231,6 +232,7 @@
                 <v-btn
                   class="flex-grow-1 text-none"
                   color="error"
+                  :disabled="!wallet?.can_delete"
                   :prepend-icon="Trash2"
                   rounded="lg"
                   variant="tonal"
@@ -239,6 +241,20 @@
                   Delete Wallet
                 </v-btn>
               </div>
+
+              <v-alert
+                v-if="wallet && !wallet.can_delete"
+                class="mt-4"
+                color="info"
+                density="compact"
+                icon="mdi-information"
+                rounded="lg"
+                variant="tonal"
+              >
+                <div class="text-caption">
+                  Only wallets with no transaction history can be deleted.
+                </div>
+              </v-alert>
             </div>
           </div>
         </v-col>
