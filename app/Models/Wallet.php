@@ -70,9 +70,11 @@ class Wallet extends Model
     /**
      * Scope a query to wallets accessible to the given user in a specific company.
      */
-    public function scopeScopedToUser($query, User $user, $companyId)
+    public function scopeScopedToUser($query, User $user, $companyId = null)
     {
-        $query->where('company_id', $companyId);
+        if ($companyId !== null) {
+            $query->where('company_id', $companyId);
+        }
 
         if ($user->isAdmin()) {
             return $query;

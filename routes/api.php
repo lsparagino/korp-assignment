@@ -20,7 +20,7 @@ use Illuminate\Support\Facades\Route;
 */
 
 // Public Auth Routes
-Route::post('/login', [AuthController::class, 'login']);
+Route::post('/login', [AuthController::class, 'login'])->name('login');
 Route::post('/two-factor-challenge', [AuthController::class, 'twoFactorChallenge']);
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/forgot-password', [PasswordResetController::class, 'forgotPassword']);

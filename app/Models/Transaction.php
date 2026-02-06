@@ -37,4 +37,15 @@ class Transaction extends Model
     {
         return $this->belongsTo(Wallet::class, 'to_wallet_id');
     }
+
+    /**
+     * Scope a query to transactions involving any of the given wallet IDs.
+     */
+    public function scopeForWallets($query, $walletIds)
+    {
+        return $query->where(function ($q) use ($walletIds) {
+            $q->whereIn('from_wallet_id', $walletIds)
+                ->orWhereIn('to_wallet_id', $walletIds);
+        });
+    }
 }
