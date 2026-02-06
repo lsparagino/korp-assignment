@@ -1,22 +1,22 @@
 <?php
 
 use App\Models\User;
-use Inertia\Testing\AssertableInertia as Assert;
 
-test('confirm password screen can be rendered', function () {
+test('password can be confirmed', function () {
     $user = User::factory()->create();
 
-    $response = $this->actingAs($user)->get(route('password.confirm'));
+    $response = $this->actingAs($user, 'sanctum')->postJson('/api/v0/user/confirm-password', [
+        'password' => 'password',
+    ]);
 
     $response->assertOk();
-
-    $response->assertInertia(fn (Assert $page) => $page
-        ->component('auth/ConfirmPassword')
-    );
+    $response->assertJson(['message' => 'Password confirmed']);
 });
 
 test('password confirmation requires authentication', function () {
-    $response = $this->get(route('password.confirm'));
+    $response = $this->postJson('/api/v0/user/confirm-password', [
+        'password' => 'password',
+    ]);
 
-    $response->assertRedirect(route('login'));
+    $response->assertUnauthorized();
 });

@@ -26,6 +26,10 @@ class VerificationController extends Controller
             return response()->json(['message' => 'Invalid or expired signature'], 401);
         }
 
+        if (! hash_equals((string) $request->route('hash'), sha1($request->user()->getEmailForVerification()))) {
+            return response()->json(['message' => 'Invalid verification link'], 403);
+        }
+
         if ($request->user()->hasVerifiedEmail()) {
             return response()->json(['message' => 'Email already verified']);
         }

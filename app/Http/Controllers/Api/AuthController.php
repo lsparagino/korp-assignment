@@ -21,13 +21,30 @@ class AuthController extends Controller
             'password' => 'required|string',
         ]);
 
+        $throttleKey = md5('login'.implode('|', [$request->{Fortify::username()}, $request->ip()]));
+
+        if (\Illuminate\Support\Facades\RateLimiter::tooManyAttempts($throttleKey, 5)) {
+            $seconds = \Illuminate\Support\Facades\RateLimiter::availableIn($throttleKey);
+
+            return response()->json([
+                'message' => trans('auth.throttle', [
+                    'seconds' => $seconds,
+                    'minutes' => ceil($seconds / 60),
+                ]),
+            ], 429);
+        }
+
         $user = User::where(Fortify::username(), $request->{Fortify::username()})->first();
 
         if (! $user || ! Hash::check($request->password, $user->password)) {
+            \Illuminate\Support\Facades\RateLimiter::hit($throttleKey);
+
             throw ValidationException::withMessages([
                 Fortify::username() => [trans('auth.failed')],
             ]);
         }
+
+        \Illuminate\Support\Facades\RateLimiter::clear($throttleKey);
 
         // Check 2FA
         if ($user->two_factor_secret &&
@@ -99,12 +116,14 @@ class AuthController extends Controller
             'access_token' => $token,
             'token_type' => 'Bearer',
             'user' => $user,
-        ]);
+        ], 201);
     }
 
     public function logout(Request $request)
     {
-        $request->user()->currentAccessToken()->delete();
+        if ($request->user()->currentAccessToken()) {
+            $request->user()->currentAccessToken()->delete();
+        }
 
         return response()->json([
             'message' => 'Logged out',

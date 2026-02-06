@@ -1,28 +1,12 @@
 <?php
 
 use App\Models\User;
-use Inertia\Testing\AssertableInertia as Assert;
 use Laravel\Fortify\Features;
 
-test('two factor challenge redirects to login when not authenticated', function () {
+test('users with two factor enabled receive challenged response on login', function () {
     if (! Features::canManageTwoFactorAuthentication()) {
         $this->markTestSkipped('Two-factor authentication is not enabled.');
     }
-
-    $response = $this->get(route('two-factor.login'));
-
-    $response->assertRedirect(route('login'));
-});
-
-test('two factor challenge can be rendered', function () {
-    if (! Features::canManageTwoFactorAuthentication()) {
-        $this->markTestSkipped('Two-factor authentication is not enabled.');
-    }
-
-    Features::twoFactorAuthentication([
-        'confirm' => true,
-        'confirmPassword' => true,
-    ]);
 
     $user = User::factory()->create();
 
@@ -32,14 +16,34 @@ test('two factor challenge can be rendered', function () {
         'two_factor_confirmed_at' => now(),
     ])->save();
 
-    $this->post(route('login'), [
+    $response = $this->postJson('/api/v0/login', [
         'email' => $user->email,
         'password' => 'password',
     ]);
 
-    $this->get(route('two-factor.login'))
-        ->assertOk()
-        ->assertInertia(fn (Assert $page) => $page
-            ->component('auth/TwoFactorChallenge')
-        );
+    $response->assertStatus(200);
+    $response->assertJson(['two_factor' => true]);
+    $this->assertGuest();
+});
+
+test('users can challenge with recovery code', function () {
+     if (! Features::canManageTwoFactorAuthentication()) {
+        $this->markTestSkipped('Two-factor authentication is not enabled.');
+    }
+
+    $user = User::factory()->create();
+
+    $user->forceFill([
+        'two_factor_secret' => encrypt('test-secret'),
+        'two_factor_recovery_codes' => encrypt(json_encode(['code1', 'code2'])),
+        'two_factor_confirmed_at' => now(),
+    ])->save();
+
+    $response = $this->postJson('/api/v0/two-factor-challenge', [
+        'user_id' => $user->id,
+        'recovery_code' => 'code1',
+    ]);
+
+    $response->assertOk()
+        ->assertJsonStructure(['access_token', 'token_type', 'user']);
 });

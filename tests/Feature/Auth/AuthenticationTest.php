@@ -4,33 +4,22 @@ use App\Models\User;
 use Illuminate\Support\Facades\RateLimiter;
 use Laravel\Fortify\Features;
 
-test('login screen can be rendered', function () {
-    $response = $this->get(route('login'));
-
-    $response->assertOk();
-});
-
-test('users can authenticate using the login screen', function () {
+test('users can authenticate', function () {
     $user = User::factory()->create();
 
-    $response = $this->post(route('login.store'), [
+    $response = $this->postJson('/api/v0/login', [
         'email' => $user->email,
         'password' => 'password',
     ]);
 
-    $this->assertAuthenticated();
-    $response->assertRedirect(route('dashboard', absolute: false));
+    $response->assertOk()
+        ->assertJsonStructure(['access_token', 'token_type', 'user']);
 });
 
-test('users with two factor enabled are redirected to two factor challenge', function () {
+test('users with two factor enabled receive challenged response', function () {
     if (! Features::canManageTwoFactorAuthentication()) {
         $this->markTestSkipped('Two-factor authentication is not enabled.');
     }
-
-    Features::twoFactorAuthentication([
-        'confirm' => true,
-        'confirmPassword' => true,
-    ]);
 
     $user = User::factory()->create();
 
@@ -40,34 +29,35 @@ test('users with two factor enabled are redirected to two factor challenge', fun
         'two_factor_confirmed_at' => now(),
     ])->save();
 
-    $response = $this->post(route('login'), [
+    $response = $this->postJson('/api/v0/login', [
         'email' => $user->email,
         'password' => 'password',
     ]);
 
-    $response->assertRedirect(route('two-factor.login'));
-    $response->assertSessionHas('login.id', $user->id);
+    $response->assertStatus(200);
+    $response->assertJson(['two_factor' => true]);
     $this->assertGuest();
 });
 
 test('users can not authenticate with invalid password', function () {
     $user = User::factory()->create();
 
-    $this->post(route('login.store'), [
+    $response = $this->postJson('/api/v0/login', [
         'email' => $user->email,
         'password' => 'wrong-password',
     ]);
 
+    $response->assertStatus(422);
     $this->assertGuest();
 });
 
 test('users can logout', function () {
     $user = User::factory()->create();
 
-    $response = $this->actingAs($user)->post(route('logout'));
+    $response = $this->actingAs($user, 'sanctum')->postJson('/api/v0/logout');
 
-    $this->assertGuest();
-    $response->assertRedirect(route('home'));
+    $response->assertOk()
+        ->assertJson(['message' => 'Logged out']);
 });
 
 test('users are rate limited', function () {
@@ -75,7 +65,7 @@ test('users are rate limited', function () {
 
     RateLimiter::increment(md5('login'.implode('|', [$user->email, '127.0.0.1'])), amount: 5);
 
-    $response = $this->post(route('login.store'), [
+    $response = $this->postJson('/api/v0/login', [
         'email' => $user->email,
         'password' => 'wrong-password',
     ]);

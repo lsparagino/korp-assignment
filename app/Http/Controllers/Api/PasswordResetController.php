@@ -20,7 +20,7 @@ class PasswordResetController extends Controller
 
         return $status === Password::RESET_LINK_SENT
             ? response()->json(['message' => trans($status)])
-            : response()->json(['message' => trans($status)], 400);
+            : response()->json(['message' => trans($status)], 422);
     }
 
     public function resetPassword(Request $request, ResetsUserPasswords $resets)
@@ -28,18 +28,19 @@ class PasswordResetController extends Controller
         $request->validate([
             'token' => 'required',
             Fortify::email() => 'required|email',
-            'password' => 'required|confirmed|min:8',
+            'password' => 'required|min:8',
+            'password_confirmation' => 'required',
         ]);
 
         $status = Password::broker(config('fortify.passwords'))->reset(
             $request->only(Fortify::email(), 'password', 'password_confirmation', 'token'),
-            function ($user, $password) use ($resets) {
-                $resets->reset($user, ['password' => $password]);
+            function ($user, $password) use ($resets, $request) {
+                $resets->reset($user, $request->only('password', 'password_confirmation'));
             }
         );
 
         return $status === Password::PASSWORD_RESET
             ? response()->json(['message' => trans($status)])
-            : response()->json(['message' => trans($status)], 400);
+            : response()->json(['message' => trans($status)], 422);
     }
 }

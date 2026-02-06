@@ -15,12 +15,19 @@ class TransactionFilterTest extends TestCase
 
     private User $user;
     private Wallet $wallet;
+    private \App\Models\Company $company;
 
     protected function setUp(): void
     {
         parent::setUp();
+        $this->company = \App\Models\Company::factory()->create();
         $this->user = User::factory()->create();
-        $this->wallet = Wallet::factory()->create(['user_id' => $this->user->id]);
+        $this->user->companies()->attach($this->company);
+        
+        $this->wallet = Wallet::factory()->create([
+            'user_id' => $this->user->id,
+            'company_id' => $this->company->id,
+        ]);
     }
 
     public function test_can_filter_transactions_by_type(): void
@@ -36,8 +43,8 @@ class TransactionFilterTest extends TestCase
         ]);
 
         // Filter by Credit
-        $response = $this->actingAs($this->user)
-            ->getJson('/api/v0/transactions?type=credit');
+        $response = $this->actingAs($this->user, 'sanctum')
+            ->getJson("/api/v0/transactions?type=credit&company_id={$this->company->id}");
 
         $response->assertStatus(200);
         $response->assertJsonCount(3, 'data');
@@ -46,8 +53,8 @@ class TransactionFilterTest extends TestCase
         }
 
         // Filter by Debit
-        $response = $this->actingAs($this->user)
-            ->getJson('/api/v0/transactions?type=debit');
+        $response = $this->actingAs($this->user, 'sanctum')
+            ->getJson("/api/v0/transactions?type=debit&company_id={$this->company->id}");
 
         $response->assertStatus(200);
         $response->assertJsonCount(2, 'data');
@@ -68,8 +75,8 @@ class TransactionFilterTest extends TestCase
             'created_at' => '2025-02-01 10:00:00',
         ]);
 
-        $response = $this->actingAs($this->user)
-            ->getJson('/api/v0/transactions?date_from=2025-01-15');
+        $response = $this->actingAs($this->user, 'sanctum')
+            ->getJson("/api/v0/transactions?date_from=2025-01-15&company_id={$this->company->id}");
 
         $response->assertStatus(200);
         $response->assertJsonCount(1, 'data');
@@ -88,8 +95,8 @@ class TransactionFilterTest extends TestCase
             'created_at' => '2025-02-01 10:00:00',
         ]);
 
-        $response = $this->actingAs($this->user)
-            ->getJson('/api/v0/transactions?date_to=2025-01-15');
+        $response = $this->actingAs($this->user, 'sanctum')
+            ->getJson("/api/v0/transactions?date_to=2025-01-15&company_id={$this->company->id}");
 
         $response->assertStatus(200);
         $response->assertJsonCount(1, 'data');
@@ -113,8 +120,8 @@ class TransactionFilterTest extends TestCase
             'created_at' => '2025-02-01 10:00:00',
         ]);
 
-        $response = $this->actingAs($this->user)
-            ->getJson('/api/v0/transactions?date_from=2025-01-10&date_to=2025-01-20');
+        $response = $this->actingAs($this->user, 'sanctum')
+            ->getJson("/api/v0/transactions?date_from=2025-01-10&date_to=2025-01-20&company_id={$this->company->id}");
 
         $response->assertStatus(200);
         $response->assertJsonCount(1, 'data');
@@ -127,8 +134,8 @@ class TransactionFilterTest extends TestCase
         Transaction::factory()->create(['to_wallet_id' => $this->wallet->id, 'amount' => 150]);
         Transaction::factory()->create(['to_wallet_id' => $this->wallet->id, 'amount' => 250]);
 
-        $response = $this->actingAs($this->user)
-            ->getJson('/api/v0/transactions?amount_min=100&amount_max=200');
+        $response = $this->actingAs($this->user, 'sanctum')
+            ->getJson("/api/v0/transactions?amount_min=100&amount_max=200&company_id={$this->company->id}");
 
         $response->assertStatus(200);
         $response->assertJsonCount(1, 'data');
@@ -140,8 +147,8 @@ class TransactionFilterTest extends TestCase
         Transaction::factory()->create(['to_wallet_id' => $this->wallet->id, 'reference' => 'Invoice 123']);
         Transaction::factory()->create(['to_wallet_id' => $this->wallet->id, 'reference' => 'Refund 456']);
 
-        $response = $this->actingAs($this->user)
-            ->getJson('/api/v0/transactions?reference=Refund');
+        $response = $this->actingAs($this->user, 'sanctum')
+            ->getJson("/api/v0/transactions?reference=Refund&company_id={$this->company->id}");
 
         $response->assertStatus(200);
         $response->assertJsonCount(1, 'data');
@@ -150,23 +157,23 @@ class TransactionFilterTest extends TestCase
 
     public function test_can_filter_transactions_by_wallets(): void
     {
-        $wallet1 = Wallet::factory()->create(['user_id' => $this->user->id]);
-        $wallet2 = Wallet::factory()->create(['user_id' => $this->user->id]);
+        $wallet1 = Wallet::factory()->create(['user_id' => $this->user->id, 'company_id' => $this->company->id]);
+        $wallet2 = Wallet::factory()->create(['user_id' => $this->user->id, 'company_id' => $this->company->id]);
 
         Transaction::factory()->create(['from_wallet_id' => $wallet1->id, 'to_wallet_id' => $wallet2->id]);
         Transaction::factory()->create(['from_wallet_id' => $wallet2->id, 'to_wallet_id' => $wallet1->id]);
 
         // Filter by from_wallet_id
-        $response = $this->actingAs($this->user)
-            ->getJson("/api/v0/transactions?from_wallet_id={$wallet1->id}");
+        $response = $this->actingAs($this->user, 'sanctum')
+            ->getJson("/api/v0/transactions?from_wallet_id={$wallet1->id}&company_id={$this->company->id}");
 
         $response->assertStatus(200);
         $response->assertJsonCount(1, 'data');
         $this->assertEquals($wallet1->id, $response->json('data.0.from_wallet_id'));
 
         // Filter by to_wallet_id
-        $response = $this->actingAs($this->user)
-            ->getJson("/api/v0/transactions?to_wallet_id={$wallet1->id}");
+        $response = $this->actingAs($this->user, 'sanctum')
+            ->getJson("/api/v0/transactions?to_wallet_id={$wallet1->id}&company_id={$this->company->id}");
 
         $response->assertStatus(200);
         $response->assertJsonCount(1, 'data');

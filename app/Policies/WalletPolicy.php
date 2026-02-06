@@ -21,11 +21,16 @@ class WalletPolicy
      */
     public function view(User $user, Wallet $wallet): bool
     {
-        if ($user->isAdmin()) {
-            return $wallet->user_id === $user->id;
+        // Must belong to the same company
+        if (!$user->companies()->where('companies.id', $wallet->company_id)->exists()) {
+            return false;
         }
 
-        return $user->assignedWallets()->where('wallet_id', $wallet->id)->exists();
+        if ($user->isAdmin()) {
+            return true;
+        }
+
+        return $wallet->user_id === $user->id || $user->assignedWallets()->where('wallets.id', $wallet->id)->exists();
     }
 
     /**

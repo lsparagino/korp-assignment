@@ -33,9 +33,7 @@ class WalletController extends Controller
             abort(403, 'Unauthorized access to company.');
         }
 
-        $query = $request->user()->isAdmin()
-            ? Wallet::where('company_id', $companyId)
-            : $request->user()->assignedWallets()->where('company_id', $companyId);
+        $query = Wallet::scopedToUser($request->user(), $companyId);
 
         return WalletResource::collection(
             $query->latest()->paginate($perPage)
@@ -58,7 +56,6 @@ class WalletController extends Controller
 
         $wallet = $request->user()->wallets()->create([
             ...$validated,
-            'balance' => 0,
             'status' => WalletStatus::Active,
             'company_id' => $companyId,
         ]);
