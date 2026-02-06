@@ -3,48 +3,36 @@
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 
-test('password update page is displayed', function () {
-    $user = User::factory()->create();
-
-    $response = $this
-        ->actingAs($user)
-        ->get(route('user-password.edit'));
-
-    $response->assertOk();
-});
-
 test('password can be updated', function () {
     $user = User::factory()->create();
 
     $response = $this
-        ->actingAs($user)
-        ->from(route('user-password.edit'))
-        ->put(route('user-password.update'), [
+        ->actingAs($user, 'sanctum')
+        ->putJson(route('settings.password.update'), [
             'current_password' => 'password',
-            'password' => 'new-password',
-            'password_confirmation' => 'new-password',
+            'password' => 'new-password-123',
+            'password_confirmation' => 'new-password-123',
         ]);
 
     $response
-        ->assertSessionHasNoErrors()
-        ->assertRedirect(route('user-password.edit'));
+        ->assertOk()
+        ->assertJsonPath('message', 'Password updated successfully');
 
-    expect(Hash::check('new-password', $user->refresh()->password))->toBeTrue();
+    expect(Hash::check('new-password-123', $user->refresh()->password))->toBeTrue();
 });
 
 test('correct password must be provided to update password', function () {
     $user = User::factory()->create();
 
     $response = $this
-        ->actingAs($user)
-        ->from(route('user-password.edit'))
-        ->put(route('user-password.update'), [
+        ->actingAs($user, 'sanctum')
+        ->putJson(route('settings.password.update'), [
             'current_password' => 'wrong-password',
-            'password' => 'new-password',
-            'password_confirmation' => 'new-password',
+            'password' => 'new-password-123',
+            'password_confirmation' => 'new-password-123',
         ]);
 
     $response
-        ->assertSessionHasErrors('current_password')
-        ->assertRedirect(route('user-password.edit'));
+        ->assertStatus(422)
+        ->assertJsonValidationErrors('current_password');
 });

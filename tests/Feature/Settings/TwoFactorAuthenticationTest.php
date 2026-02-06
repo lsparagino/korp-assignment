@@ -1,79 +1,69 @@
 <?php
 
 use App\Models\User;
-use Inertia\Testing\AssertableInertia as Assert;
 use Laravel\Fortify\Features;
 
-test('two factor settings page can be rendered', function () {
+test('two factor authentication can be enabled', function () {
     if (! Features::canManageTwoFactorAuthentication()) {
         $this->markTestSkipped('Two-factor authentication is not enabled.');
     }
 
-    Features::twoFactorAuthentication([
-        'confirm' => true,
-        'confirmPassword' => true,
-    ]);
-
     $user = User::factory()->create();
 
-    $this->actingAs($user)
-        ->withSession(['auth.password_confirmed_at' => time()])
-        ->get(route('two-factor.show'))
-        ->assertInertia(fn (Assert $page) => $page
-            ->component('settings/TwoFactor')
-            ->where('twoFactorEnabled', false)
-        );
+    $this->actingAs($user, 'sanctum')
+        ->postJson('/api/v0/user/two-factor-authentication')
+        ->assertStatus(200);
+
+    expect($user->fresh()->two_factor_secret)->not->toBeNull();
 });
 
-test('two factor settings page requires password confirmation when enabled', function () {
+test('two factor qr code can be retrieved', function () {
     if (! Features::canManageTwoFactorAuthentication()) {
         $this->markTestSkipped('Two-factor authentication is not enabled.');
     }
 
     $user = User::factory()->create();
 
-    Features::twoFactorAuthentication([
-        'confirm' => true,
-        'confirmPassword' => true,
-    ]);
+    $this->actingAs($user, 'sanctum')
+        ->postJson('/api/v0/user/two-factor-authentication');
 
-    $response = $this->actingAs($user)
-        ->get(route('two-factor.show'));
+    $response = $this->actingAs($user, 'sanctum')
+        ->getJson('/api/v0/user/two-factor-qr-code');
 
-    $response->assertRedirect(route('password.confirm'));
+    $response->assertStatus(200)
+        ->assertJsonStructure(['svg']);
 });
 
-test('two factor settings page does not requires password confirmation when disabled', function () {
+test('two factor recovery codes can be retrieved', function () {
     if (! Features::canManageTwoFactorAuthentication()) {
         $this->markTestSkipped('Two-factor authentication is not enabled.');
     }
 
     $user = User::factory()->create();
 
-    Features::twoFactorAuthentication([
-        'confirm' => true,
-        'confirmPassword' => false,
-    ]);
+    $this->actingAs($user, 'sanctum')
+        ->postJson('/api/v0/user/two-factor-authentication');
 
-    $this->actingAs($user)
-        ->get(route('two-factor.show'))
-        ->assertOk()
-        ->assertInertia(fn (Assert $page) => $page
-            ->component('settings/TwoFactor')
-        );
+    $response = $this->actingAs($user, 'sanctum')
+        ->getJson('/api/v0/user/two-factor-recovery-codes');
+
+    $response->assertStatus(200);
+    expect($response->json())->toBeArray()->not->toBeEmpty();
 });
 
-test('two factor settings page returns forbidden response when two factor is disabled', function () {
+test('two factor authentication can be disabled', function () {
     if (! Features::canManageTwoFactorAuthentication()) {
         $this->markTestSkipped('Two-factor authentication is not enabled.');
     }
 
-    config(['fortify.features' => []]);
-
     $user = User::factory()->create();
 
-    $this->actingAs($user)
-        ->withSession(['auth.password_confirmed_at' => time()])
-        ->get(route('two-factor.show'))
-        ->assertForbidden();
+    $this->actingAs($user, 'sanctum')
+        ->postJson('/api/v0/user/two-factor-authentication');
+
+    $this->actingAs($user, 'sanctum')
+        ->deleteJson('/api/v0/user/two-factor-authentication')
+        ->assertStatus(200);
+
+    expect($user->fresh()->two_factor_secret)->toBeNull();
 });

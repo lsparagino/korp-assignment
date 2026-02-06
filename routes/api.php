@@ -64,7 +64,7 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     // Settings Routes
-    Route::patch('/settings/profile', [\App\Http\Controllers\Settings\ProfileController::class, 'update']);
-    Route::delete('/settings/profile', [\App\Http\Controllers\Settings\ProfileController::class, 'destroy']);
-    Route::put('/settings/password', [\App\Http\Controllers\Settings\PasswordController::class, 'update']);
+    Route::patch('/settings/profile', [\App\Http\Controllers\Settings\ProfileController::class, 'update'])->name('settings.profile.update');
+    Route::delete('/settings/profile', [\App\Http\Controllers\Settings\ProfileController::class, 'destroy'])->name('settings.profile.destroy');
+    Route::put('/settings/password', [\App\Http\Controllers\Settings\PasswordController::class, 'update'])->name('settings.password.update');
 });
