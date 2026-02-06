@@ -51,3 +51,15 @@ variable "mail_from_address" {
   type    = string
   default = "noreply@sparagino.it"
 }
+
+variable "api_image_tag" {
+  description = "Tag for the backend API image"
+  type        = string
+  default     = "latest"
+}
+
+variable "client_image_tag" {
+  description = "Tag for the frontend client image"
+  type        = string
+  default     = "latest"
+}

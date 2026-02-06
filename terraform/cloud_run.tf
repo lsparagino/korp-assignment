@@ -5,9 +5,20 @@ resource "google_cloud_run_service" "backend" {
 
   template {
     spec {
+      timeout_seconds = 600
       containers {
-        image = "${var.region}-docker.pkg.dev/${var.project_id}/${google_artifact_registry_repository.registry.repository_id}/api:latest"
+        image = "${var.region}-docker.pkg.dev/${var.project_id}/${google_artifact_registry_repository.registry.repository_id}/api:${var.api_image_tag}"
         
+        startup_probe {
+          initial_delay_seconds = 60
+          timeout_seconds       = 5
+          period_seconds        = 10
+          failure_threshold     = 30
+          tcp_socket {
+            port = 8080
+          }
+        }
+
         env {
           name  = "APP_ENV"
           value = "production"
@@ -128,7 +139,7 @@ resource "google_cloud_run_service" "frontend" {
   template {
     spec {
       containers {
-        image = "${var.region}-docker.pkg.dev/${var.project_id}/${google_artifact_registry_repository.registry.repository_id}/client:latest"
+        image = "${var.region}-docker.pkg.dev/${var.project_id}/${google_artifact_registry_repository.registry.repository_id}/client:${var.client_image_tag}"
         resources {
           limits = {
             cpu    = "1000m"

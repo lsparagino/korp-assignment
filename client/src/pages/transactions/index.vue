@@ -14,7 +14,6 @@
   const route = useRoute()
   const router = useRouter()
   const transactions = ref<any[]>([])
-  const processing = ref(false)
 
   const filterForm = reactive({
     date_from: '',
@@ -121,9 +120,8 @@
     }
   }
 
-  const { meta, handlePageChange, handlePerPageChange, refresh } = usePagination(
+  const { meta, handlePageChange, handlePerPageChange, refresh, processing } = usePagination(
     async params => {
-      processing.value = true
 
       // Sync filterForm with URL query params
       filterForm.date_from = (route.query.date_from as string) || ''
@@ -167,8 +165,6 @@
         }
       } catch (error) {
         console.error('Error fetching transactions:', error)
-      } finally {
-        processing.value = false
       }
     },
   )

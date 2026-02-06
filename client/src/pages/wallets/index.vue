@@ -15,6 +15,7 @@
 
   const {
     meta,
+    processing,
     handlePageChange,
     handlePerPageChange,
     refresh,
@@ -123,7 +124,7 @@
     </v-btn>
   </div>
 
-  <v-card border flat rounded="lg">
+  <v-card border flat :loading="processing" rounded="lg">
     <v-table density="comfortable">
       <thead class="bg-grey-lighten-4">
         <tr>
