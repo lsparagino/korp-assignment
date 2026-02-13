@@ -17,10 +17,11 @@ class WalletResource extends JsonResource
         return [
             'id' => $this->id,
             'name' => $this->name,
+            'address' => $this->address,
             'currency' => $this->currency->value,
             'balance' => number_format($this->balance, 2, '.', ''),
             'status' => $this->status->value,
-            'can_delete' => $request->user()?->isAdmin() && !$this->resource->hasTransactions(),
+            'can_delete' => $request->user()?->isAdmin() && ! $this->resource->hasTransactions(),
             'created_at' => $this->created_at,
         ];
     }

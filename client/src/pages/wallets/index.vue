@@ -120,6 +120,11 @@
             <th
               class="text-grey-darken-1 text-uppercase text-caption font-weight-bold text-left"
             >
+              Address
+            </th>
+            <th
+              class="text-grey-darken-1 text-uppercase text-caption font-weight-bold text-left"
+            >
               Balance
             </th>
             <th
@@ -144,6 +149,12 @@
           <tr v-for="w in wallets" :key="w.id">
             <td class="font-weight-bold text-grey-darken-3">
               {{ w.name }}
+            </td>
+            <td
+              class="text-caption text-grey-darken-1"
+              style="font-family: monospace"
+            >
+              {{ w.address }}
             </td>
             <td
               class="font-weight-bold"
@@ -204,6 +215,7 @@
                   @click="toggleFreeze(w)"
                 />
                 <v-btn
+                  v-if="w.can_delete"
                   color="error"
                   density="comfortable"
                   icon="mdi-delete"

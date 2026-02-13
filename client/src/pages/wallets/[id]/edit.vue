@@ -16,6 +16,12 @@
   const snackbar = ref({ show: false, text: '', color: 'error' })
   const { confirmDialog, openConfirmDialog } = useConfirmDialog()
 
+  function copyAddress () {
+    if (wallet.value?.address) {
+      navigator.clipboard.writeText(wallet.value.address)
+    }
+  }
+
   const form = reactive({
     name: '',
     currency: '',
@@ -170,6 +176,33 @@
                 />
               </template>
             </v-text-field>
+
+            <div v-if="wallet" class="pa-4 bg-grey-lighten-4 rounded-lg border">
+              <div class="text-caption text-grey-darken-1 mb-1">
+                Wallet Address
+              </div>
+              <div class="d-flex align-center ga-2">
+                <v-icon
+                  color="grey-darken-1"
+                  icon="mdi-link-variant"
+                  size="18"
+                />
+                <span
+                  class="text-body-2 font-weight-medium text-grey-darken-3"
+                  style="font-family: monospace; word-break: break-all"
+                >
+                  {{ wallet.address }}
+                </span>
+                <v-btn
+                  color="grey-darken-1"
+                  density="comfortable"
+                  icon="mdi-content-copy"
+                  size="x-small"
+                  variant="text"
+                  @click="copyAddress"
+                />
+              </div>
+            </div>
 
             <v-select
               v-model="form.currency"

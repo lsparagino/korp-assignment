@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 class Wallet extends Model
 {
@@ -16,7 +17,17 @@ class Wallet extends Model
         'currency',
         'status',
         'company_id',
+        'address',
     ];
+
+    protected static function booted(): void
+    {
+        static::creating(function (Wallet $wallet) {
+            if (empty($wallet->address)) {
+                $wallet->address = 'bc1q'.Str::lower(Str::random(36));
+            }
+        });
+    }
 
     public function user(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
@@ -28,7 +39,7 @@ class Wallet extends Model
         $out = $this->fromTransactions()->sum('amount');
         $in = $this->toTransactions()->sum('amount');
 
-        return (float)($this->toTransactions()->sum('amount') + $this->fromTransactions()->sum('amount'));
+        return (float) ($this->toTransactions()->sum('amount') + $this->fromTransactions()->sum('amount'));
     }
 
     public function fromTransactions(): \Illuminate\Database\Eloquent\Relations\HasMany
@@ -74,7 +85,7 @@ class Wallet extends Model
 
         return $query->where(function ($q) use ($user) {
             $q->where('user_id', $user->id)
-                ->orWhereHas('members', fn($mq) => $mq->where('users.id', $user->id));
+                ->orWhereHas('members', fn ($mq) => $mq->where('users.id', $user->id));
         });
     }
 
