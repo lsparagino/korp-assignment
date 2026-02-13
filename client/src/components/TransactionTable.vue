@@ -1,9 +1,11 @@
 <script lang="ts" setup>
   import type { PaginationMeta } from '@/composables/usePagination'
+  import type { Transaction } from '@/types'
   import Pagination from '@/components/Pagination.vue'
+  import { formatCurrency, formatDate, getAmountColor } from '@/utils/formatters'
 
   interface Props {
-    items: any[]
+    items: Transaction[]
     loading?: boolean
     wallets?: any[]
     showPagination?: boolean
@@ -28,34 +30,12 @@
     return props.wallets.some(w => w.id === walletId)
   }
 
-  function formatAmount (item: any) {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: item.currency,
-    }).format(item.amount)
-  }
-
-  function getAmountColor (item: any) {
+  function getTransactionColor (item: Transaction) {
     if (item.to_wallet_id === null) return 'text-red-darken-1'
     if (item.from_wallet_id === null) return 'text-green-darken-1'
     return item.type.toLowerCase() === 'debit'
       ? 'text-red-darken-1'
       : 'text-green-darken-1'
-  }
-
-  function formatDate (dateString: string) {
-    if (!dateString) return ''
-    const date = new Date(dateString)
-    if (isNaN(date.getTime())) return 'Invalid Date'
-
-    const pad = (n: number) => n.toString().padStart(2, '0')
-    const m = pad(date.getMonth() + 1)
-    const d = pad(date.getDate())
-    const y = date.getFullYear().toString().slice(-2)
-    const h = pad(date.getHours())
-    const min = pad(date.getMinutes())
-
-    return `${m}/${d}/${y} ${h}:${min}`
   }
 </script>
 
@@ -133,9 +113,9 @@
               </v-chip>
             </td>
             <td
-              :class="[getAmountColor(item), 'font-weight-black']"
+              :class="[getTransactionColor(item), 'font-weight-black']"
             >
-              {{ formatAmount(item) }}
+              {{ formatCurrency(item.amount, item.currency) }}
             </td>
             <td>
               <div class="d-flex align-center">
