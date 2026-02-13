@@ -124,7 +124,7 @@
     }
   }
 
-  const { meta, handlePageChange, handlePerPageChange, _, processing }
+  const { meta, handlePageChange, handlePerPageChange, processing }
     = usePagination(async params => {
       // Sync filterForm with URL query params
       filterForm.date_from = (route.query.date_from as string) || ''
