@@ -113,8 +113,8 @@ resource "google_cloud_run_service" "backend" {
 
         resources {
           limits = {
-            cpu    = "2000m"
-            memory = "1024Mi"
+            cpu    = "1000m"
+            memory = "512Mi"
           }
         }
       }
@@ -125,8 +125,9 @@ resource "google_cloud_run_service" "backend" {
         "run.googleapis.com/vpc-access-connector" = google_vpc_access_connector.connector.name
         "run.googleapis.com/vpc-access-egress"    = "private-ranges-only"
         "run.googleapis.com/execution-environment" = "gen2"
-        "run.googleapis.com/cpu-throttling"       = "false"
-        "autoscaling.knative.dev/minScale"         = "1"
+        "run.googleapis.com/cpu-throttling"       = "true"
+        "autoscaling.knative.dev/minScale"         = "0"
+        "autoscaling.knative.dev/maxScale"         = "2"
       }
     }
   }
@@ -151,9 +152,16 @@ resource "google_cloud_run_service" "frontend" {
         resources {
           limits = {
             cpu    = "1000m"
-            memory = "256Mi"
+            memory = "128Mi"
           }
         }
+      }
+    }
+
+    metadata {
+      annotations = {
+        "autoscaling.knative.dev/minScale" = "0"
+        "autoscaling.knative.dev/maxScale" = "2"
       }
     }
   }

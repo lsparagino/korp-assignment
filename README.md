@@ -48,12 +48,18 @@ A multi-company financial wallet management system built with Laravel 12 and Vue
 
 ---
 
-## 🔐 Admin Credentials
+## 🔐 Credentials
 
 A default admin account is created during seeding:
 
 - **Email**: `admin@example.com`
 - **Password**: `password`
+  
+Additionally, a member account with no assigned wallets is created during seeding:
+
+- **Email**: `member@example.com`
+- **Password**: `password`
+
 
 ---
 
@@ -68,7 +74,7 @@ php artisan migrate:fresh --seed
 ### Dummy Data Summary
 - **Companies**: Acme Corp
 - **Users**: Admin User, Member User
-- **Wallets**: Multiple USD and EUR wallets assigned to users.
+- **Wallets**: Multiple USD and EUR wallets, ready to be assigned.
 - **Transactions**: 50+ mixed internal and external transactions.
 
 ---
@@ -113,9 +119,9 @@ All API routes are prefixed with `/api/v0/`. All protected routes require a `Bea
 ### 💰 Financials & Management (Protected)
 | Method | Endpoint | Description                           |
 | :--- | :--- |:--------------------------------------|
-| `GET` | `/dashboard` | Financial overview |
+| `GET` | `/dashboard` | Financial overview (balances, top wallets, recent transactions). |
 | `GET` | `/companies` | List user's companies.                |
-| `GET` | `/transactions` | List all transactions (filterable).   |
+| `GET` | `/transactions` | List all transactions (filterable by type, date, amount, reference, wallet). |
 | `GET/POST` | `/wallets` | List or create wallets.               |
 | `GET/PUT/DELETE` | `/wallets/{wallet}` | Manage a specific wallet.             |
 | `PATCH` | `/wallets/{wallet}/toggle-freeze` | Freeze/Unfreeze a wallet.             |
@@ -124,8 +130,66 @@ All API routes are prefixed with `/api/v0/`. All protected routes require a `Bea
 
 ---
 
-## 🛡 Features
-- **Two-Factor Authentication (TOTP)**: Secure your account with authenticator apps.
-- **Multi-Currency Support**: Unified dashboard for USD and EUR tracking.
-- **Role-Based Access**: Granular control for Admin vs Member roles.
-- **Audit-Safe Wallet Deletion**: Wallets with transaction history cannot be deleted.
+## ☁️ Deployment (GCP Cloud Run)
+
+The application deploys to Google Cloud Platform using Terraform. Infrastructure is defined in `terraform/`.
+
+### Quick Deploy
+
+```powershell
+.\deployment\gcp\deploy.ps1 -ProjectId "your-project-id" -Apply
+```
+
+This builds and pushes Docker images, then runs `terraform apply` to update Cloud Run services.
+
+### Database Migration
+
+Create and run a Cloud Run job to execute migrations against the remote database:
+
+```bash
+# Create the migration job (first time only)
+gcloud run jobs create migrate \
+  --image {region}-docker.pkg.dev/{your-project-id}/korp-repo/api:latest \
+  --command "php,artisan,migrate:fresh,--seed,--force" \
+  --region {region} \
+  --vpc-connector korp-connector \
+  --set-env-vars "DB_CONNECTION=mysql,DB_HOST={db_ip},DB_DATABASE={db_name},DB_USERNAME={db_user},DB_PASSWORD='{db_pass}'"
+
+# Execute the migration
+gcloud run jobs execute migrate --region {region}
+```
+
+### Cost Optimization
+Both Cloud Run services are configured for minimal cost:
+- **CPU throttling** enabled (billed only during request processing).
+- **Scale-to-zero** (minScale = 0) — no charges when idle.
+- **Max instances** capped at 2 per service.
+- **Database** uses the smallest Cloud SQL tier (`db-f1-micro`).
+
+> **Note**: First request after idle may have a cold start delay (~2-5s).
+
+---
+
+## ⚠️ Known Issues
+
+- Newly registered users cannot interact with the application because they don't have a company. The only way to access the platform for new users is to be invited to a team.
+- Changing email should trigger a new email validation process.
+- The email verification process is currently not implemented.
+- Fortify implementation is very basic.
+- Email layouts are not customized.
+- There's no localization.
+- The API base path `/api/v0` is currently redundant, since server and client are each deployed on a dedicated third level domain. In this scenario, `/v0` alone could have been enough.
+
+
+---
+
+## 💡 Assumptions and Interpretations
+
+- Instead of applying an "initial balance" to the wallet (I assumed that a newly created wallet should have zero balance), I introduced **external transactions**. If all transactions are between internal wallets starting at zero balance, the overall balance will always be 0. External transactions prevent this by adding or removing money from the user's wallets.
+- It's unclear how users become admins. In this basic implementation, admin roles can only be set from the database. Regarding members, there are currently two ways to create them:
+    - A user registers using the sign-up form: in this scenario, the user has no company and must be invited to a team. The address is immediately added since the user is already verified (email verification not yet implemented).
+    - An admin invites an email address that is not already registered. In this scenario, I implemented an **invitation mechanism**, so that the user can accept the invite and create a password for their account.
+- I assumed wallets with at least one transaction cannot be deleted. Only newly created wallets can be deleted.
+- Delete operations require the user to type a "pin" shown on screen. This is mostly to showcase a delete protection for critical operations.
+- The infrastructure has been deployed on **GCP (Singapore region)** with Terraform, using 2 separate Cloud Run services and a very small MySQL instance to keep costs to a minimum. Due to low performance settings and cold starts, you might experience delays.
+- This is currently a **mono repo** for convenience. Depending on company policies or personal preference, it could be split into client and server repos.

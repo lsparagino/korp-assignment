@@ -1,13 +1,15 @@
 <script lang="ts" setup>
   import type { Transaction, Wallet } from '@/types'
-  import { onMounted, ref } from 'vue'
+  import { ref, watch } from 'vue'
   import PageHeader from '@/components/PageHeader.vue'
   import TransactionTable from '@/components/TransactionTable.vue'
   import api from '@/plugins/api'
   import { useAuthStore } from '@/stores/auth'
+  import { useCompanyStore } from '@/stores/company'
   import { formatCurrency, getAmountColor } from '@/utils/formatters'
 
   const authStore = useAuthStore()
+  const companyStore = useCompanyStore()
 
   interface BalanceSummary {
     currency: string
@@ -27,7 +29,8 @@
   const recentTransactions = ref<Transaction[]>([])
   const loading = ref(true)
 
-  onMounted(async () => {
+  async function fetchDashboard () {
+    loading.value = true
     try {
       const response = await api.get('/dashboard')
       const data = response.data
@@ -51,7 +54,17 @@
     } finally {
       loading.value = false
     }
-  })
+  }
+
+  watch(
+    () => companyStore.currentCompany,
+    (company) => {
+      if (company) {
+        fetchDashboard()
+      }
+    },
+    { immediate: true },
+  )
 
   function getCurrencyIcon (currency: string): string {
     return currency === 'EUR' ? 'mdi-currency-eur' : 'mdi-currency-usd'
