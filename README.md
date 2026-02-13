@@ -79,6 +79,32 @@ php artisan migrate:fresh --seed
 
 ---
 
+## ⚠️ Known Issues
+
+- Newly registered users cannot interact with the application because they don't have a company. The only way to access the platform for new users is to be invited to a team.
+- Changing email should trigger a new email validation process.
+- The email verification process is currently not implemented.
+- Fortify implementation is very basic.
+- Email layouts are not customized.
+- There's no localization.
+- The API base path `/api/v0` is currently redundant, since server and client are each deployed on a dedicated third level domain. In this scenario, `/v0` alone could have been enough.
+
+---
+
+## 💡 Assumptions and Interpretations
+
+- Instead of applying an "initial balance" to the wallet (I assumed that a newly created wallet should have zero balance), I introduced **external transactions**. If all transactions are between internal wallets starting at zero balance, the overall balance will always be 0. External transactions prevent this by adding or removing money from the user's wallets.
+- It's unclear how users become admins. In this basic implementation, admin roles can only be set from the database. Regarding members, there are currently two ways to create them:
+    - A user registers using the sign-up form: in this scenario, the user has no company and must be invited to a team. The address is immediately added since the user is already verified (email verification not yet implemented).
+    - An admin invites an email address that is not already registered. In this scenario, I implemented an **invitation mechanism**, so that the user can accept the invite and create a password for their account.
+- I assumed wallets with at least one transaction cannot be deleted. Only newly created wallets can be deleted.
+- Delete operations require the user to type a "pin" shown on screen. This is mostly to showcase a delete protection for critical operations.
+- The infrastructure has been deployed on **GCP (Singapore region)** with Terraform, using 2 separate Cloud Run services and a very small MySQL instance to keep costs to a minimum. Due to low performance settings and cold starts, you might experience delays.
+- This is currently a **mono repo** for convenience. Depending on company policies or personal preference, it could be split into client and server repos.
+
+
+---
+
 ## 🛠 API Endpoints Summary
 
 All API routes are prefixed with `/api/v0/`. All protected routes require a `Bearer` token.
@@ -167,29 +193,3 @@ Both Cloud Run services are configured for minimal cost:
 - **Database** uses the smallest Cloud SQL tier (`db-f1-micro`).
 
 > **Note**: First request after idle may have a cold start delay (~2-5s).
-
----
-
-## ⚠️ Known Issues
-
-- Newly registered users cannot interact with the application because they don't have a company. The only way to access the platform for new users is to be invited to a team.
-- Changing email should trigger a new email validation process.
-- The email verification process is currently not implemented.
-- Fortify implementation is very basic.
-- Email layouts are not customized.
-- There's no localization.
-- The API base path `/api/v0` is currently redundant, since server and client are each deployed on a dedicated third level domain. In this scenario, `/v0` alone could have been enough.
-
-
----
-
-## 💡 Assumptions and Interpretations
-
-- Instead of applying an "initial balance" to the wallet (I assumed that a newly created wallet should have zero balance), I introduced **external transactions**. If all transactions are between internal wallets starting at zero balance, the overall balance will always be 0. External transactions prevent this by adding or removing money from the user's wallets.
-- It's unclear how users become admins. In this basic implementation, admin roles can only be set from the database. Regarding members, there are currently two ways to create them:
-    - A user registers using the sign-up form: in this scenario, the user has no company and must be invited to a team. The address is immediately added since the user is already verified (email verification not yet implemented).
-    - An admin invites an email address that is not already registered. In this scenario, I implemented an **invitation mechanism**, so that the user can accept the invite and create a password for their account.
-- I assumed wallets with at least one transaction cannot be deleted. Only newly created wallets can be deleted.
-- Delete operations require the user to type a "pin" shown on screen. This is mostly to showcase a delete protection for critical operations.
-- The infrastructure has been deployed on **GCP (Singapore region)** with Terraform, using 2 separate Cloud Run services and a very small MySQL instance to keep costs to a minimum. Due to low performance settings and cold starts, you might experience delays.
-- This is currently a **mono repo** for convenience. Depending on company policies or personal preference, it could be split into client and server repos.
