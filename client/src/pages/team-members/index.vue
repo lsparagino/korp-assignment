@@ -1,32 +1,26 @@
 <script lang="ts" setup>
-  import { computed, onMounted, ref } from 'vue'
+  import type { TeamMember } from '@/types'
+  import { onMounted, ref } from 'vue'
   import ConfirmDialog from '@/components/ConfirmDialog.vue'
+  import PageHeader from '@/components/PageHeader.vue'
   import Pagination from '@/components/Pagination.vue'
   import TeamMemberModal from '@/components/TeamMemberModal.vue'
+  import { useConfirmDialog } from '@/composables/useConfirmDialog'
   import api from '@/plugins/api'
   import { useAuthStore } from '@/stores/auth'
-  import { useCompanyStore } from '@/stores/company'
+  import { getRoleColors } from '@/utils/colors'
 
   const authStore = useAuthStore()
-  const companyStore = useCompanyStore()
-  const isAdmin = computed(() => authStore.user?.role === 'admin')
-  const members = ref<any[]>([])
+  const members = ref<TeamMember[]>([])
   const processing = ref(true)
   const showModal = ref(false)
-  const selectedUser = ref<any>(null)
+  const selectedUser = ref<TeamMember | null>(null)
+  const { confirmDialog, openConfirmDialog } = useConfirmDialog()
 
   const paginationData = ref({
     currentPage: 1,
     lastPage: 1,
     total: 0,
-  })
-
-  const confirmDialog = ref({
-    show: false,
-    title: '',
-    message: '',
-    requiresPin: false,
-    onConfirm: () => {},
   })
 
   async function fetchTeam (page = 1) {
@@ -51,45 +45,13 @@
     showModal.value = true
   }
 
-  function openEditModal (member: any) {
-    // We need to fetch the member details or use the list data.
-    // The list data doesn't have the assigned wallet IDs currently.
-    // Let's assume the index returns them or handles them.
+  function openEditModal (member: TeamMember) {
     selectedUser.value = member
     showModal.value = true
   }
 
-  function getRoleColor (role: string) {
-    switch (role.toLowerCase()) {
-      case 'admin': {
-        return 'grey-lighten-2'
-      }
-      case 'member': {
-        return 'blue-lighten-4'
-      }
-      default: {
-        return 'grey-lighten-4'
-      }
-    }
-  }
-
-  function getRoleTextColor (role: string) {
-    switch (role.toLowerCase()) {
-      case 'admin': {
-        return 'grey-darken-3'
-      }
-      case 'member': {
-        return 'blue-darken-3'
-      }
-      default: {
-        return 'grey-darken-1'
-      }
-    }
-  }
-
-  function deleteMember (member: any) {
-    confirmDialog.value = {
-      show: true,
+  function deleteMember (member: TeamMember) {
+    openConfirmDialog({
       title: 'Delete Member',
       message: `Are you sure you want to permanently delete ${member.name}? This action cannot be undone.`,
       requiresPin: true,
@@ -101,25 +63,16 @@
           console.error('Error deleting member:', error)
         }
       },
-    }
+    })
   }
 
   onMounted(() => fetchTeam())
 </script>
 
 <template>
-  <div
-    class="d-flex flex-column flex-sm-row align-start align-sm-center justify-space-between ga-4 mb-8"
-  >
-    <h1 class="text-h5 font-weight-bold text-grey-darken-2">
-      Team Members
-      <span
-        v-if="companyStore.currentCompany"
-        class="text-grey-darken-1"
-      >- {{ companyStore.currentCompany.name }}</span>
-    </h1>
+  <PageHeader title="Team Members">
     <v-btn
-      v-if="isAdmin"
+      v-if="authStore.isAdmin"
       class="text-none font-weight-bold"
       color="primary"
       prepend-icon="mdi-plus"
@@ -129,7 +82,7 @@
     >
       Add Member
     </v-btn>
-  </div>
+  </PageHeader>
 
   <v-card border flat :loading="processing" rounded="lg">
     <div class="overflow-x-auto">
@@ -157,7 +110,7 @@
               Wallet Access
             </th>
             <th
-              v-if="isAdmin"
+              v-if="authStore.isAdmin"
               class="text-grey-darken-1 text-uppercase text-caption font-weight-bold text-right"
             >
               Actions
@@ -193,13 +146,13 @@
             <td>
               <v-chip
                 class="font-weight-bold"
-                :color="getRoleColor(member.role)"
+                :color="getRoleColors(member.role).bg"
                 size="small"
                 variant="flat"
               >
                 <span
                   class="font-weight-bold"
-                  :class="`text-${getRoleTextColor(member.role)}`"
+                  :class="`text-${getRoleColors(member.role).text}`"
                 >{{ member.role }}</span>
               </v-chip>
             </td>
@@ -215,7 +168,7 @@
                 >{{ member.wallet_access }}</span>
               </v-chip>
             </td>
-            <td v-if="isAdmin" class="text-right">
+            <td v-if="authStore.isAdmin" class="text-right">
               <div class="d-flex ga-2 justify-end">
                 <v-btn
                   v-if="

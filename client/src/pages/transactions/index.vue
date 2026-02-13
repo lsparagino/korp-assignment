@@ -1,6 +1,7 @@
 <script lang="ts" setup>
-  import { Calendar, ChevronDown } from 'lucide-vue-next'
-  import { computed, reactive, ref, watch } from 'vue'
+  import type { Transaction, Wallet } from '@/types'
+  import { Calendar } from 'lucide-vue-next'
+  import { computed, onMounted, reactive, ref, watch } from 'vue'
   import { useRoute, useRouter } from 'vue-router'
   import TransactionTable from '@/components/TransactionTable.vue'
   import { usePagination } from '@/composables/usePagination'
@@ -10,10 +11,9 @@
 
   const auth = useAuthStore()
   const companyStore = useCompanyStore()
-  const isAdmin = computed(() => auth.user?.role === 'admin')
   const route = useRoute()
   const router = useRouter()
-  const transactions = ref<any[]>([])
+  const transactions = ref<Transaction[]>([])
 
   const filterForm = reactive({
     date_from: '',
@@ -30,10 +30,10 @@
 
   const dateFromMenu = ref(false)
   const dateToMenu = ref(false)
-  const dateFromValue = ref<any>(null)
-  const dateToValue = ref<any>(null)
+  const dateFromValue = ref<Date | null>(null)
+  const dateToValue = ref<Date | null>(null)
   const advancedPanel = ref<number[]>([])
-  const wallets = ref<any[]>([])
+  const wallets = ref<Wallet[]>([])
   const walletOptions = computed(() => [
     { id: 'external', name: 'External' },
     ...wallets.value,
@@ -48,7 +48,7 @@
     }
   }
 
-  fetchWallets()
+  onMounted(fetchWallets)
 
   const activeAdvancedFiltersCount = computed(() => {
     let count = 0
@@ -138,10 +138,14 @@
       filterForm.amount_max = (route.query.amount_max as string) || ''
       filterForm.reference = (route.query.reference as string) || ''
       filterForm.from_wallet_id = route.query.from_wallet_id
-        ? (route.query.from_wallet_id === 'external' ? 'external' as any : Number(route.query.from_wallet_id))
+        ? (route.query.from_wallet_id === 'external'
+          ? ('external' as any)
+          : Number(route.query.from_wallet_id))
         : null
       filterForm.to_wallet_id = route.query.to_wallet_id
-        ? (route.query.to_wallet_id === 'external' ? 'external' as any : Number(route.query.to_wallet_id))
+        ? (route.query.to_wallet_id === 'external'
+          ? ('external' as any)
+          : Number(route.query.to_wallet_id))
         : null
 
       try {
@@ -256,12 +260,12 @@
             <template #activator="{ props }">
               <v-text-field
                 v-model="filterForm.date_from"
-                v-bind="props"
                 density="comfortable"
                 hide-details
                 placeholder="YYYY-MM-DD"
                 readonly
                 rounded="lg"
+                v-bind="props"
                 variant="outlined"
               >
                 <template #append-inner>
@@ -299,12 +303,12 @@
             <template #activator="{ props }">
               <v-text-field
                 v-model="filterForm.date_to"
-                v-bind="props"
                 density="comfortable"
                 hide-details
                 placeholder="YYYY-MM-DD"
                 readonly
                 rounded="lg"
+                v-bind="props"
                 variant="outlined"
               >
                 <template #append-inner>
@@ -475,7 +479,7 @@
   </v-card>
 
   <TransactionTable
-    :is-admin="isAdmin"
+    :is-admin="auth.isAdmin"
     :items="transactions"
     :loading="processing"
     :meta="meta"

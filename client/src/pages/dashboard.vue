@@ -1,248 +1,212 @@
 <script lang="ts" setup>
-  import { Wallet } from 'lucide-vue-next'
-  import { computed, onMounted, ref, watch } from 'vue'
+  import type { Transaction, Wallet } from '@/types'
+  import { onMounted, ref } from 'vue'
+  import PageHeader from '@/components/PageHeader.vue'
   import TransactionTable from '@/components/TransactionTable.vue'
   import api from '@/plugins/api'
   import { useAuthStore } from '@/stores/auth'
-  import { useCompanyStore } from '@/stores/company'
+  import { formatCurrency, getAmountColor } from '@/utils/formatters'
 
-  const auth = useAuthStore()
-  const companyStore = useCompanyStore()
-  const isAdmin = computed(() => auth.user?.role === 'admin')
-  const totalBalances = ref<any[]>([])
-  const topWallets = ref<any[]>([])
-  const otherWallets = ref<any[]>([])
-  const transactions = ref<any[]>([])
-  const wallets = ref<any[]>([])
-  const processing = ref(true)
+  const authStore = useAuthStore()
 
-  async function fetchDashboardData () {
-    if (!companyStore.currentCompany) return
-
-    processing.value = true
-    try {
-      const response = await api.get('/dashboard')
-      totalBalances.value = response.data.balances.map((b: any) => ({
-        amountRaw: b.amount,
-        amount: new Intl.NumberFormat('en-US', {
-          style: 'currency',
-          currency: b.currency,
-        }).format(b.amount),
-        currency: b.currency,
-      }))
-
-      topWallets.value = response.data.top_wallets.map((w: any) => ({
-        ...w,
-        balanceRaw: w.balance,
-        balanceFormatted: new Intl.NumberFormat('en-US', {
-          style: 'currency',
-          currency: w.currency,
-        }).format(w.balance),
-        color: w.currency === 'USD' ? 'primary' : 'blue-darken-3',
-      }))
-
-      otherWallets.value = response.data.others.map((o: any) => ({
-        ...o,
-        amountRaw: o.amount,
-        amountFormatted: new Intl.NumberFormat('en-US', {
-          style: 'currency',
-          currency: o.currency,
-        }).format(o.amount),
-      }))
-
-      transactions.value = response.data.transactions
-      wallets.value = response.data.wallets
-    } catch (error) {
-      console.error('Error fetching dashboard data:', error)
-    } finally {
-      processing.value = false
-    }
+  interface BalanceSummary {
+    currency: string
+    amount: number
+    formatted: string
   }
 
-  function getAmountColor (amount: number) {
-    if (amount > 0) return 'text-green-darken-1'
-    if (amount < 0) return 'text-red-darken-1'
-    return 'text-grey-darken-1'
-  }
-
-  onMounted(async () => {
-    await companyStore.fetchCompanies()
-    fetchDashboardData()
-  })
-
-  watch(
-    () => companyStore.currentCompany,
-    () => {
-      fetchDashboardData()
+  const balances = ref<BalanceSummary[]>([])
+  const topWallets = ref<Wallet[]>([])
+  const otherWallets = ref<{ count: number, totalUSD: number, totalEUR: number }>(
+    {
+      count: 0,
+      totalUSD: 0,
+      totalEUR: 0,
     },
   )
+  const recentTransactions = ref<Transaction[]>([])
+  const loading = ref(true)
+
+  onMounted(async () => {
+    try {
+      const response = await api.get('/dashboard')
+      const data = response.data
+
+      balances.value = data.balances.map(
+        (b: { currency: string, amount: number }) => ({
+          ...b,
+          formatted: formatCurrency(b.amount, b.currency),
+        }),
+      )
+
+      topWallets.value = data.top_wallets || []
+      otherWallets.value = data.others || {
+        count: 0,
+        totalUSD: 0,
+        totalEUR: 0,
+      }
+      recentTransactions.value = data.transactions || []
+    } catch (error) {
+      console.error('Failed to load dashboard:', error)
+    } finally {
+      loading.value = false
+    }
+  })
+
+  function getCurrencyIcon (currency: string): string {
+    return currency === 'EUR' ? 'mdi-currency-eur' : 'mdi-currency-usd'
+  }
 </script>
 
 <template>
-  <div class="mb-8">
-    <h1 class="text-h5 font-weight-bold text-grey-darken-2">
-      Dashboard
-      <span
-        v-if="companyStore.currentCompany"
-        class="text-grey-darken-1"
-      >- {{ companyStore.currentCompany.name }}</span>
-    </h1>
-  </div>
-
-  <!-- Total Balance Card -->
-  <v-card
-    border
-    class="pa-4 pa-sm-8 mb-6"
-    flat
-    :loading="processing"
-    rounded="lg"
-  >
-    <div
-      class="text-subtitle-1 font-weight-bold text-grey-darken-3 mb-sm-6 mb-4"
+  <PageHeader title="Dashboard">
+    <v-btn
+      v-if="authStore.isAdmin"
+      class="text-none font-weight-bold"
+      color="primary"
+      prepend-icon="mdi-plus"
+      rounded="lg"
+      to="/wallets/create"
+      variant="flat"
     >
-      Total Balance
-    </div>
-    <div
-      v-for="balance in totalBalances"
-      :key="balance.currency"
-      class="mb-2"
-    >
-      <span
-        class="text-h5 text-sm-h4 font-weight-black mr-2"
-        :class="getAmountColor(balance.amountRaw)"
-      >{{ balance.amount }}</span>
-      <span
-        class="text-body-1 text-sm-subtitle-1 font-weight-medium text-grey-darken-1"
-      >{{ balance.currency }}</span>
-    </div>
-  </v-card>
+      Create Wallet
+    </v-btn>
+  </PageHeader>
 
-  <v-row class="mb-6">
-    <!-- Empty State -->
-    <v-col v-if="!processing && topWallets.length === 0" cols="12">
+  <v-progress-linear v-if="loading" color="primary" indeterminate />
+
+  <template v-else>
+    <!-- Total Balances -->
+    <div class="d-flex ga-4 mb-8 flex-wrap">
       <v-card
+        v-for="b in balances"
+        :key="b.currency"
         border
-        class="pa-8 d-flex flex-column align-center justify-center text-center"
+        class="flex-grow-1"
         flat
+        min-width="250"
         rounded="lg"
       >
-        <v-avatar class="mb-4" color="grey-lighten-4" size="64">
-          <v-icon color="grey-darken-1" :icon="Wallet" size="32" />
-        </v-avatar>
-        <div class="text-h6 font-weight-bold text-grey-darken-3 mb-2">
-          No wallets found
-        </div>
-        <p class="text-body-2 text-grey-darken-1 mb-6">
-          You don't have any wallets assigned yet.
-        </p>
-        <v-btn
-          v-if="isAdmin"
-          class="text-none font-weight-bold"
-          color="primary"
-          prepend-icon="mdi-plus"
-          to="/wallets/create"
-          variant="flat"
-        >
-          Create Wallet
-        </v-btn>
-      </v-card>
-    </v-col>
-
-    <!-- Wallet Cards -->
-    <v-col
-      v-for="wallet in topWallets"
-      :key="wallet.name"
-      cols="12"
-      lg="3"
-      sm="6"
-    >
-      <v-card border class="pa-4 h-100" flat rounded="lg">
-        <div class="d-flex align-center mb-6">
-          <v-avatar
-            class="me-3"
-            :color="wallet.color"
-            rounded="lg"
-            size="32"
+        <v-card-text class="pa-6">
+          <div
+            class="d-flex align-center ga-3 text-grey-darken-1 mb-2"
           >
-            <v-icon color="white" :icon="Wallet" size="18" />
-          </v-avatar>
-          <span
-            class="font-weight-bold text-grey-darken-3 text-truncate"
-          >{{ wallet.name }}</span>
-        </div>
-        <div>
-          <span
-            class="text-h5 font-weight-black mr-2"
-            :class="getAmountColor(wallet.balanceRaw)"
-          >{{ wallet.balanceFormatted }}</span>
-          <span
-            class="text-caption font-weight-bold text-grey-darken-1 text-uppercase"
-          >{{ wallet.currency }}</span>
-        </div>
-      </v-card>
-    </v-col>
-
-    <!-- Other Wallets Badge -->
-    <v-col v-if="otherWallets.length > 0" cols="12" lg="3" sm="6">
-      <v-card
-        border
-        class="pa-4 bg-grey-lighten-4 h-100"
-        flat
-        rounded="lg"
-      >
-        <div class="d-flex align-center mb-4">
-          <v-avatar
-            class="me-3"
-            color="grey-darken-1"
-            rounded="lg"
-            size="32"
+            <v-icon :icon="getCurrencyIcon(b.currency)" size="20" />
+            <span
+              class="text-caption font-weight-bold text-uppercase"
+            >
+              Total {{ b.currency }} Balance
+            </span>
+          </div>
+          <div
+            class="text-h4 font-weight-bold"
+            :class="getAmountColor(b.amount)"
           >
-            <v-icon color="white" icon="mdi-plus" size="18" />
-          </v-avatar>
-          <span class="font-weight-bold text-grey-darken-3">Other Wallets</span>
-        </div>
-        <div
-          v-for="other in otherWallets"
-          :key="other.currency"
-          class="mb-1"
-        >
-          <span
-            class="text-subtitle-1 font-weight-black mr-2"
-            :class="getAmountColor(other.amountRaw)"
-          >{{ other.amountFormatted }}</span>
-          <span
-            class="text-caption font-weight-bold text-grey-darken-1 text-uppercase"
-          >{{ other.currency }}</span>
-        </div>
+            {{ b.formatted }}
+          </div>
+        </v-card-text>
       </v-card>
-    </v-col>
-  </v-row>
+    </div>
 
-  <!-- Recent Transactions -->
-  <TransactionTable
-    :is-admin="isAdmin"
-    :items="transactions"
-    :loading="processing"
-    title="Recent Transactions"
-    :wallets="wallets"
-  >
-    <template #footer>
-      <div
-        v-if="transactions.length > 0"
-        class="pa-4 d-flex align-center bg-grey-lighten-4 justify-end border-t"
-      >
-        <v-btn
-          class="text-none"
-          color="primary"
-          size="small"
-          to="/transactions"
-          variant="text"
+    <!-- Top Wallets -->
+    <div class="mb-8">
+      <h2 class="text-h6 font-weight-bold text-grey-darken-2 mb-4">
+        Top Performing Wallets
+      </h2>
+      <div v-if="topWallets.length > 0" class="d-flex ga-4 flex-wrap">
+        <v-card
+          v-for="w in topWallets"
+          :key="w.id"
+          border
+          class="flex-grow-1"
+          flat
+          min-width="200"
+          rounded="lg"
         >
-          View All Transactions
-        </v-btn>
+          <v-card-text class="pa-5">
+            <div
+              class="text-body-1 font-weight-bold text-grey-darken-3 mb-1"
+            >
+              {{ w.name }}
+            </div>
+            <div
+              class="text-h5 font-weight-bold"
+              :class="getAmountColor(w.balance)"
+            >
+              {{ formatCurrency(w.balance, w.currency) }}
+            </div>
+          </v-card-text>
+        </v-card>
+
+        <v-card
+          v-if="otherWallets.count > 0"
+          border
+          class="flex-grow-1"
+          flat
+          min-width="200"
+          rounded="lg"
+        >
+          <v-card-text class="pa-5">
+            <div
+              class="text-body-1 font-weight-bold text-grey-darken-3 mb-1"
+            >
+              Other Wallets ({{ otherWallets.count }})
+            </div>
+            <div
+              v-if="otherWallets.totalUSD !== 0"
+              class="text-body-1 font-weight-bold"
+              :class="getAmountColor(otherWallets.totalUSD)"
+            >
+              {{ formatCurrency(otherWallets.totalUSD, 'USD') }}
+            </div>
+            <div
+              v-if="otherWallets.totalEUR !== 0"
+              class="text-body-1 font-weight-bold"
+              :class="getAmountColor(otherWallets.totalEUR)"
+            >
+              {{ formatCurrency(otherWallets.totalEUR, 'EUR') }}
+            </div>
+          </v-card-text>
+        </v-card>
       </div>
-    </template>
-  </TransactionTable>
+      <v-card
+        v-else
+        border
+        class="pa-8 text-grey-darken-1 text-center"
+        flat
+        rounded="lg"
+      >
+        No wallets found. Create one to get started.
+      </v-card>
+    </div>
+
+    <!-- Recent Transactions -->
+    <div>
+      <h2 class="text-h6 font-weight-bold text-grey-darken-2 mb-4">
+        Recent Transactions
+      </h2>
+      <v-card
+        v-if="recentTransactions.length > 0"
+        border
+        flat
+        rounded="lg"
+      >
+        <TransactionTable
+          :is-admin="authStore.isAdmin"
+          :items="recentTransactions"
+        />
+      </v-card>
+      <v-card
+        v-else
+        border
+        class="pa-8 text-grey-darken-1 text-center"
+        flat
+        rounded="lg"
+      >
+        No transactions yet.
+      </v-card>
+    </div>
+  </template>
 </template>
 
 <route lang="yaml">

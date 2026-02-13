@@ -1,39 +1,27 @@
 <script lang="ts" setup>
+  import type { ValidationErrors, Wallet as WalletType } from '@/types'
   import { Snowflake, Trash2, Wallet } from 'lucide-vue-next'
   import { onMounted, reactive, ref } from 'vue'
   import { useRoute, useRouter } from 'vue-router'
   import ConfirmDialog from '@/components/ConfirmDialog.vue'
+  import { useConfirmDialog } from '@/composables/useConfirmDialog'
   import api from '@/plugins/api'
-
-  interface WalletModel {
-    id: number
-    name: string
-    currency: string
-    balance: number
-    status: string
-    can_delete: boolean
-  }
 
   const route = useRoute()
   const router = useRouter()
   const processing = ref(false)
   const loading = ref(true)
-  const errors = ref<Record<string, string[]>>({})
-  const wallet = ref<WalletModel | null>(null)
+  const errors = ref<ValidationErrors>({})
+  const wallet = ref<WalletType | null>(null)
+  const snackbar = ref({ show: false, text: '', color: 'error' })
+  const { confirmDialog, openConfirmDialog } = useConfirmDialog()
 
   const form = reactive({
     name: '',
     currency: '',
   })
 
-  // Dialog state
-  const confirmDialog = ref({
-    show: false,
-    title: '',
-    message: '',
-    requiresPin: false,
-    onConfirm: () => {},
-  })
+  const walletId = String((route.params as Record<string, string>).id)
 
   const currencies = [
     { title: 'US Dollar (USD)', value: 'USD' },
@@ -42,7 +30,7 @@
 
   async function fetchWallet () {
     try {
-      const response = await api.get(`/wallets/${(route.params as any).id}`)
+      const response = await api.get(`/wallets/${walletId}`)
       wallet.value = response.data.data
       form.name = response.data.data.name
       form.currency = response.data.data.currency
@@ -59,11 +47,17 @@
     errors.value = {}
 
     try {
-      await api.put(`/wallets/${(route.params as any).id}`, form)
+      await api.put(`/wallets/${walletId}`, form)
       router.push('/wallets/')
-    } catch (error: any) {
-      if (error.response?.status === 422) {
-        errors.value = error.response.data.errors
+    } catch (error: unknown) {
+      const err = error as {
+        response?: {
+          status?: number
+          data?: { errors?: ValidationErrors }
+        }
+      }
+      if (err.response?.status === 422) {
+        errors.value = err.response.data?.errors ?? {}
       }
     } finally {
       processing.value = false
@@ -73,8 +67,7 @@
   function handleToggleStatus () {
     if (!wallet.value) return
     const isFreezing = wallet.value.status === 'active'
-    confirmDialog.value = {
-      show: true,
+    openConfirmDialog({
       title: isFreezing ? 'Freeze Wallet' : 'Unfreeze Wallet',
       message: `Are you sure you want to ${isFreezing ? 'freeze' : 'unfreeze'} the wallet "${wallet.value.name}"?`,
       requiresPin: false,
@@ -86,13 +79,12 @@
           console.error('Error toggling status:', error)
         }
       },
-    }
+    })
   }
 
   function handleDelete () {
     if (!wallet.value) return
-    confirmDialog.value = {
-      show: true,
+    openConfirmDialog({
       title: 'Delete Wallet',
       message: `Warning: You are about to permanently delete the wallet "${wallet.value.name}". This action cannot be undone. Only empty wallets can be deleted.`,
       requiresPin: true,
@@ -100,18 +92,24 @@
         try {
           await api.delete(`/wallets/${wallet.value?.id}`)
           router.push('/wallets/')
-        } catch (error: any) {
-          if (error.response?.status === 403) {
-            alert(
-              error.response.data.message
+        } catch (error: unknown) {
+          const err = error as {
+            response?: { status?: number, data?: { message?: string } }
+          }
+          if (err.response?.status === 403) {
+            snackbar.value = {
+              show: true,
+              text:
+                err.response.data?.message
                 || 'You are not authorized to delete this wallet (it might not be empty).',
-            )
+              color: 'error',
+            }
           } else {
             console.error('Error deleting wallet:', error)
           }
         }
       },
-    }
+    })
   }
 
   onMounted(fetchWallet)
@@ -286,6 +284,10 @@
     :title="confirmDialog.title"
     @confirm="confirmDialog.onConfirm"
   />
+
+  <v-snackbar v-model="snackbar.show" :color="snackbar.color" timeout="5000">
+    {{ snackbar.text }}
+  </v-snackbar>
 </template>
 
 <route lang="yaml">

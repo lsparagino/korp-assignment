@@ -149,7 +149,9 @@
             <v-card-title class="text-h5 font-weight-bold mb-1">
               Delete Account
             </v-card-title>
-            <v-card-subtitle class="text-body-1 opacity-100 text-wrap">
+            <v-card-subtitle
+              class="text-body-1 text-wrap opacity-100"
+            >
               Are you sure you want to delete your account? Once
               your account is deleted, all of its resources and
               data will be permanently deleted. Please enter your

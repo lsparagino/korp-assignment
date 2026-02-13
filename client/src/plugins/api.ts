@@ -37,7 +37,7 @@ api.interceptors.response.use(
     const authStore = useAuthStore()
     if (error.response?.status === 401) {
       authStore.clearToken()
-      router.push('/auth/login' as any)
+      router.push('/auth/login')
     }
     return Promise.reject(error)
   },

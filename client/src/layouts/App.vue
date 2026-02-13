@@ -1,8 +1,10 @@
 <script lang="ts" setup>
+  import type { FunctionalComponent } from 'vue'
   import { LayoutDashboard, Repeat, Users, Wallet } from 'lucide-vue-next'
   import { computed, onMounted, ref } from 'vue'
   import { useRoute, useRouter } from 'vue-router'
   import AppLogo from '@/components/AppLogo.vue'
+  import CompanySelector from '@/components/CompanySelector.vue'
   import { useAuthStore } from '@/stores/auth'
   import { useCompanyStore } from '@/stores/company'
 
@@ -10,11 +12,11 @@
   const router = useRouter()
   const authStore = useAuthStore()
   const companyStore = useCompanyStore()
-  const drawer = ref(null) as any
+  const drawer = ref<boolean | null>(null)
 
   interface NavItem {
     title: string
-    icon: any
+    icon: FunctionalComponent
     to: string
     active: import('vue').ComputedRef<boolean>
     role?: string
@@ -59,8 +61,7 @@
   })
 
   async function handleLogout () {
-    // In a real app, you'd call the API logout first
-    authStore.clearToken()
+    await authStore.logout()
     router.push('/auth/login')
   }
 </script>
@@ -84,37 +85,9 @@
 
           <div class="d-flex align-center ga-2 ga-sm-4 px-sm-6 px-2">
             <!-- Company Selector (Desktop) -->
-            <v-menu v-if="companyStore.hasCompanies" offset-y>
-              <template #activator="{ props }">
-                <v-btn
-                  class="text-none border-grey-lighten-2 text-grey-darken-3 hidden-sm-and-down"
-                  rounded="lg"
-                  v-bind="props"
-                  variant="outlined"
-                >
-                  {{
-                    companyStore.currentCompany?.name ||
-                      'Select Company'
-                  }}
-                  <v-icon
-                    end
-                    icon="mdi-chevron-down"
-                    size="18"
-                  />
-                </v-btn>
-              </template>
-              <v-list>
-                <v-list-item
-                  v-for="company in companyStore.companies"
-                  :key="company.id"
-                  @click="companyStore.setCompany(company)"
-                >
-                  <v-list-item-title>{{
-                    company.name
-                  }}</v-list-item-title>
-                </v-list-item>
-              </v-list>
-            </v-menu>
+            <div class="hidden-sm-and-down">
+              <CompanySelector />
+            </div>
 
             <!-- Notifications -->
             <v-btn
@@ -163,8 +136,7 @@
                         <v-chip
                           class="text-uppercase font-weight-bold mt-1"
                           :color="
-                            authStore.user.role ===
-                              'admin'
+                            authStore.isAdmin
                               ? 'primary'
                               : 'grey-darken-1'
                           "
@@ -234,40 +206,7 @@
             v-if="companyStore.hasCompanies"
             class="pa-4 hidden-md-and-up border-b-sm"
           >
-            <v-menu offset-y>
-              <template #activator="{ props }">
-                <v-btn
-                  block
-                  class="text-none border-grey-lighten-2 text-grey-darken-3"
-                  rounded="lg"
-                  v-bind="props"
-                  variant="outlined"
-                >
-                  <span class="text-truncate">
-                    {{
-                      companyStore.currentCompany?.name ||
-                        'Select Company'
-                    }}
-                  </span>
-                  <v-icon
-                    end
-                    icon="mdi-chevron-down"
-                    size="18"
-                  />
-                </v-btn>
-              </template>
-              <v-list>
-                <v-list-item
-                  v-for="company in companyStore.companies"
-                  :key="company.id"
-                  @click="companyStore.setCompany(company)"
-                >
-                  <v-list-item-title>{{
-                    company.name
-                  }}</v-list-item-title>
-                </v-list-item>
-              </v-list>
-            </v-menu>
+            <CompanySelector block />
           </div>
 
           <v-list
@@ -299,10 +238,7 @@
           </v-list>
 
           <v-divider />
-          <div
-            v-if="authStore.user?.role === 'admin'"
-            class="pa-4 flex-shrink-0"
-          >
+          <div v-if="authStore.isAdmin" class="pa-4 flex-shrink-0">
             <v-btn
               block
               class="text-none"
@@ -339,10 +275,6 @@
 .list-container {
     background: transparent;
     padding: 1rem 1rem 1rem 0;
-}
-
-.cursor-pointer {
-    cursor: pointer;
 }
 
 .nav-item {

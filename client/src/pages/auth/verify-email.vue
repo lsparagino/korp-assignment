@@ -21,8 +21,8 @@
     }
   }
 
-  function handleLogout () {
-    authStore.clearToken()
+  async function handleLogout () {
+    await authStore.logout()
     router.push('/auth/login')
   }
 </script>
@@ -64,6 +64,7 @@
 <route lang="yaml">
 meta:
     layout: Auth
+    public: true
     title: Verify email
     description: Please verify your email address by clicking on the link we just emailed to you.
 </route>

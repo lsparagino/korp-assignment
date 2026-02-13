@@ -1,41 +1,31 @@
+import type { Company } from '@/types'
 import { defineStore } from 'pinia'
-import { computed, ref } from 'vue'
 import api from '@/plugins/api'
 
-export const useCompanyStore = defineStore('company', () => {
-  const companies = ref<any[]>([])
-  const currentCompany = ref<any>(null)
-  const loading = ref(false)
+export const useCompanyStore = defineStore('company', {
+  state: () => ({
+    companies: [] as Company[],
+    currentCompany: null as Company | null,
+  }),
+  getters: {
+    hasCompanies: state => state.companies.length > 0,
+    companyLabel: state => state.currentCompany?.name ?? 'Select company',
+  },
+  actions: {
+    async fetchCompanies () {
+      try {
+        const response = await api.get('/companies')
+        this.companies = response.data.data
 
-  const hasCompanies = computed(() => companies.value.length > 0)
-
-  async function fetchCompanies () {
-    loading.value = true
-    try {
-      const response = await api.get('/companies')
-      companies.value = response.data.data || response.data
-
-      // Default to first company if none selected
-      if (!currentCompany.value && companies.value.length > 0) {
-        currentCompany.value = companies.value[0]
+        if (this.companies.length > 0 && !this.currentCompany) {
+          this.currentCompany = this.companies[0] ?? null
+        }
+      } catch {
+        this.companies = []
       }
-    } catch (error) {
-      console.error('Failed to fetch companies:', error)
-    } finally {
-      loading.value = false
-    }
-  }
-
-  function setCompany (company: any) {
-    currentCompany.value = company
-  }
-
-  return {
-    companies,
-    currentCompany,
-    loading,
-    hasCompanies,
-    fetchCompanies,
-    setCompany,
-  }
+    },
+    setCurrentCompany (company: Company) {
+      this.currentCompany = company
+    },
+  },
 })

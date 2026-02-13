@@ -106,6 +106,7 @@
 <route lang="yaml">
 meta:
     layout: Auth
+    public: true
     title: Reset password
     description: Please enter your new password below
 </route>

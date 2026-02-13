@@ -126,6 +126,7 @@
 <route lang="yaml">
 meta:
     layout: Auth
+    public: true
     title: Create an account
     description: Enter your details below to create your account
 </route>

@@ -170,4 +170,5 @@
 <route lang="yaml">
 meta:
     layout: Auth
+    public: true
 </route>

@@ -20,9 +20,15 @@
       await api.delete('/user', { data: { password: password.value } })
       authStore.clearToken()
       router.push('/')
-    } catch (error: any) {
-      if (error.response?.status === 422) {
-        errors.value = error.response.data.errors
+    } catch (error: unknown) {
+      const err = error as {
+        response?: {
+          status?: number
+          data?: { errors?: Record<string, string[]> }
+        }
+      }
+      if (err.response?.status === 422) {
+        errors.value = err.response.data?.errors ?? {}
       }
     } finally {
       processing.value = false
