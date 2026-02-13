@@ -12,7 +12,7 @@
   async function resend () {
     processing.value = true
     try {
-      const response = await api.post('/email/verification-notification')
+      await api.post('/email/verification-notification')
       status.value = 'verification-link-sent'
     } catch {
       // Handle error

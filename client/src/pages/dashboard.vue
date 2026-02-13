@@ -58,7 +58,7 @@
 
   watch(
     () => companyStore.currentCompany,
-    (company) => {
+    company => {
       if (company) {
         fetchDashboard()
       }

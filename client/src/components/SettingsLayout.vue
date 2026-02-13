@@ -1,8 +1,4 @@
 <script lang="ts" setup>
-  import { useRoute } from 'vue-router'
-
-  const route = useRoute()
-
   const settingsNav = [
     { title: 'Profile', to: '/settings/profile', icon: 'mdi-account' },
     { title: 'Password', to: '/settings/password', icon: 'mdi-lock' },

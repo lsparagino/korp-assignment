@@ -3,7 +3,7 @@
   import type { Transaction } from '@/types'
   import { ref } from 'vue'
   import Pagination from '@/components/Pagination.vue'
-  import { formatCurrency, formatDate, getAmountColor } from '@/utils/formatters'
+  import { formatCurrency, formatDate } from '@/utils/formatters'
 
   interface Props {
     items: Transaction[]

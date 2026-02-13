@@ -18,7 +18,7 @@
     title: string
     icon: FunctionalComponent
     to: string
-    active: import('vue').ComputedRef<boolean>
+    active: ComputedRef<boolean>
     role?: string
   }
 
