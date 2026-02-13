@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Enums\WalletCurrency;
 use App\Enums\WalletStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\WalletResource;
@@ -10,6 +11,7 @@ use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Response;
+use Illuminate\Validation\Rule;
 
 class WalletController extends Controller
 {
@@ -20,16 +22,15 @@ class WalletController extends Controller
         $this->authorize('viewAny', Wallet::class);
 
         $perPage = $request->input('per_page', 10);
-        $perPage = min((int) $perPage, 500);
+        $perPage = min((int)$perPage, 500);
         $companyId = $request->input('company_id');
 
-        if (! $companyId) {
-            // Fallback or empty if company is required
+        if (!$companyId) {
             return WalletResource::collection(collect());
         }
 
         // Ensure user belongs to this company
-        if (! $request->user()->companies()->where('companies.id', $companyId)->exists()) {
+        if (!$request->user()->companies()->where('companies.id', $companyId)->exists()) {
             abort(403, 'Unauthorized access to company.');
         }
 
@@ -46,18 +47,18 @@ class WalletController extends Controller
 
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'currency' => ['required', 'string', \Illuminate\Validation\Rule::enum(\App\Enums\WalletCurrency::class)],
+            'currency' => ['required', 'string', Rule::enum(WalletCurrency::class)],
         ]);
 
         $companyId = $request->input('company_id');
-        if (! $companyId || ! $request->user()->companies()->where('companies.id', $companyId)->exists()) {
+        if (!$companyId || !$request->user()->companies()->where('companies.id', $companyId)->exists()) {
             abort(403, 'Unauthorized access to company.');
         }
 
         $wallet = $request->user()->wallets()->create([
             ...$validated,
             'status' => WalletStatus::Active,
-            'company_id' => $companyId,
+            'company_id' => $companyId
         ]);
 
         return new WalletResource($wallet);
@@ -66,20 +67,6 @@ class WalletController extends Controller
     public function show(Wallet $wallet): WalletResource
     {
         $this->authorize('view', $wallet);
-
-        return new WalletResource($wallet);
-    }
-
-    public function update(Request $request, Wallet $wallet): WalletResource
-    {
-        $this->authorize('update', $wallet);
-
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'currency' => ['required', 'string', \Illuminate\Validation\Rule::enum(\App\Enums\WalletCurrency::class)],
-        ]);
-
-        $wallet->update($validated);
 
         return new WalletResource($wallet);
     }
@@ -93,6 +80,20 @@ class WalletController extends Controller
                 ? WalletStatus::Frozen
                 : WalletStatus::Active,
         ]);
+
+        return new WalletResource($wallet);
+    }
+
+    public function update(Request $request, Wallet $wallet): WalletResource
+    {
+        $this->authorize('update', $wallet);
+
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'currency' => ['required', 'string', Rule::enum(WalletCurrency::class)],
+        ]);
+
+        $wallet->update($validated);
 
         return new WalletResource($wallet);
     }

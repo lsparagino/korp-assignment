@@ -1,11 +1,17 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\CompanyController;
 use App\Http\Controllers\Api\DataController;
 use App\Http\Controllers\Api\PasswordResetController;
+use App\Http\Controllers\Api\TeamMemberController;
+use App\Http\Controllers\Api\TransactionController;
 use App\Http\Controllers\Api\TwoFactorController;
 use App\Http\Controllers\Api\VerificationController;
 use App\Http\Controllers\Api\WalletController;
+use App\Http\Controllers\InvitationController;
+use App\Http\Controllers\Settings\PasswordController;
+use App\Http\Controllers\Settings\ProfileController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -25,8 +31,8 @@ Route::post('/two-factor-challenge', [AuthController::class, 'twoFactorChallenge
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/forgot-password', [PasswordResetController::class, 'forgotPassword']);
 Route::post('/reset-password', [PasswordResetController::class, 'resetPassword']);
-Route::get('/invitation/{token}', [\App\Http\Controllers\InvitationController::class, 'show'])->name('invitation.verify');
-Route::post('/accept-invitation/{token}', [\App\Http\Controllers\InvitationController::class, 'store'])->name('invitation.accept');
+Route::get('/invitation/{token}', [InvitationController::class, 'show'])->name('invitation.verify');
+Route::post('/accept-invitation/{token}', [InvitationController::class, 'store'])->name('invitation.accept');
 
 // Protected Routes
 Route::middleware('auth:sanctum')->group(function () {
@@ -49,14 +55,14 @@ Route::middleware('auth:sanctum')->group(function () {
     // Company Routes
     Route::middleware('company')->group(function () {
         // Company Routes
-        Route::get('/companies', [\App\Http\Controllers\Api\CompanyController::class, 'index']);
+        Route::get('/companies', [CompanyController::class, 'index']);
 
         // Data Routes
         Route::get('/dashboard', [DataController::class, 'dashboard'])->name('dashboard');
-        Route::apiResource('transactions', \App\Http\Controllers\Api\TransactionController::class)->only(['index']);
+        Route::apiResource('transactions', TransactionController::class)->only(['index']);
 
         // Team Routes
-        Route::apiResource('team-members', \App\Http\Controllers\Api\TeamMemberController::class);
+        Route::apiResource('team-members', TeamMemberController::class);
 
         // Wallet Routes
         Route::apiResource('wallets', WalletController::class);
@@ -64,7 +70,7 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     // Settings Routes
-    Route::patch('/settings/profile', [\App\Http\Controllers\Settings\ProfileController::class, 'update'])->name('settings.profile.update');
-    Route::delete('/settings/profile', [\App\Http\Controllers\Settings\ProfileController::class, 'destroy'])->name('settings.profile.destroy');
-    Route::put('/settings/password', [\App\Http\Controllers\Settings\PasswordController::class, 'update'])->name('settings.password.update');
+    Route::patch('/settings/profile', [ProfileController::class, 'update'])->name('settings.profile.update');
+    Route::delete('/settings/profile', [ProfileController::class, 'destroy'])->name('settings.profile.destroy');
+    Route::put('/settings/password', [PasswordController::class, 'update'])->name('settings.password.update');
 });

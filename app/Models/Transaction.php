@@ -2,12 +2,15 @@
 
 namespace App\Models;
 
+use App\Enums\TransactionType;
+use Database\Factories\TransactionFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Transaction extends Model
 {
-    /** @use HasFactory<\Database\Factories\TransactionFactory> */
+    /** @use HasFactory<TransactionFactory> */
     use HasFactory;
 
     protected $fillable = [
@@ -19,21 +22,12 @@ class Transaction extends Model
         'external',
     ];
 
-    protected function casts(): array
-    {
-        return [
-            'type' => \App\Enums\TransactionType::class,
-            'amount' => 'decimal:2',
-            'external' => 'boolean',
-        ];
-    }
-
-    public function fromWallet(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    public function fromWallet(): BelongsTo
     {
         return $this->belongsTo(Wallet::class, 'from_wallet_id');
     }
 
-    public function toWallet(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    public function toWallet(): BelongsTo
     {
         return $this->belongsTo(Wallet::class, 'to_wallet_id');
     }
@@ -47,5 +41,14 @@ class Transaction extends Model
             $q->whereIn('from_wallet_id', $walletIds)
                 ->orWhereIn('to_wallet_id', $walletIds);
         });
+    }
+
+    protected function casts(): array
+    {
+        return [
+            'type' => TransactionType::class,
+            'amount' => 'decimal:2',
+            'external' => 'boolean',
+        ];
     }
 }

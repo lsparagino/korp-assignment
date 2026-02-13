@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\ValidationException;
 use Laravel\Fortify\Contracts\CreatesNewUsers;
 use Laravel\Fortify\Contracts\TwoFactorAuthenticationProvider;
@@ -20,10 +21,10 @@ class AuthController extends Controller
             'password' => 'required|string',
         ]);
 
-        $throttleKey = md5('login'.implode('|', [$request->{Fortify::username()}, $request->ip()]));
+        $throttleKey = md5('login' . implode('|', [$request->{Fortify::username()}, $request->ip()]));
 
-        if (\Illuminate\Support\Facades\RateLimiter::tooManyAttempts($throttleKey, 5)) {
-            $seconds = \Illuminate\Support\Facades\RateLimiter::availableIn($throttleKey);
+        if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
+            $seconds = RateLimiter::availableIn($throttleKey);
 
             return response()->json([
                 'message' => trans('auth.throttle', [
@@ -35,15 +36,15 @@ class AuthController extends Controller
 
         $user = User::where(Fortify::username(), $request->{Fortify::username()})->first();
 
-        if (! $user || ! Hash::check($request->password, $user->password)) {
-            \Illuminate\Support\Facades\RateLimiter::hit($throttleKey);
+        if (!$user || !Hash::check($request->password, $user->password)) {
+            RateLimiter::hit($throttleKey);
 
             throw ValidationException::withMessages([
                 Fortify::username() => [trans('auth.failed')],
             ]);
         }
 
-        \Illuminate\Support\Facades\RateLimiter::clear($throttleKey);
+        RateLimiter::clear($throttleKey);
 
         // Check 2FA
         if ($user->two_factor_secret &&
@@ -74,7 +75,7 @@ class AuthController extends Controller
         $user = User::findOrFail($request->user_id);
 
         if ($request->recovery_code) {
-            if (! $user->validRecoveryCode($request->recovery_code)) {
+            if (!$user->validRecoveryCode($request->recovery_code)) {
                 throw ValidationException::withMessages([
                     'recovery_code' => [__('The provided recovery code was invalid.')],
                 ]);
@@ -82,7 +83,7 @@ class AuthController extends Controller
 
             $user->replaceRecoveryCode($request->recovery_code);
         } elseif ($request->code) {
-            if (! app(TwoFactorAuthenticationProvider::class)->verify(
+            if (!app(TwoFactorAuthenticationProvider::class)->verify(
                 Fortify::currentEncrypter()->decrypt($user->two_factor_secret),
                 $request->code
             )) {
@@ -140,7 +141,7 @@ class AuthController extends Controller
             'password' => 'required|string',
         ]);
 
-        if (! Hash::check($request->password, $request->user()->password)) {
+        if (!Hash::check($request->password, $request->user()->password)) {
             throw ValidationException::withMessages([
                 'password' => [trans('auth.password')],
             ]);

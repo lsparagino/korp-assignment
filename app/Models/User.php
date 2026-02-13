@@ -3,7 +3,11 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Enums\UserRole;
+use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
@@ -11,7 +15,7 @@ use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
+    /** @use HasFactory<UserFactory> */
     use HasApiTokens, HasFactory, Notifiable, TwoFactorAuthenticatable;
 
     /**
@@ -40,33 +44,17 @@ class User extends Authenticatable
         'remember_token',
     ];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-            'two_factor_confirmed_at' => 'datetime',
-            'role' => \App\Enums\UserRole::class,
-            'invited_at' => 'datetime',
-        ];
-    }
-
     public function isAdmin(): bool
     {
-        return $this->role === \App\Enums\UserRole::Admin;
+        return $this->role === UserRole::Admin;
     }
 
     /**
      * Get the wallets for the user.
      *
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany<\App\Models\Wallet>
+     * @return HasMany<Wallet>
      */
-    public function wallets(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function wallets(): HasMany
     {
         return $this->hasMany(Wallet::class);
     }
@@ -74,12 +62,12 @@ class User extends Authenticatable
     /**
      * The wallets assigned to this member.
      */
-    public function assignedWallets(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    public function assignedWallets(): BelongsToMany
     {
         return $this->belongsToMany(Wallet::class, 'wallet_user');
     }
 
-    public function companies(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    public function companies(): BelongsToMany
     {
         return $this->belongsToMany(Company::class, 'company_user')->withTimestamps();
     }
@@ -95,13 +83,29 @@ class User extends Authenticatable
     /**
      * Determine if the given recovery code is valid.
      *
-     * @param  string  $code
+     * @param string $code
      * @return bool
      */
     public function validRecoveryCode($code): bool
     {
         return collect($this->recoveryCodes())->first(function ($recoveryCode) use ($code) {
-            return hash_equals($recoveryCode, $code);
-        }) !== null;
+                return hash_equals($recoveryCode, $code);
+            }) !== null;
+    }
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'email_verified_at' => 'datetime',
+            'password' => 'hashed',
+            'two_factor_confirmed_at' => 'datetime',
+            'role' => UserRole::class,
+            'invited_at' => 'datetime',
+        ];
     }
 }

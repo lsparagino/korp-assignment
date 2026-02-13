@@ -2,8 +2,16 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Enums\UserRole;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreTeamMemberRequest;
+use App\Http\Requests\UpdateTeamMemberRequest;
+use App\Mail\TeamMemberInvitation;
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 
 class TeamMemberController extends Controller
 {
@@ -14,7 +22,7 @@ class TeamMemberController extends Controller
     {
         $companyId = $request->input('company_id');
 
-        if (! $companyId) {
+        if (!$companyId) {
             return response()->json([
                 'company' => config('app.name'),
                 'members' => [],
@@ -23,11 +31,11 @@ class TeamMemberController extends Controller
         }
 
         // Ensure current user belongs to company
-        if (! $request->user()->companies()->where('companies.id', $companyId)->exists()) {
+        if (!$request->user()->companies()->where('companies.id', $companyId)->exists()) {
             abort(403);
         }
 
-        $users = \App\Models\User::query()
+        $users = User::query()
             ->whereHas('companies', function ($q) use ($companyId) {
                 $q->where('companies.id', $companyId);
             })
@@ -48,7 +56,7 @@ class TeamMemberController extends Controller
                     'name' => $user->name,
                     'email' => $user->email,
                     'role' => $user->role->name,
-                    'wallet_access' => $user->role === \App\Enums\UserRole::Admin ? 'Full Access' : ($user->assigned_wallets_count.' Wallets'),
+                    'wallet_access' => $user->role === UserRole::Admin ? 'Full Access' : ($user->assigned_wallets_count . ' Wallets'),
                     'is_pending' => $user->is_pending,
                     'is_current' => $user->id === auth()->id(),
                     'assigned_wallets' => $user->assignedWallets->pluck('id'),
@@ -65,20 +73,20 @@ class TeamMemberController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(\App\Http\Requests\StoreTeamMemberRequest $request)
+    public function store(StoreTeamMemberRequest $request)
     {
         $companyId = $request->input('company_id');
-        if (! $companyId || ! $request->user()->companies()->where('companies.id', $companyId)->exists()) {
+        if (!$companyId || !$request->user()->companies()->where('companies.id', $companyId)->exists()) {
             abort(403, 'Unauthorized access to company.');
         }
 
-        $token = \Illuminate\Support\Str::random(64);
+        $token = Str::random(64);
 
-        $user = \App\Models\User::create([
+        $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
-            'password' => \Illuminate\Support\Facades\Hash::make(\Illuminate\Support\Str::random(32)),
-            'role' => \App\Enums\UserRole::Member,
+            'password' => Hash::make(Str::random(32)),
+            'role' => UserRole::Member,
             'invitation_token' => $token,
             'invited_at' => now(),
         ]);
@@ -89,7 +97,7 @@ class TeamMemberController extends Controller
             $user->assignedWallets()->sync($request->wallets);
         }
 
-        \Illuminate\Support\Facades\Mail::to($user->email)->send(new \App\Mail\TeamMemberInvitation($user));
+        Mail::to($user->email)->send(new TeamMemberInvitation($user));
 
         return response()->json(['message' => 'Member invited successfully', 'user' => $user], 201);
     }
@@ -97,9 +105,9 @@ class TeamMemberController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(\App\Http\Requests\UpdateTeamMemberRequest $request, \App\Models\User $team_member)
+    public function update(UpdateTeamMemberRequest $request, User $team_member)
     {
-        if ($team_member->role !== \App\Enums\UserRole::Member) {
+        if ($team_member->role !== UserRole::Member) {
             return response()->json(['message' => 'Only members can be edited'], 403);
         }
 
@@ -118,9 +126,9 @@ class TeamMemberController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(\App\Models\User $team_member)
+    public function destroy(User $team_member)
     {
-        if ($team_member->role !== \App\Enums\UserRole::Member) {
+        if ($team_member->role !== UserRole::Member) {
             return response()->json(['message' => 'Only members can be deleted'], 403);
         }
 

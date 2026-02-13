@@ -3,17 +3,22 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\TransactionResource;
+use App\Models\Transaction;
+use App\Models\Wallet;
+use App\Services\WalletService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class DataController extends Controller
 {
-    public function dashboard(Request $request, \App\Services\WalletService $walletService): \Illuminate\Http\JsonResponse
+    public function dashboard(Request $request, WalletService $walletService): JsonResponse
     {
         $user = $request->user();
         $companyId = $request->input('company_id');
 
         // Wallets are already authorized by 'company' middleware
-        $allWallets = \App\Models\Wallet::scopedToUser($user, $companyId)->get();
+        $allWallets = Wallet::scopedToUser($user, $companyId)->get();
         $walletIds = $allWallets->pluck('id');
 
         // Metrics via Service
@@ -22,7 +27,7 @@ class DataController extends Controller
         $othersAggregated = $walletService->getOthersAggregation($allWallets);
 
         // Transactions via Scope
-        $recentTransactions = \App\Models\Transaction::forWallets($walletIds)
+        $recentTransactions = Transaction::forWallets($walletIds)
             ->latest()
             ->limit(10)
             ->with(['fromWallet', 'toWallet'])
@@ -32,7 +37,7 @@ class DataController extends Controller
             'balances' => $balancesByCurrency,
             'top_wallets' => $top3,
             'others' => $othersAggregated,
-            'transactions' => \App\Http\Resources\TransactionResource::collection($recentTransactions),
+            'transactions' => TransactionResource::collection($recentTransactions),
             'wallets' => $allWallets,
         ]);
     }

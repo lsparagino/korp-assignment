@@ -2,10 +2,14 @@
 
 namespace Database\Factories;
 
+use App\Enums\WalletCurrency;
+use App\Enums\WalletStatus;
+use App\Models\User;
+use App\Models\Wallet;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Wallet>
+ * @extends Factory<Wallet>
  */
 class WalletFactory extends Factory
 {
@@ -17,10 +21,10 @@ class WalletFactory extends Factory
     public function definition(): array
     {
         return [
-            'user_id' => \App\Models\User::factory(),
+            'user_id' => User::factory(),
             'name' => $this->faker->randomElement(['Savings', 'Offshore', 'Business', 'Person A', 'Person B']),
-            'currency' => $this->faker->randomElement(\App\Enums\WalletCurrency::cases()),
-            'status' => $this->faker->randomElement(\App\Enums\WalletStatus::cases()),
+            'currency' => $this->faker->randomElement(WalletCurrency::cases()),
+            'status' => $this->faker->randomElement(WalletStatus::cases()),
         ];
     }
 }

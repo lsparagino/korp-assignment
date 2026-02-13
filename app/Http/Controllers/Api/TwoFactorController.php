@@ -51,7 +51,7 @@ class TwoFactorController extends Controller
         }
 
         return response()->json(
-            collect($request->user()->recoveryCodes())->map(fn ($code) => ['code' => $code])
+            collect($request->user()->recoveryCodes())->map(fn($code) => ['code' => $code])
         );
     }
 

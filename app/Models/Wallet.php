@@ -18,17 +18,17 @@ class Wallet extends Model
         'company_id',
     ];
 
-    protected function casts(): array
-    {
-        return [
-            'currency' => \App\Enums\WalletCurrency::class,
-            'status' => \App\Enums\WalletStatus::class,
-        ];
-    }
-
     public function user(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function getBalanceAttribute(): float
+    {
+        $out = $this->fromTransactions()->sum('amount');
+        $in = $this->toTransactions()->sum('amount');
+
+        return (float)($this->toTransactions()->sum('amount') + $this->fromTransactions()->sum('amount'));
     }
 
     public function fromTransactions(): \Illuminate\Database\Eloquent\Relations\HasMany
@@ -39,14 +39,6 @@ class Wallet extends Model
     public function toTransactions(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(Transaction::class, 'to_wallet_id');
-    }
-
-    public function getBalanceAttribute(): float
-    {
-        $out = $this->fromTransactions()->sum('amount');
-        $in = $this->toTransactions()->sum('amount');
-
-        return (float) ($this->toTransactions()->sum('amount') + $this->fromTransactions()->sum('amount'));
     }
 
     /**
@@ -82,7 +74,15 @@ class Wallet extends Model
 
         return $query->where(function ($q) use ($user) {
             $q->where('user_id', $user->id)
-                ->orWhereHas('members', fn ($mq) => $mq->where('users.id', $user->id));
+                ->orWhereHas('members', fn($mq) => $mq->where('users.id', $user->id));
         });
+    }
+
+    protected function casts(): array
+    {
+        return [
+            'currency' => \App\Enums\WalletCurrency::class,
+            'status' => \App\Enums\WalletStatus::class,
+        ];
     }
 }

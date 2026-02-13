@@ -2,7 +2,9 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Enums\TransactionType;
+use App\Models\Transaction;
+use App\Models\Wallet;
 use Illuminate\Database\Seeder;
 
 class TransactionSeeder extends Seeder
@@ -12,7 +14,7 @@ class TransactionSeeder extends Seeder
      */
     public function run(): void
     {
-        $wallets = \App\Models\Wallet::all();
+        $wallets = Wallet::all();
 
         if ($wallets->count() < 2) {
             return;
@@ -25,7 +27,7 @@ class TransactionSeeder extends Seeder
             // Internal transactions
             // Only create internal transactions if there are matching wallets of the same currency
             if ($matchingWallets->isNotEmpty()) {
-                \App\Models\Transaction::factory(8)->create([
+                Transaction::factory(8)->create([
                     'from_wallet_id' => $wallet->id,
                     'to_wallet_id' => $matchingWallets->random()->id,
                     'external' => false,
@@ -34,18 +36,18 @@ class TransactionSeeder extends Seeder
 
 
             // External Outbound
-            \App\Models\Transaction::factory(1)->create([
+            Transaction::factory(1)->create([
                 'from_wallet_id' => $wallet->id,
                 'to_wallet_id' => null,
-                'type' => \App\Enums\TransactionType::Debit,
+                'type' => TransactionType::Debit,
                 'external' => true,
             ]);
 
             // External Inbound
-            \App\Models\Transaction::factory(1)->create([
+            Transaction::factory(1)->create([
                 'from_wallet_id' => null,
                 'to_wallet_id' => $wallet->id,
-                'type' => \App\Enums\TransactionType::Credit,
+                'type' => TransactionType::Credit,
                 'external' => true,
             ]);
         }

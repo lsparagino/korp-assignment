@@ -2,11 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+
 class InvitationController extends Controller
 {
     public function show($token)
     {
-        $user = \App\Models\User::where('invitation_token', $token)->firstOrFail();
+        $user = User::where('invitation_token', $token)->firstOrFail();
 
         return response()->json([
             'email' => $user->email,
@@ -14,16 +18,16 @@ class InvitationController extends Controller
         ]);
     }
 
-    public function store(\Illuminate\Http\Request $request, $token)
+    public function store(Request $request, $token)
     {
-        $user = \App\Models\User::where('invitation_token', $token)->firstOrFail();
+        $user = User::where('invitation_token', $token)->firstOrFail();
 
         $request->validate([
             'password' => ['required', 'string', 'min:8', 'confirmed'],
         ]);
 
         $user->update([
-            'password' => \Illuminate\Support\Facades\Hash::make($request->password),
+            'password' => Hash::make($request->password),
             'invitation_token' => null,
             'email_verified_at' => now(),
         ]);

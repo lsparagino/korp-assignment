@@ -3,21 +3,25 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\TransactionResource;
+use App\Models\Transaction;
+use App\Models\Wallet;
 use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class TransactionController extends Controller
 {
-    public function index(Request $request): \Illuminate\Http\Resources\Json\AnonymousResourceCollection
+    public function index(Request $request): AnonymousResourceCollection
     {
         $perPage = $request->input('per_page', 10);
-        $perPage = min((int) $perPage, 500);
+        $perPage = min((int)$perPage, 500);
         $companyId = $request->input('company_id');
 
         // Wallet scoping using model scope
-        $walletIds = \App\Models\Wallet::scopedToUser($request->user(), $companyId)->pluck('id');
+        $walletIds = Wallet::scopedToUser($request->user(), $companyId)->pluck('id');
 
         // Base query using transaction scope
-        $query = \App\Models\Transaction::forWallets($walletIds);
+        $query = Transaction::forWallets($walletIds);
 
         // Apply filters
         if ($request->filled('type')) {
@@ -29,7 +33,7 @@ class TransactionController extends Controller
         }
 
         if ($request->filled('date_to')) {
-            $query->where('created_at', '<=', $request->date_to.' 23:59:59');
+            $query->where('created_at', '<=', $request->date_to . ' 23:59:59');
         }
 
         if ($request->filled('amount_min')) {
@@ -41,7 +45,7 @@ class TransactionController extends Controller
         }
 
         if ($request->filled('reference')) {
-            $query->where('reference', 'LIKE', '%'.$request->reference.'%');
+            $query->where('reference', 'LIKE', '%' . $request->reference . '%');
         }
 
         if ($request->input('from_wallet_id') === 'external') {
@@ -60,36 +64,6 @@ class TransactionController extends Controller
             ->latest()
             ->paginate($perPage);
 
-        return \App\Http\Resources\TransactionResource::collection($transactions);
-    }
-
-    public function dashboard(Request $request, \App\Services\WalletService $walletService): \Illuminate\Http\JsonResponse
-    {
-        $user = $request->user();
-        $companyId = $request->input('company_id');
-
-        // Wallets are scoped by the 'company' middleware already, but we still need the list
-        $allWallets = \App\Models\Wallet::scopedToUser($user, $companyId)->get();
-        $walletIds = $allWallets->pluck('id');
-
-        // Fetch metrics using Service
-        $balancesByCurrency = $walletService->getBalancesByCurrency($allWallets);
-        $top3 = $walletService->getTopWallets($allWallets);
-        $othersAggregated = $walletService->getOthersAggregation($allWallets);
-
-        // Recent transactions using Scope
-        $recentTransactions = \App\Models\Transaction::forWallets($walletIds)
-            ->latest()
-            ->limit(10)
-            ->with(['fromWallet', 'toWallet'])
-            ->get();
-
-        return response()->json([
-            'balances' => $balancesByCurrency,
-            'top_wallets' => $top3,
-            'others' => $othersAggregated,
-            'transactions' => \App\Http\Resources\TransactionResource::collection($recentTransactions),
-            'wallets' => $allWallets,
-        ]);
+        return TransactionResource::collection($transactions);
     }
 }

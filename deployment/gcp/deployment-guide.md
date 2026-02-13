@@ -2,11 +2,6 @@
 
 This guide describes how to deploy the application to Google Cloud Platform using a **cost-optimized serverless architecture** with custom domains.
 
-## Architecture Highlights
-- **Pay-as-you-go**: Both API and Frontend use Cloud Run (scales to zero).
-- **No Load Balancer**: Saves ~$18/month. On GCP, serving a static site from Cloud Storage with **HTTPS on a custom domain** requires a Global Load Balancer. Cloud Run "Domain Mapping" gives you managed SSL and custom domains for $0.
-- **Free SSL**: Google manages SSL certificates for the custom domains mapped to Cloud Run.
-
 ## Prerequisites
 1.  **Google Cloud SDK**: Authenticated (`gcloud auth login`).
 2.  **Terraform**: Installed.

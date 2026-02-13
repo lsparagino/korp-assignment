@@ -2,7 +2,8 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\User;
+use App\Models\Wallet;
 use Illuminate\Database\Seeder;
 
 class WalletSeeder extends Seeder
@@ -12,7 +13,7 @@ class WalletSeeder extends Seeder
      */
     public function run(): void
     {
-        $user = \App\Models\User::first() ?: \App\Models\User::factory()->create([
+        $user = User::first() ?: User::factory()->create([
             'name' => 'Test User',
             'email' => 'test@example.com',
         ]);
@@ -20,7 +21,7 @@ class WalletSeeder extends Seeder
         $names = ['Savings', 'Offshore', 'Business', 'Person A', 'Person B'];
 
         foreach ($names as $name) {
-            \App\Models\Wallet::factory()->create([
+            Wallet::factory()->create([
                 'user_id' => $user->id,
                 'name' => $name,
             ]);

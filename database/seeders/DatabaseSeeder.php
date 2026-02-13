@@ -3,6 +3,9 @@
 namespace Database\Seeders;
 
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\Company;
+use App\Models\User;
+use App\Models\Wallet;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -12,16 +15,16 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        $company = \App\Models\Company::firstOrCreate(['name' => 'Acme Corp']);
+        $company = Company::firstOrCreate(['name' => 'Acme Corp']);
 
-        $admin = \App\Models\User::factory()->create([
+        $admin = User::factory()->create([
             'name' => 'Admin User',
             'email' => 'admin@example.com',
             'role' => 'admin',
         ]);
         $admin->companies()->attach($company);
 
-        $member = \App\Models\User::factory()->create([
+        $member = User::factory()->create([
             'name' => 'Member User',
             'email' => 'member@example.com',
             'role' => 'member',
@@ -34,6 +37,6 @@ class DatabaseSeeder extends Seeder
         ]);
 
         // Assign all seeded wallets to the company
-        \App\Models\Wallet::query()->update(['company_id' => $company->id]);
+        Wallet::query()->update(['company_id' => $company->id]);
     }
 }

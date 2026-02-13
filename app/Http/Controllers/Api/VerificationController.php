@@ -22,11 +22,11 @@ class VerificationController extends Controller
 
     public function verify(Request $request)
     {
-        if (! URL::hasValidSignature($request)) {
+        if (!URL::hasValidSignature($request)) {
             return response()->json(['message' => 'Invalid or expired signature'], 401);
         }
 
-        if (! hash_equals((string) $request->route('hash'), sha1($request->user()->getEmailForVerification()))) {
+        if (!hash_equals((string)$request->route('hash'), sha1($request->user()->getEmailForVerification()))) {
             return response()->json(['message' => 'Invalid verification link'], 403);
         }
 
