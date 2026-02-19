@@ -1,12 +1,12 @@
 <script lang="ts" setup>
   import type { Transaction, Wallet } from '@/types'
   import { Calendar } from 'lucide-vue-next'
-  import { computed, onMounted, reactive, ref, watch } from 'vue'
+  import { computed, reactive, ref, watch } from 'vue'
   import { useRoute, useRouter } from 'vue-router'
+  import { useQuery } from '@pinia/colada'
   import TransactionTable from '@/components/TransactionTable.vue'
-  import { usePagination } from '@/composables/usePagination'
-  import { fetchTransactions } from '@/api/transactions'
-  import { fetchWallets as apiFetchWallets } from '@/api/wallets'
+  import { transactionsListQuery } from '@/queries/transactions'
+  import { walletsListQuery } from '@/queries/wallets'
   import { useAuthStore } from '@/stores/auth'
   import { useCompanyStore } from '@/stores/company'
 
@@ -14,7 +14,6 @@
   const companyStore = useCompanyStore()
   const route = useRoute()
   const router = useRouter()
-  const transactions = ref<Transaction[]>([])
 
   const filterForm = reactive({
     date_from: '',
@@ -34,22 +33,75 @@
   const dateFromValue = ref<Date | null>(null)
   const dateToValue = ref<Date | null>(null)
   const advancedPanel = ref<number[]>([])
-  const wallets = ref<Wallet[]>([])
+
+  const defaultPerPage = 25
+  const page = computed(() => Number(route.query.page) || 1)
+  const perPage = computed(() => Number(route.query.per_page) || defaultPerPage)
+
+  // Wallet dropdown data
+  const { data: walletsData } = useQuery(
+    walletsListQuery,
+    () => ({ page: 1, perPage: 500 }),
+  )
+  const wallets = computed<Wallet[]>(() => walletsData.value?.data ?? [])
   const walletOptions = computed(() => [
     { id: 'external', name: 'External' },
     ...wallets.value,
   ])
 
-  async function loadWallets () {
-    try {
-      const response = await apiFetchWallets()
-      wallets.value = response.data.data
-    } catch (error) {
-      console.error('Error fetching wallets:', error)
-    }
-  }
+  // Sync filterForm from URL query params so the form reflects current filters
+  watch(
+    () => route.fullPath,
+    () => {
+      filterForm.date_from = (route.query.date_from as string) || ''
+      filterForm.date_to = (route.query.date_to as string) || ''
+      const queryType = (route.query.type as string) || 'All'
+      filterForm.type
+        = queryType.charAt(0).toUpperCase()
+          + queryType.slice(1).toLowerCase()
+      filterForm.amount_min = (route.query.amount_min as string) || ''
+      filterForm.amount_max = (route.query.amount_max as string) || ''
+      filterForm.reference = (route.query.reference as string) || ''
+      filterForm.from_wallet_id = route.query.from_wallet_id
+        ? (route.query.from_wallet_id === 'external'
+          ? 'external'
+          : Number(route.query.from_wallet_id))
+        : null
+      filterForm.to_wallet_id = route.query.to_wallet_id
+        ? (route.query.to_wallet_id === 'external'
+          ? 'external'
+          : Number(route.query.to_wallet_id))
+        : null
+    },
+    { immediate: true },
+  )
 
-  onMounted(loadWallets)
+  // Transactions query — keyed by all filter + pagination params
+  const { data: transactionsData, isPending: processing } = useQuery(
+    transactionsListQuery,
+    () => ({
+      page: page.value,
+      perPage: perPage.value,
+      dateFrom: (route.query.date_from as string) || undefined,
+      dateTo: (route.query.date_to as string) || undefined,
+      type: (route.query.type as string) || undefined,
+      amountMin: (route.query.amount_min as string) || undefined,
+      amountMax: (route.query.amount_max as string) || undefined,
+      reference: (route.query.reference as string) || undefined,
+      fromWalletId: route.query.from_wallet_id ? Number(route.query.from_wallet_id) : null,
+      toWalletId: route.query.to_wallet_id ? Number(route.query.to_wallet_id) : null,
+    }),
+  )
+
+  const transactions = computed<Transaction[]>(() => transactionsData.value?.data ?? [])
+  const meta = computed(() => transactionsData.value?.meta ?? {
+    current_page: 1,
+    last_page: 1,
+    per_page: defaultPerPage,
+    total: 0,
+    from: null,
+    to: null,
+  })
 
   const activeAdvancedFiltersCount = computed(() => {
     let count = 0
@@ -85,7 +137,7 @@
     return count
   })
 
-  // Sync date values from strings to Date objects when filterForm changes (e.g. on load)
+  // Sync date values from strings to Date objects when filterForm changes
   watch(
     () => filterForm.date_from,
     val => {
@@ -125,54 +177,25 @@
     }
   }
 
-  const { meta, handlePageChange, handlePerPageChange, processing }
-    = usePagination(async params => {
-      // Sync filterForm with URL query params
-      filterForm.date_from = (route.query.date_from as string) || ''
-      filterForm.date_to = (route.query.date_to as string) || ''
-      const queryType = (route.query.type as string) || 'All'
-      filterForm.type
-        = queryType.charAt(0).toUpperCase()
-          + queryType.slice(1).toLowerCase()
+  function handlePageChange (newPage: number) {
+    const query = { ...route.query }
+    if (newPage === 1) {
+      delete query.page
+    } else {
+      query.page = String(newPage)
+    }
+    router.push({ query })
+  }
 
-      filterForm.amount_min = (route.query.amount_min as string) || ''
-      filterForm.amount_max = (route.query.amount_max as string) || ''
-      filterForm.reference = (route.query.reference as string) || ''
-      filterForm.from_wallet_id = route.query.from_wallet_id
-        ? (route.query.from_wallet_id === 'external'
-          ? 'external'
-          : Number(route.query.from_wallet_id))
-        : null
-      filterForm.to_wallet_id = route.query.to_wallet_id
-        ? (route.query.to_wallet_id === 'external'
-          ? 'external'
-          : Number(route.query.to_wallet_id))
-        : null
-
-      try {
-        const response = await fetchTransactions({
-            ...params,
-            date_from: route.query.date_from as string,
-            date_to: route.query.date_to as string,
-            type: route.query.type as string,
-            amount_min: route.query.amount_min as string,
-            amount_max: route.query.amount_max as string,
-            reference: route.query.reference as string,
-            from_wallet_id: route.query.from_wallet_id ? Number(route.query.from_wallet_id) : null,
-            to_wallet_id: route.query.to_wallet_id ? Number(route.query.to_wallet_id) : null,
-        })
-
-        // company.value = response.data.company // If company is returned in response
-
-        transactions.value = response.data.data
-
-        if (response.data.meta) {
-          meta.value = response.data.meta
-        }
-      } catch (error) {
-        console.error('Error fetching transactions:', error)
-      }
-    })
+  function handlePerPageChange (newPerPage: number) {
+    const query: Record<string, string> = { ...route.query, page: '1' } as Record<string, string>
+    if (newPerPage === defaultPerPage) {
+      delete query.per_page
+    } else {
+      query.per_page = String(newPerPage)
+    }
+    router.push({ query })
+  }
 
   function handleFilter () {
     const query = {
@@ -191,7 +214,6 @@
       to_wallet_id: filterForm.to_wallet_id || undefined,
     }
 
-    // Remove undefined keys
     for (const key of Object.keys(query)) {
       if ((query as Record<string, unknown>)[key] === undefined) {
         delete (query as Record<string, unknown>)[key]

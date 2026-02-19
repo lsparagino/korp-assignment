@@ -19,7 +19,6 @@
 
     try {
       await confirmPassword(form)
-      // Usually redirects back or to a specific page
       router.back()
     } catch (error: unknown) {
       if (isApiError(error, 422)) {

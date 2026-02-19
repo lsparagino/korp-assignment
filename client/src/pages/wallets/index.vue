@@ -1,40 +1,83 @@
 <script lang="ts" setup>
   import type { Wallet } from '@/types'
-  import { ref } from 'vue'
+  import { computed, ref } from 'vue'
+  import { useMutation, useQuery, useQueryCache } from '@pinia/colada'
   import ConfirmDialog from '@/components/ConfirmDialog.vue'
   import PageHeader from '@/components/PageHeader.vue'
   import Pagination from '@/components/Pagination.vue'
   import { useConfirmDialog } from '@/composables/useConfirmDialog'
-  import { usePagination } from '@/composables/usePagination'
-  import { deleteWallet as apiDeleteWallet, fetchWallets, toggleWalletFreeze } from '@/api/wallets'
+  import { deleteWallet as apiDeleteWallet, toggleWalletFreeze } from '@/api/wallets'
+  import { walletsListQuery, WALLET_QUERY_KEYS } from '@/queries/wallets'
   import { useAuthStore } from '@/stores/auth'
   import { getErrorMessage, isApiError } from '@/utils/errors'
   import { getCurrencyColors, getStatusColors } from '@/utils/colors'
   import { formatCurrency, getAmountColor } from '@/utils/formatters'
+  import { useRoute, useRouter } from 'vue-router'
 
+  const route = useRoute()
+  const router = useRouter()
   const authStore = useAuthStore()
-  const wallets = ref<Wallet[]>([])
   const snackbar = ref({ show: false, text: '', color: 'error' })
   const { confirmDialog, openConfirmDialog } = useConfirmDialog()
+  const queryCache = useQueryCache()
 
-  const { meta, processing, handlePageChange, handlePerPageChange }
-    = usePagination(
-      async params => {
-        const response = await fetchWallets(params)
-        wallets.value = response.data.data
-        meta.value = {
-          current_page: response.data.meta.current_page,
-          last_page: response.data.meta.last_page,
-          per_page: response.data.meta.per_page,
-          total: response.data.meta.total,
-          from: response.data.meta.from,
-          to: response.data.meta.to,
-        }
-      },
-      { defaultPerPage: 10 },
-    )
+  const defaultPerPage = 10
+  const page = computed(() => Number(route.query.page) || 1)
+  const perPage = computed(() => Number(route.query.per_page) || defaultPerPage)
 
-  async function toggleFreeze (wallet: Wallet) {
+  const { data, isPending: processing } = useQuery(
+    walletsListQuery,
+    () => ({ page: page.value, perPage: perPage.value }),
+  )
+
+  const wallets = computed<Wallet[]>(() => data.value?.data ?? [])
+  const meta = computed(() => data.value?.meta ?? {
+    current_page: 1,
+    last_page: 1,
+    per_page: defaultPerPage,
+    total: 0,
+    from: null,
+    to: null,
+  })
+
+  function updateUrl(newPage: number, newPerPage: number) {
+    const query = { ...route.query }
+    if (newPage === 1) {
+      delete query.page
+    } else {
+      query.page = String(newPage)
+    }
+    if (newPerPage === defaultPerPage) {
+      delete query.per_page
+    } else {
+      query.per_page = String(newPerPage)
+    }
+    router.push({ query })
+  }
+
+  function handlePageChange(newPage: number) {
+    updateUrl(newPage, perPage.value)
+  }
+
+  function handlePerPageChange(newPerPage: number) {
+    updateUrl(1, newPerPage)
+  }
+
+  const { mutateAsync: toggleFreezeApi } = useMutation({
+    mutation: (walletId: number) => toggleWalletFreeze(walletId),
+    onSettled: () => {
+      queryCache.invalidateQueries({ key: WALLET_QUERY_KEYS.root })
+    },
+  })
+
+  const { mutateAsync: deleteWalletApi } = useMutation({
+    mutation: (walletId: number) => apiDeleteWallet(walletId),
+    onSettled: () => {
+      queryCache.invalidateQueries({ key: WALLET_QUERY_KEYS.root })
+    },
+  })
+
+  function toggleFreeze (wallet: Wallet) {
     const isFreezing = wallet.status === 'active'
     openConfirmDialog({
       title: isFreezing ? 'Freeze Wallet' : 'Unfreeze Wallet',
@@ -42,12 +85,7 @@
       requiresPin: false,
       onConfirm: async () => {
         try {
-          await toggleWalletFreeze(wallet.id)
-          const response = await fetchWallets({
-            page: meta.value.current_page,
-            per_page: meta.value.per_page,
-          })
-          wallets.value = response.data.data
+          await toggleFreezeApi(wallet.id)
         } catch (error) {
           console.error('Error toggling wallet status:', error)
         }
@@ -55,19 +93,14 @@
     })
   }
 
-  async function deleteWallet (wallet: Wallet) {
+  function deleteWallet (wallet: Wallet) {
     openConfirmDialog({
       title: 'Delete Wallet',
       message: `Warning: You are about to permanently delete the wallet "${wallet.name}". This action cannot be undone.`,
       requiresPin: true,
       onConfirm: async () => {
         try {
-          await apiDeleteWallet(wallet.id)
-          const response = await fetchWallets({
-            page: meta.value.current_page,
-            per_page: meta.value.per_page,
-          })
-          wallets.value = response.data.data
+          await deleteWalletApi(wallet.id)
         } catch (error: unknown) {
           if (isApiError(error, 403)) {
             snackbar.value = {

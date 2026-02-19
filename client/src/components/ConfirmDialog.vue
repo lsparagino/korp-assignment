@@ -41,7 +41,6 @@
   function handleCancel () {
     isDialogVisible.value = false
     emit('cancel')
-    // reset()
   }
 
   function handleConfirm () {

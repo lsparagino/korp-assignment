@@ -15,7 +15,6 @@
       await sendVerificationEmail()
       status.value = 'verification-link-sent'
     } catch {
-      // Handle error
     } finally {
       processing.value = false
     }

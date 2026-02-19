@@ -2,10 +2,13 @@
   import { Wallet } from 'lucide-vue-next'
   import { reactive, ref } from 'vue'
   import { useRouter } from 'vue-router'
+  import { useMutation, useQueryCache } from '@pinia/colada'
   import { createWallet } from '@/api/wallets'
+  import { WALLET_QUERY_KEYS } from '@/queries/wallets'
   import { getValidationErrors, isApiError } from '@/utils/errors'
 
   const router = useRouter()
+  const queryCache = useQueryCache()
   const processing = ref(false)
   const errors = ref<Record<string, string[]>>({})
 
@@ -19,12 +22,19 @@
     { title: 'Euro (EUR)', value: 'EUR' },
   ]
 
+  const { mutateAsync: createWalletMutation } = useMutation({
+    mutation: (data: { name: string, currency: string }) => createWallet(data),
+    onSettled: () => {
+      queryCache.invalidateQueries({ key: WALLET_QUERY_KEYS.root })
+    },
+  })
+
   async function submit () {
     processing.value = true
     errors.value = {}
 
     try {
-      await createWallet(form)
+      await createWalletMutation(form)
       router.push('/wallets/')
     } catch (error: unknown) {
       if (isApiError(error, 422)) {

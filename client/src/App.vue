@@ -1,7 +1,9 @@
+<script lang="ts" setup>
+import { PiniaColadaDevtools } from '@pinia/colada-devtools'
+</script>
+
 <template>
   <router-view />
-</template>
 
-<script lang="ts" setup>
-//
-</script>
+  <PiniaColadaDevtools />
+</template>

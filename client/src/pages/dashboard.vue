@@ -1,9 +1,10 @@
 <script lang="ts" setup>
   import type { Transaction, Wallet } from '@/types'
-  import { ref, watch } from 'vue'
+  import { computed } from 'vue'
+  import { useQuery } from '@pinia/colada'
   import PageHeader from '@/components/PageHeader.vue'
   import TransactionTable from '@/components/TransactionTable.vue'
-  import { fetchDashboard as apiFetchDashboard } from '@/api/dashboard'
+  import { dashboardQuery } from '@/queries/dashboard'
   import { useAuthStore } from '@/stores/auth'
   import { useCompanyStore } from '@/stores/company'
   import { formatCurrency, getAmountColor } from '@/utils/formatters'
@@ -17,54 +18,22 @@
     formatted: string
   }
 
-  const balances = ref<BalanceSummary[]>([])
-  const topWallets = ref<Wallet[]>([])
-  const otherWallets = ref<{ count: number, totalUSD: number, totalEUR: number }>(
-    {
-      count: 0,
-      totalUSD: 0,
-      totalEUR: 0,
-    },
+  const { data, isPending: loading } = useQuery(() => ({
+    ...dashboardQuery(companyStore.currentCompany?.id ?? 0),
+    enabled: !!companyStore.currentCompany,
+  }))
+
+  const balances = computed<BalanceSummary[]>(() =>
+    (data.value?.balances ?? []).map(
+      (b: { currency: string, amount: number }) => ({
+        ...b,
+        formatted: formatCurrency(b.amount, b.currency),
+      }),
+    ),
   )
-  const recentTransactions = ref<Transaction[]>([])
-  const loading = ref(true)
-
-  async function fetchDashboard () {
-    loading.value = true
-    try {
-      const response = await apiFetchDashboard()
-      const data = response.data
-
-      balances.value = data.balances.map(
-        (b: { currency: string, amount: number }) => ({
-          ...b,
-          formatted: formatCurrency(b.amount, b.currency),
-        }),
-      )
-
-      topWallets.value = data.top_wallets || []
-      otherWallets.value = data.others || {
-        count: 0,
-        totalUSD: 0,
-        totalEUR: 0,
-      }
-      recentTransactions.value = data.transactions || []
-    } catch (error) {
-      console.error('Failed to load dashboard:', error)
-    } finally {
-      loading.value = false
-    }
-  }
-
-  watch(
-    () => companyStore.currentCompany,
-    company => {
-      if (company) {
-        fetchDashboard()
-      }
-    },
-    { immediate: true },
-  )
+  const topWallets = computed<Wallet[]>(() => data.value?.top_wallets ?? [])
+  const otherWallets = computed(() => data.value?.others ?? { count: 0, totalUSD: 0, totalEUR: 0 })
+  const recentTransactions = computed<Transaction[]>(() => data.value?.transactions ?? [])
 
   function getCurrencyIcon (currency: string): string {
     return currency === 'EUR' ? 'mdi-currency-eur' : 'mdi-currency-usd'

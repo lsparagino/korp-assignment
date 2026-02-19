@@ -27,7 +27,6 @@
       authStore.setToken(response.data.access_token)
       authStore.setUser(response.data.user)
 
-      // Redirect to dashboard (if email verification not forced)
       router.push('/dashboard')
     } catch (error: unknown) {
       if (isApiError(error, 422)) {

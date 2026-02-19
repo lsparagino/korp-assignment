@@ -1,8 +1,10 @@
 <script lang="ts" setup>
   import type { TeamMember, Wallet } from '@/types'
-  import { ref, watch } from 'vue'
+  import { computed, ref, watch } from 'vue'
+  import { useMutation, useQuery, useQueryCache } from '@pinia/colada'
   import { createTeamMember, updateTeamMember } from '@/api/team-members'
-  import { fetchWallets as apiFetchWallets } from '@/api/wallets'
+  import { walletsListQuery } from '@/queries/wallets'
+  import { TEAM_MEMBER_QUERY_KEYS } from '@/queries/team-members'
   import { getValidationErrors, isApiError } from '@/utils/errors'
 
   const props = defineProps<{
@@ -14,20 +16,25 @@
 
   const dialog = ref(false)
   const processing = ref(false)
-  const wallets = ref<Wallet[]>([])
   const form = ref({
     name: '',
     email: '',
     wallets: [] as number[],
   })
   const errors = ref<Record<string, string[]>>({})
+  const queryCache = useQueryCache()
+
+  const { data: walletsData } = useQuery(
+    walletsListQuery,
+    () => ({ page: 1, perPage: 500 }),
+  )
+  const wallets = computed<Wallet[]>(() => walletsData.value?.data ?? [])
 
   watch(
     () => props.modelValue,
     val => {
       dialog.value = val
       if (val) {
-        loadWallets()
         errors.value = {}
         form.value = props.user
           ? {
@@ -44,22 +51,21 @@
     emit('update:modelValue', val)
   })
 
-  async function loadWallets () {
-    try {
-      const response = await apiFetchWallets()
-      wallets.value = response.data.data
-    } catch (error) {
-      console.error('Error fetching wallets:', error)
-    }
-  }
+  const { mutateAsync: saveMember } = useMutation({
+    mutation: (data: { form: { name: string, email: string, wallets: number[] }, userId?: number }) =>
+      data.userId
+        ? updateTeamMember(data.userId, data.form)
+        : createTeamMember(data.form),
+    onSettled: () => {
+      queryCache.invalidateQueries({ key: TEAM_MEMBER_QUERY_KEYS.root })
+    },
+  })
 
   async function save () {
     processing.value = true
     errors.value = {}
     try {
-      await (props.user
-        ? updateTeamMember(props.user.id, form.value)
-        : createTeamMember(form.value))
+      await saveMember({ form: form.value, userId: props.user?.id })
       emit('saved')
       dialog.value = false
     } catch (error: unknown) {

@@ -24,23 +24,14 @@ const defaultColorPair: ColorPair = {
   text: 'grey-darken-3',
 }
 
-/**
- * Get background and text colors for a currency code.
- */
-export function getCurrencyColors (currency: string): ColorPair {
+export function getCurrencyColors(currency: string): ColorPair {
   return currencyColorMap[currency] || defaultColorPair
 }
 
-/**
- * Get background and text colors for a wallet status.
- */
-export function getStatusColors (status: string): ColorPair {
+export function getStatusColors(status: string): ColorPair {
   return statusColorMap[status] || defaultColorPair
 }
 
-/**
- * Get background and text colors for a user role.
- */
-export function getRoleColors (role: string): ColorPair {
+export function getRoleColors(role: string): ColorPair {
   return roleColorMap[role.toLowerCase()] || defaultColorPair
 }

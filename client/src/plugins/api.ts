@@ -1,8 +1,6 @@
 import axios from 'axios'
 import { router } from '@/router'
 import { useAuthStore } from '@/stores/auth'
-
-// Request Interceptor
 import { useCompanyStore } from '@/stores/company'
 
 const api = axios.create({
@@ -30,7 +28,6 @@ api.interceptors.request.use(config => {
   return config
 })
 
-// Response Interceptor
 api.interceptors.response.use(
   response => response,
   error => {
