@@ -3,6 +3,7 @@
   import { ref, watch } from 'vue'
   import { createTeamMember, updateTeamMember } from '@/api/team-members'
   import { fetchWallets as apiFetchWallets } from '@/api/wallets'
+  import { getValidationErrors, isApiError } from '@/utils/errors'
 
   const props = defineProps<{
     user?: TeamMember | null
@@ -62,9 +63,8 @@
       emit('saved')
       dialog.value = false
     } catch (error: unknown) {
-      const err = error as { response?: { status?: number, data?: { errors?: Record<string, string[]> } } }
-      if (err.response?.status === 422) {
-        errors.value = err.response.data?.errors ?? {}
+      if (isApiError(error, 422)) {
+        errors.value = getValidationErrors(error)
       } else {
         console.error('Error saving member:', error)
       }

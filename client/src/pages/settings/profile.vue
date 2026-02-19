@@ -4,6 +4,7 @@
   import SettingsLayout from '@/components/SettingsLayout.vue'
   import { deleteAccount as apiDeleteAccount, updateProfile } from '@/api/settings'
   import { useAuthStore } from '@/stores/auth'
+  import { getValidationErrors, isApiError } from '@/utils/errors'
 
   const authStore = useAuthStore()
   const user = authStore.user!
@@ -28,9 +29,8 @@
       recentlySuccessful.value = true
       setTimeout(() => (recentlySuccessful.value = false), 3000)
     } catch (error: unknown) {
-      const err = error as { response?: { status?: number, data?: { errors?: Record<string, string[]>, message?: string } } }
-        if (err.response?.status === 422) {
-        errors.value = err.response?.data?.errors ?? {}
+      if (isApiError(error, 422)) {
+        errors.value = getValidationErrors(error)
       }
     } finally {
       processing.value = false
@@ -53,9 +53,8 @@
       authStore.clearToken()
       window.location.href = '/'
     } catch (error: unknown) {
-      const err = error as { response?: { status?: number, data?: { errors?: Record<string, string[]>, message?: string } } }
-        if (err.response?.status === 422) {
-        deleteErrors.value = err.response?.data?.errors ?? {}
+      if (isApiError(error, 422)) {
+        deleteErrors.value = getValidationErrors(error)
       }
     } finally {
       deleting.value = false

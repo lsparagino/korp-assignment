@@ -2,6 +2,7 @@
   import type { VAlert } from 'vuetify/components'
   import { reactive, ref } from 'vue'
   import { forgotPassword } from '@/api/auth'
+  import { getValidationErrors, isApiError } from '@/utils/errors'
 
   const form = reactive({
     email: '',
@@ -21,8 +22,7 @@
       status.value = response.data.message
       alertType.value = 'success'
     } catch (error: unknown) {
-      const err = error as { response?: { status?: number, data?: { errors?: Record<string, string[]>, message?: string } } }
-        if (err.response?.status === 422) {
+      if (isApiError(error, 422)) {
         alertType.value = 'warning'
         status.value = 'Your mailbox is full'
       } else {

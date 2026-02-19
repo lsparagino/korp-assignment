@@ -3,6 +3,7 @@
   import { useRoute, useRouter } from 'vue-router'
   import { twoFactorChallenge } from '@/api/auth'
   import { useAuthStore } from '@/stores/auth'
+  import { getValidationErrors, isApiError } from '@/utils/errors'
 
   const route = useRoute()
   const router = useRouter()
@@ -55,9 +56,8 @@
       authStore.setUser(response.data.user)
       router.push('/dashboard')
     } catch (error: unknown) {
-      const err = error as { response?: { status?: number, data?: { errors?: Record<string, string[]>, message?: string } } }
-        if (err.response?.status === 422) {
-        errors.value = err.response?.data?.errors ?? {}
+      if (isApiError(error, 422)) {
+        errors.value = getValidationErrors(error)
       }
     } finally {
       processing.value = false

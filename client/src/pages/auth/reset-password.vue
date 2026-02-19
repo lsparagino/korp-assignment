@@ -2,6 +2,7 @@
   import { onMounted, reactive, ref } from 'vue'
   import { useRoute, useRouter } from 'vue-router'
   import { resetPassword } from '@/api/auth'
+  import { getValidationErrors, isApiError } from '@/utils/errors'
 
   const route = useRoute()
   const router = useRouter()
@@ -31,9 +32,8 @@
       status.value = response.data.message
       setTimeout(() => router.push('/auth/login'), 3000)
     } catch (error: unknown) {
-      const err = error as { response?: { status?: number, data?: { errors?: Record<string, string[]>, message?: string } } }
-        if (err.response?.status === 422) {
-        errors.value = err.response?.data?.errors ?? {}
+      if (isApiError(error, 422)) {
+        errors.value = getValidationErrors(error)
       } else {
         status.value = 'An error occurred. Please try again.'
       }

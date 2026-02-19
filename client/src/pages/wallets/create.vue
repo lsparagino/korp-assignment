@@ -3,6 +3,7 @@
   import { reactive, ref } from 'vue'
   import { useRouter } from 'vue-router'
   import { createWallet } from '@/api/wallets'
+  import { getValidationErrors, isApiError } from '@/utils/errors'
 
   const router = useRouter()
   const processing = ref(false)
@@ -26,14 +27,8 @@
       await createWallet(form)
       router.push('/wallets/')
     } catch (error: unknown) {
-      const err = error as {
-        response?: {
-          status?: number
-          data?: { errors?: Record<string, string[]> }
-        }
-      }
-      if (err.response?.status === 422) {
-        errors.value = err.response.data?.errors ?? {}
+      if (isApiError(error, 422)) {
+        errors.value = getValidationErrors(error)
       }
     } finally {
       processing.value = false

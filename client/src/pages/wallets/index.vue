@@ -8,6 +8,7 @@
   import { usePagination } from '@/composables/usePagination'
   import { deleteWallet as apiDeleteWallet, fetchWallets, toggleWalletFreeze } from '@/api/wallets'
   import { useAuthStore } from '@/stores/auth'
+  import { getErrorMessage, isApiError } from '@/utils/errors'
   import { getCurrencyColors, getStatusColors } from '@/utils/colors'
   import { formatCurrency, getAmountColor } from '@/utils/formatters'
 
@@ -68,15 +69,10 @@
           })
           wallets.value = response.data.data
         } catch (error: unknown) {
-          const err = error as {
-            response?: { status?: number, data?: { message?: string } }
-          }
-          if (err.response?.status === 403) {
+          if (isApiError(error, 403)) {
             snackbar.value = {
               show: true,
-              text:
-                err.response.data?.message
-                || 'You are not authorized to delete this wallet.',
+              text: getErrorMessage(error, 'You are not authorized to delete this wallet.'),
               color: 'error',
             }
           } else {

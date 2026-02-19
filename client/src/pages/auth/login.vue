@@ -3,6 +3,7 @@
   import { useRouter } from 'vue-router'
   import { login } from '@/api/auth'
   import { useAuthStore } from '@/stores/auth'
+  import { getValidationErrors, isApiError } from '@/utils/errors'
 
   const router = useRouter()
   const authStore = useAuthStore()
@@ -34,9 +35,8 @@
       authStore.setUser(response.data.user)
       router.push('/dashboard')
     } catch (error: unknown) {
-      const err = error as { response?: { status?: number, data?: { errors?: Record<string, string[]>, message?: string } } }
-        if (err.response?.status === 422) {
-        errors.value = err.response?.data?.errors ?? {}
+      if (isApiError(error, 422)) {
+        errors.value = getValidationErrors(error)
       } else {
         status.value = 'An error occurred during login.'
       }

@@ -2,6 +2,7 @@
   import { reactive, ref } from 'vue'
   import { useRouter } from 'vue-router'
   import { confirmPassword } from '@/api/auth'
+  import { getValidationErrors, isApiError } from '@/utils/errors'
 
   const router = useRouter()
 
@@ -21,9 +22,8 @@
       // Usually redirects back or to a specific page
       router.back()
     } catch (error: unknown) {
-      const err = error as { response?: { status?: number, data?: { errors?: Record<string, string[]>, message?: string } } }
-        if (err.response?.status === 422) {
-        errors.value = err.response?.data?.errors ?? {}
+      if (isApiError(error, 422)) {
+        errors.value = getValidationErrors(error)
       }
     } finally {
       processing.value = false

@@ -6,6 +6,7 @@
   import ConfirmDialog from '@/components/ConfirmDialog.vue'
   import { useConfirmDialog } from '@/composables/useConfirmDialog'
   import { deleteWallet as apiDeleteWallet, fetchWallet as apiFetchWallet, toggleWalletFreeze, updateWallet } from '@/api/wallets'
+  import { getErrorMessage, getValidationErrors, isApiError } from '@/utils/errors'
 
   const route = useRoute()
   const router = useRouter()
@@ -56,14 +57,8 @@
       await updateWallet(walletId, form)
       router.push('/wallets/')
     } catch (error: unknown) {
-      const err = error as {
-        response?: {
-          status?: number
-          data?: { errors?: ValidationErrors }
-        }
-      }
-      if (err.response?.status === 422) {
-        errors.value = err.response.data?.errors ?? {}
+      if (isApiError(error, 422)) {
+        errors.value = getValidationErrors(error)
       }
     } finally {
       processing.value = false
@@ -99,15 +94,10 @@
           await apiDeleteWallet(wallet.value?.id!)
           router.push('/wallets/')
         } catch (error: unknown) {
-          const err = error as {
-            response?: { status?: number, data?: { message?: string } }
-          }
-          if (err.response?.status === 403) {
+          if (isApiError(error, 403)) {
             snackbar.value = {
               show: true,
-              text:
-                err.response.data?.message
-                || 'You are not authorized to delete this wallet (it might not be empty).',
+              text: getErrorMessage(error, 'You are not authorized to delete this wallet (it might not be empty).'),
               color: 'error',
             }
           } else {

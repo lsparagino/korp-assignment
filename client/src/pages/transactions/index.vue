@@ -23,8 +23,8 @@
     amount_min: '',
     amount_max: '',
     reference: '',
-    from_wallet_id: null as number | null,
-    to_wallet_id: null as number | null,
+    from_wallet_id: null as number | string | null,
+    to_wallet_id: null as number | string | null,
   })
 
   const types = ['All', 'Debit', 'Credit']
@@ -140,12 +140,12 @@
       filterForm.reference = (route.query.reference as string) || ''
       filterForm.from_wallet_id = route.query.from_wallet_id
         ? (route.query.from_wallet_id === 'external'
-          ? ('external' as any)
+          ? 'external'
           : Number(route.query.from_wallet_id))
         : null
       filterForm.to_wallet_id = route.query.to_wallet_id
         ? (route.query.to_wallet_id === 'external'
-          ? ('external' as any)
+          ? 'external'
           : Number(route.query.to_wallet_id))
         : null
 
@@ -192,8 +192,11 @@
     }
 
     // Remove undefined keys
-    for (const key of Object.keys(query))
-      (query as any)[key] === undefined && delete (query as any)[key]
+    for (const key of Object.keys(query)) {
+      if ((query as Record<string, unknown>)[key] === undefined) {
+        delete (query as Record<string, unknown>)[key]
+      }
+    }
 
     router.push({ query })
   }

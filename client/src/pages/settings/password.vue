@@ -3,6 +3,7 @@
   import Heading from '@/components/Heading.vue'
   import SettingsLayout from '@/components/SettingsLayout.vue'
   import { updatePassword } from '@/api/settings'
+  import { getValidationErrors, isApiError } from '@/utils/errors'
 
   const form = reactive({
     current_password: '',
@@ -29,9 +30,8 @@
       })
       setTimeout(() => (recentlySuccessful.value = false), 3000)
     } catch (error: unknown) {
-      const err = error as { response?: { status?: number, data?: { errors?: Record<string, string[]>, message?: string } } }
-        if (err.response?.status === 422) {
-        errors.value = err.response?.data?.errors ?? {}
+      if (isApiError(error, 422)) {
+        errors.value = getValidationErrors(error)
       }
     } finally {
       processing.value = false
