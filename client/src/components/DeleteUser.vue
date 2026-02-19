@@ -2,7 +2,7 @@
   import { ref } from 'vue'
   import { useRouter } from 'vue-router'
   import Heading from '@/components/Heading.vue'
-  import api from '@/plugins/api'
+  import { api } from '@/plugins/api'
   import { useAuthStore } from '@/stores/auth'
 
   const router = useRouter()

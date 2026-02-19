@@ -3,7 +3,7 @@
   import { ref, watch } from 'vue'
   import PageHeader from '@/components/PageHeader.vue'
   import TransactionTable from '@/components/TransactionTable.vue'
-  import api from '@/plugins/api'
+  import { api } from '@/plugins/api'
   import { useAuthStore } from '@/stores/auth'
   import { useCompanyStore } from '@/stores/company'
   import { formatCurrency, getAmountColor } from '@/utils/formatters'

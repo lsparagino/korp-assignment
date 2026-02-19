@@ -2,7 +2,7 @@
   import { reactive, ref } from 'vue'
   import Heading from '@/components/Heading.vue'
   import SettingsLayout from '@/components/SettingsLayout.vue'
-  import api from '@/plugins/api'
+  import { api } from '@/plugins/api'
   import { useAuthStore } from '@/stores/auth'
 
   const authStore = useAuthStore()
@@ -27,9 +27,10 @@
       authStore.setUser(response.data.user)
       recentlySuccessful.value = true
       setTimeout(() => (recentlySuccessful.value = false), 3000)
-    } catch (error: any) {
-      if (error.response?.status === 422) {
-        errors.value = error.response.data.errors
+    } catch (error: unknown) {
+      const err = error as { response?: { status?: number, data?: { errors?: Record<string, string[]>, message?: string } } }
+        if (err.response?.status === 422) {
+        errors.value = err.response?.data?.errors ?? {}
       }
     } finally {
       processing.value = false
@@ -51,9 +52,10 @@
       await api.delete('/settings/profile', { data: deleteForm })
       authStore.clearToken()
       window.location.href = '/'
-    } catch (error: any) {
-      if (error.response?.status === 422) {
-        deleteErrors.value = error.response.data.errors
+    } catch (error: unknown) {
+      const err = error as { response?: { status?: number, data?: { errors?: Record<string, string[]>, message?: string } } }
+        if (err.response?.status === 422) {
+        deleteErrors.value = err.response?.data?.errors ?? {}
       }
     } finally {
       deleting.value = false

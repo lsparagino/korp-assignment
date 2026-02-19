@@ -6,7 +6,7 @@
   import Pagination from '@/components/Pagination.vue'
   import TeamMemberModal from '@/components/TeamMemberModal.vue'
   import { useConfirmDialog } from '@/composables/useConfirmDialog'
-  import api from '@/plugins/api'
+  import { api } from '@/plugins/api'
   import { useAuthStore } from '@/stores/auth'
   import { getRoleColors } from '@/utils/colors'
 

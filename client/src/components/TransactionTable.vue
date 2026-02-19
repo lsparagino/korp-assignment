@@ -1,6 +1,6 @@
 <script lang="ts" setup>
   import type { PaginationMeta } from '@/composables/usePagination'
-  import type { Transaction } from '@/types'
+  import type { Transaction, Wallet } from '@/types'
   import { ref } from 'vue'
   import Pagination from '@/components/Pagination.vue'
   import { formatCurrency, formatDate } from '@/utils/formatters'
@@ -8,7 +8,7 @@
   interface Props {
     items: Transaction[]
     loading?: boolean
-    wallets?: any[]
+    wallets?: Wallet[]
     showPagination?: boolean
     meta?: PaginationMeta
     title?: string

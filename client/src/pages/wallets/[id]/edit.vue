@@ -5,7 +5,7 @@
   import { useRoute, useRouter } from 'vue-router'
   import ConfirmDialog from '@/components/ConfirmDialog.vue'
   import { useConfirmDialog } from '@/composables/useConfirmDialog'
-  import api from '@/plugins/api'
+  import { api } from '@/plugins/api'
 
   const route = useRoute()
   const router = useRouter()

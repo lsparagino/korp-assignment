@@ -1,7 +1,7 @@
 <script lang="ts" setup>
   import { computed, ref, watch } from 'vue'
   import { useRoute, useRouter } from 'vue-router'
-  import api from '@/plugins/api'
+  import { api } from '@/plugins/api'
   import { useAuthStore } from '@/stores/auth'
 
   const route = useRoute()
@@ -54,9 +54,10 @@
       authStore.setToken(response.data.access_token)
       authStore.setUser(response.data.user)
       router.push('/dashboard')
-    } catch (error: any) {
-      if (error.response?.status === 422) {
-        errors.value = error.response.data.errors
+    } catch (error: unknown) {
+      const err = error as { response?: { status?: number, data?: { errors?: Record<string, string[]>, message?: string } } }
+        if (err.response?.status === 422) {
+        errors.value = err.response?.data?.errors ?? {}
       }
     } finally {
       processing.value = false

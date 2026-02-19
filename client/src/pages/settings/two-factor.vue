@@ -2,7 +2,7 @@
   import { onMounted, ref } from 'vue'
   import Heading from '@/components/Heading.vue'
   import SettingsLayout from '@/components/SettingsLayout.vue'
-  import api from '@/plugins/api'
+  import { api } from '@/plugins/api'
   import { useAuthStore } from '@/stores/auth'
 
   const authStore = useAuthStore()

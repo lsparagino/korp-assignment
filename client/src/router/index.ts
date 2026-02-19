@@ -59,4 +59,4 @@ router.beforeEach(
   },
 )
 
-export default router
+export { router }

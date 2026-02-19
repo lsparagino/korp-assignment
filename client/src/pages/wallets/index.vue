@@ -6,7 +6,7 @@
   import Pagination from '@/components/Pagination.vue'
   import { useConfirmDialog } from '@/composables/useConfirmDialog'
   import { usePagination } from '@/composables/usePagination'
-  import api from '@/plugins/api'
+  import { api } from '@/plugins/api'
   import { useAuthStore } from '@/stores/auth'
   import { getCurrencyColors, getStatusColors } from '@/utils/colors'
   import { formatCurrency, getAmountColor } from '@/utils/formatters'

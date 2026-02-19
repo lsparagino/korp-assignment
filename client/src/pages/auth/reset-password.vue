@@ -1,7 +1,7 @@
 <script lang="ts" setup>
   import { onMounted, reactive, ref } from 'vue'
   import { useRoute, useRouter } from 'vue-router'
-  import api from '@/plugins/api'
+  import { api } from '@/plugins/api'
 
   const route = useRoute()
   const router = useRouter()
@@ -30,9 +30,10 @@
       const response = await api.post('/reset-password', form)
       status.value = response.data.message
       setTimeout(() => router.push('/auth/login'), 3000)
-    } catch (error: any) {
-      if (error.response?.status === 422) {
-        errors.value = error.response.data.errors
+    } catch (error: unknown) {
+      const err = error as { response?: { status?: number, data?: { errors?: Record<string, string[]>, message?: string } } }
+        if (err.response?.status === 422) {
+        errors.value = err.response?.data?.errors ?? {}
       } else {
         status.value = 'An error occurred. Please try again.'
       }

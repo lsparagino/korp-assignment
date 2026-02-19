@@ -10,7 +10,7 @@ export interface PaginationMeta {
   to: number | null
 }
 
-export function usePagination (
+export function usePagination(
   fetchData: (params: { page: number, per_page: number }) => Promise<void>,
   options: {
     defaultPerPage?: number
@@ -36,7 +36,7 @@ export function usePagination (
     to: null,
   })
 
-  const updateUrl = (newPage: number, newPerPage: number) => {
+  function updateUrl(newPage: number, newPerPage: number) {
     const query = { ...route.query }
 
     if (newPage === 1) {
@@ -54,11 +54,11 @@ export function usePagination (
     router.push({ query })
   }
 
-  const handlePageChange = (newPage: number) => {
+  function handlePageChange(newPage: number) {
     updateUrl(newPage, perPage.value)
   }
 
-  const handlePerPageChange = (newPerPage: number) => {
+  function handlePerPageChange(newPerPage: number) {
     updateUrl(1, newPerPage) // Reset to first page when size changes
   }
 
@@ -83,7 +83,7 @@ export function usePagination (
     { immediate: true },
   )
 
-  const refresh = async () => {
+  async function refresh() {
     processing.value = true
     try {
       await fetchData({ page: page.value, per_page: perPage.value })

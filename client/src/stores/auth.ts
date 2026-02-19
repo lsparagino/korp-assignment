@@ -1,49 +1,65 @@
 import type { User } from '@/types'
+import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
-import api from '@/plugins/api'
+import { api } from '@/plugins/api'
 
-export const useAuthStore = defineStore('auth', {
-  state: () => ({
-    user: JSON.parse(localStorage.getItem('user') || 'null') as User | null,
-    token: localStorage.getItem('access_token') || null,
-    twoFactorUserId: null as number | null,
-  }),
-  getters: {
-    isAdmin: state => state.user?.role === 'admin',
-    isAuthenticated: state => !!state.token,
-  },
-  actions: {
-    setToken (token: string) {
-      this.token = token
-      localStorage.setItem('access_token', token)
-    },
-    clearToken () {
-      this.token = null
-      this.user = null
-      localStorage.removeItem('access_token')
-      localStorage.removeItem('user')
-    },
-    setUser (user: User) {
-      this.user = user
-      localStorage.setItem('user', JSON.stringify(user))
-    },
-    setTwoFactor (userId: number) {
-      this.twoFactorUserId = userId
-    },
-    async fetchUser () {
-      try {
-        const response = await api.get('/user')
-        this.setUser(response.data)
-      } catch {
-        this.clearToken()
-      }
-    },
-    async logout () {
-      try {
-        await api.post('/logout')
-      } finally {
-        this.clearToken()
-      }
-    },
-  },
+export const useAuthStore = defineStore('auth', () => {
+  const user = ref<User | null>(JSON.parse(localStorage.getItem('user') || 'null'))
+  const token = ref<string | null>(localStorage.getItem('access_token') || null)
+  const twoFactorUserId = ref<number | null>(null)
+
+  const isAdmin = computed(() => user.value?.role === 'admin')
+  const isAuthenticated = computed(() => !!token.value)
+
+  function setToken(value: string) {
+    token.value = value
+    localStorage.setItem('access_token', value)
+  }
+
+  function clearToken() {
+    token.value = null
+    user.value = null
+    localStorage.removeItem('access_token')
+    localStorage.removeItem('user')
+  }
+
+  function setUser(value: User) {
+    user.value = value
+    localStorage.setItem('user', JSON.stringify(value))
+  }
+
+  function setTwoFactor(userId: number) {
+    twoFactorUserId.value = userId
+  }
+
+  async function fetchUser() {
+    try {
+      const response = await api.get('/user')
+      setUser(response.data)
+    } catch {
+      clearToken()
+    }
+  }
+
+  async function logout() {
+    try {
+      await api.post('/logout')
+    } finally {
+      clearToken()
+    }
+  }
+
+  return {
+    user,
+    token,
+    twoFactorUserId,
+    isAdmin,
+    isAuthenticated,
+    setToken,
+    clearToken,
+    setUser,
+    setTwoFactor,
+    fetchUser,
+    logout,
+  }
 })

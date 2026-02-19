@@ -2,7 +2,7 @@
   import { Wallet } from 'lucide-vue-next'
   import { reactive, ref } from 'vue'
   import { useRouter } from 'vue-router'
-  import api from '@/plugins/api'
+  import { api } from '@/plugins/api'
 
   const router = useRouter()
   const processing = ref(false)

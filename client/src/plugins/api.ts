@@ -1,5 +1,5 @@
 import axios from 'axios'
-import router from '@/router'
+import { router } from '@/router'
 import { useAuthStore } from '@/stores/auth'
 
 // Request Interceptor
@@ -43,4 +43,4 @@ api.interceptors.response.use(
   },
 )
 
-export default api
+export { api }

@@ -1,7 +1,7 @@
 <script lang="ts" setup>
   import { reactive, ref } from 'vue'
   import { useRouter } from 'vue-router'
-  import api from '@/plugins/api'
+  import { api } from '@/plugins/api'
 
   const router = useRouter()
 
@@ -20,9 +20,10 @@
       await api.post('/user/confirm-password', form)
       // Usually redirects back or to a specific page
       router.back()
-    } catch (error: any) {
-      if (error.response?.status === 422) {
-        errors.value = error.response.data.errors
+    } catch (error: unknown) {
+      const err = error as { response?: { status?: number, data?: { errors?: Record<string, string[]>, message?: string } } }
+        if (err.response?.status === 422) {
+        errors.value = err.response?.data?.errors ?? {}
       }
     } finally {
       processing.value = false

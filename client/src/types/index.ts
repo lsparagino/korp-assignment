@@ -49,4 +49,6 @@ export interface RecoveryCode {
   code: string
 }
 
-export type ValidationErrors = Record<string, string[]>
+export interface ValidationErrors {
+  [key: string]: string[]
+}

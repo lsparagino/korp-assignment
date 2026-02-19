@@ -1,32 +1,23 @@
 <script lang="ts" setup>
   import { computed, onMounted, ref, watch } from 'vue'
 
-  const props = defineProps({
-    modelValue: Boolean,
-    title: {
-      type: String,
-      default: 'Confirm Action',
-    },
-    message: {
-      type: String,
-      default: 'Are you sure you want to proceed?',
-    },
-    confirmText: {
-      type: String,
-      default: 'Yes, Proceed',
-    },
-    cancelText: {
-      type: String,
-      default: 'Cancel',
-    },
-    requiresPin: {
-      type: Boolean,
-      default: false,
-    },
-    confirmColor: {
-      type: String,
-      default: 'primary',
-    },
+  interface Props {
+    modelValue: boolean
+    title?: string
+    message?: string
+    confirmText?: string
+    cancelText?: string
+    requiresPin?: boolean
+    confirmColor?: string
+  }
+
+  const props = withDefaults(defineProps<Props>(), {
+    title: 'Confirm Action',
+    message: 'Are you sure you want to proceed?',
+    confirmText: 'Yes, Proceed',
+    cancelText: 'Cancel',
+    requiresPin: false,
+    confirmColor: 'primary',
   })
 
   const emit = defineEmits(['update:modelValue', 'confirm', 'cancel'])

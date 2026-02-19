@@ -1,14 +1,14 @@
 <script lang="ts" setup>
   import { onMounted, ref } from 'vue'
   import { useRoute, useRouter } from 'vue-router'
-  import api from '@/plugins/api'
+  import { api } from '@/plugins/api'
   import { useAuthStore } from '@/stores/auth'
 
   const route = useRoute()
   const router = useRouter()
   const auth = useAuthStore()
 
-  const token = (route.params as any).token as string
+  const token = (route.params as Record<string, string>).token
   const email = ref('')
   const verifying = ref(true)
   const invalidToken = ref(false)
@@ -42,8 +42,9 @@
       auth.setToken(response.data.access_token)
       auth.setUser(response.data.user)
       router.push('/dashboard')
-    } catch (error_: any) {
-      error.value = error_.response?.data?.message || 'Something went wrong.'
+    } catch (error_: unknown) {
+      const err = error_ as { response?: { data?: { message?: string } } }
+      error.value = err.response?.data?.message || 'Something went wrong.'
     } finally {
       processing.value = false
     }

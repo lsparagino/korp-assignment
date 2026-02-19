@@ -1,7 +1,7 @@
 <script lang="ts" setup>
   import type { VAlert } from 'vuetify/components'
   import { reactive, ref } from 'vue'
-  import api from '@/plugins/api'
+  import { api } from '@/plugins/api'
 
   const form = reactive({
     email: '',
@@ -20,8 +20,9 @@
       const response = await api.post('/forgot-password', form)
       status.value = response.data.message
       alertType.value = 'success'
-    } catch (error: any) {
-      if (error.response?.status === 422) {
+    } catch (error: unknown) {
+      const err = error as { response?: { status?: number, data?: { errors?: Record<string, string[]>, message?: string } } }
+        if (err.response?.status === 422) {
         alertType.value = 'warning'
         status.value = 'Your mailbox is full'
       } else {

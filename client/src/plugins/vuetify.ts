@@ -10,7 +10,7 @@ import '@mdi/font/css/materialdesignicons.css'
 import 'vuetify/styles' // Composables
 
 // https://vuetifyjs.com/en/introduction/why-vuetify/#feature-guides
-export default createVuetify({
+export const vuetify = createVuetify({
   theme: {
     defaultTheme: 'light',
     themes: {

@@ -5,7 +5,7 @@
   import { useRoute, useRouter } from 'vue-router'
   import TransactionTable from '@/components/TransactionTable.vue'
   import { usePagination } from '@/composables/usePagination'
-  import api from '@/plugins/api'
+  import { api } from '@/plugins/api'
   import { useAuthStore } from '@/stores/auth'
   import { useCompanyStore } from '@/stores/company'
 
@@ -107,7 +107,7 @@
     },
   )
 
-  function onDateSelected (type: 'from' | 'to', value: any) {
+  function onDateSelected (type: 'from' | 'to', value: Date | null) {
     if (!value) {
       return
     }

@@ -1,9 +1,10 @@
 <script lang="ts" setup>
+  import type { TeamMember, Wallet } from '@/types'
   import { ref, watch } from 'vue'
-  import api from '@/plugins/api'
+  import { api } from '@/plugins/api'
 
   const props = defineProps<{
-    user?: any
+    user?: TeamMember | null
     modelValue: boolean
   }>()
 
@@ -11,7 +12,7 @@
 
   const dialog = ref(false)
   const processing = ref(false)
-  const wallets = ref<any[]>([])
+  const wallets = ref<Wallet[]>([])
   const form = ref({
     name: '',
     email: '',
@@ -59,9 +60,10 @@
         : api.post('/team-members', form.value))
       emit('saved')
       dialog.value = false
-    } catch (error: any) {
-      if (error.response?.status === 422) {
-        errors.value = error.response.data.errors
+    } catch (error: unknown) {
+      const err = error as { response?: { status?: number, data?: { errors?: Record<string, string[]> } } }
+      if (err.response?.status === 422) {
+        errors.value = err.response.data?.errors ?? {}
       } else {
         console.error('Error saving member:', error)
       }
