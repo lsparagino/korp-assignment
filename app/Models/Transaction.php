@@ -4,9 +4,11 @@ namespace App\Models;
 
 use App\Enums\TransactionType;
 use Database\Factories\TransactionFactory;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Collection;
 
 class Transaction extends Model
 {
@@ -35,7 +37,7 @@ class Transaction extends Model
     /**
      * Scope a query to transactions involving any of the given wallet IDs.
      */
-    public function scopeForWallets($query, $walletIds)
+    public function scopeForWallets(Builder $query, Collection $walletIds): Builder
     {
         return $query->where(function ($q) use ($walletIds) {
             $q->whereIn('from_wallet_id', $walletIds)

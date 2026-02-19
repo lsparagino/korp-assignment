@@ -11,17 +11,17 @@ class EnsureUserBelongsToCompany
     /**
      * Handle an incoming request.
      *
-     * @param Closure(Request): (Response) $next
+     * @param  Closure(Request): (Response)  $next
      */
     public function handle(Request $request, Closure $next): Response
     {
         $companyId = $request->input('company_id') ?: $request->header('X-Company-Id');
 
-        if (!$companyId) {
+        if (! $companyId) {
             return $next($request);
         }
 
-        if (!$request->user()->companies()->where('companies.id', $companyId)->exists()) {
+        if (! $request->user()->companies()->where('companies.id', $companyId)->exists()) {
             abort(403, 'Unauthorized access to company.');
         }
 

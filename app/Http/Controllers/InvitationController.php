@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Hash;
 
 class InvitationController extends Controller
 {
-    public function show($token): JsonResponse
+    public function show(string $token): JsonResponse
     {
         $user = User::where('invitation_token', $token)->firstOrFail();
 
@@ -20,7 +20,7 @@ class InvitationController extends Controller
         ]);
     }
 
-    public function store(AcceptInvitationRequest $request, $token): JsonResponse
+    public function store(AcceptInvitationRequest $request, string $token): JsonResponse
     {
         $user = User::where('invitation_token', $token)->firstOrFail();
 

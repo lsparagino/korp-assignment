@@ -26,10 +26,6 @@ class AuthController extends Controller
             $request->ip()
         );
 
-        if (isset($result['two_factor'])) {
-            return response()->json($result);
-        }
-
         return response()->json($result);
     }
 

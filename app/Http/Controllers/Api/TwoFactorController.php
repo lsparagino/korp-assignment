@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Laravel\Fortify\Actions\ConfirmTwoFactorAuthentication;
 use Laravel\Fortify\Actions\DisableTwoFactorAuthentication;
@@ -11,28 +12,28 @@ use Laravel\Fortify\Actions\GenerateNewRecoveryCodes;
 
 class TwoFactorController extends Controller
 {
-    public function store(Request $request, EnableTwoFactorAuthentication $enable)
+    public function store(Request $request, EnableTwoFactorAuthentication $enable): JsonResponse
     {
         $enable($request->user());
 
         return response()->json(['message' => '2FA enabled, please confirm']);
     }
 
-    public function confirm(Request $request, ConfirmTwoFactorAuthentication $confirm)
+    public function confirm(Request $request, ConfirmTwoFactorAuthentication $confirm): JsonResponse
     {
         $confirm($request->user(), $request->code);
 
         return response()->json(['message' => '2FA confirmed']);
     }
 
-    public function destroy(Request $request, DisableTwoFactorAuthentication $disable)
+    public function destroy(Request $request, DisableTwoFactorAuthentication $disable): JsonResponse
     {
         $disable($request->user());
 
         return response()->json(['message' => '2FA disabled']);
     }
 
-    public function qrCode(Request $request)
+    public function qrCode(Request $request): JsonResponse
     {
         if (is_null($request->user()->two_factor_secret)) {
             return response()->json(['message' => '2FA not enabled'], 400);
@@ -44,18 +45,18 @@ class TwoFactorController extends Controller
         ]);
     }
 
-    public function recoveryCodes(Request $request)
+    public function recoveryCodes(Request $request): JsonResponse
     {
         if (is_null($request->user()->two_factor_recovery_codes)) {
             return response()->json(['message' => '2FA not enabled'], 400);
         }
 
         return response()->json(
-            collect($request->user()->recoveryCodes())->map(fn($code) => ['code' => $code])
+            collect($request->user()->recoveryCodes())->map(fn ($code) => ['code' => $code])
         );
     }
 
-    public function regenerateRecoveryCodes(Request $request, GenerateNewRecoveryCodes $generate)
+    public function regenerateRecoveryCodes(Request $request, GenerateNewRecoveryCodes $generate): JsonResponse
     {
         $generate($request->user());
 

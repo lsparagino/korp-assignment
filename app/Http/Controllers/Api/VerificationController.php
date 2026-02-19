@@ -4,12 +4,13 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Auth\Events\Verified;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\URL;
 
 class VerificationController extends Controller
 {
-    public function resend(Request $request)
+    public function resend(Request $request): JsonResponse
     {
         if ($request->user()->hasVerifiedEmail()) {
             return response()->json(['message' => 'Email already verified'], 400);
@@ -20,13 +21,13 @@ class VerificationController extends Controller
         return response()->json(['message' => 'Verification link sent']);
     }
 
-    public function verify(Request $request)
+    public function verify(Request $request): JsonResponse
     {
-        if (!URL::hasValidSignature($request)) {
+        if (! URL::hasValidSignature($request)) {
             return response()->json(['message' => 'Invalid or expired signature'], 401);
         }
 
-        if (!hash_equals((string)$request->route('hash'), sha1($request->user()->getEmailForVerification()))) {
+        if (! hash_equals((string) $request->route('hash'), sha1($request->user()->getEmailForVerification()))) {
             return response()->json(['message' => 'Invalid verification link'], 403);
         }
 

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
@@ -41,11 +42,8 @@ class Wallet extends Model
 
     /**
      * Scope to add pre-computed balance sums for eager loading.
-     *
-     * @param  \Illuminate\Database\Eloquent\Builder  $query
-     * @return \Illuminate\Database\Eloquent\Builder
      */
-    public function scopeWithBalance($query)
+    public function scopeWithBalance(Builder $query): Builder
     {
         return $query
             ->withSum('toTransactions as balance_in', 'amount')
@@ -83,7 +81,7 @@ class Wallet extends Model
     /**
      * Scope a query to wallets accessible to the given user in a specific company.
      */
-    public function scopeScopedToUser($query, User $user, $companyId = null)
+    public function scopeScopedToUser(Builder $query, User $user, ?int $companyId = null): Builder
     {
         if ($companyId !== null) {
             $query->where('company_id', $companyId);

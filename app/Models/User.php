@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Enums\UserRole;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -82,15 +81,12 @@ class User extends Authenticatable
 
     /**
      * Determine if the given recovery code is valid.
-     *
-     * @param string $code
-     * @return bool
      */
-    public function validRecoveryCode($code): bool
+    public function validRecoveryCode(string $code): bool
     {
         return collect($this->recoveryCodes())->first(function ($recoveryCode) use ($code) {
-                return hash_equals($recoveryCode, $code);
-            }) !== null;
+            return hash_equals($recoveryCode, $code);
+        }) !== null;
     }
 
     /**

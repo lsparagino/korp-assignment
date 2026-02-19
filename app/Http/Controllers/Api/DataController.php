@@ -17,16 +17,13 @@ class DataController extends Controller
         $user = $request->user();
         $companyId = $request->input('company_id');
 
-        // Wallets are already authorized by 'company' middleware
         $allWallets = Wallet::scopedToUser($user, $companyId)->get();
         $walletIds = $allWallets->pluck('id');
 
-        // Metrics via Service
         $balancesByCurrency = $walletService->getBalancesByCurrency($allWallets);
         $top3 = $walletService->getTopWallets($allWallets);
         $othersAggregated = $walletService->getOthersAggregation($allWallets);
 
-        // Transactions via Scope
         $recentTransactions = Transaction::forWallets($walletIds)
             ->latest()
             ->limit(10)

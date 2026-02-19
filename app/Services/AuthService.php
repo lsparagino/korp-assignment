@@ -95,7 +95,7 @@ class AuthService
     }
 
     /**
-     * @throws ValidationException
+     * @throws HttpResponseException
      */
     private function checkThrottling(string $throttleKey): void
     {

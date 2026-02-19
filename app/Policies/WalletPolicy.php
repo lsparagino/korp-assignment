@@ -20,8 +20,7 @@ class WalletPolicy
      */
     public function view(User $user, Wallet $wallet): bool
     {
-        // Must belong to the same company
-        if (!$user->companies()->where('companies.id', $wallet->company_id)->exists()) {
+        if (! $user->companies()->where('companies.id', $wallet->company_id)->exists()) {
             return false;
         }
 
@@ -53,7 +52,7 @@ class WalletPolicy
      */
     public function delete(User $user, Wallet $wallet): bool
     {
-        return $user->isAdmin() && !$wallet->hasTransactions();
+        return $user->isAdmin() && ! $wallet->hasTransactions();
     }
 
     /**
