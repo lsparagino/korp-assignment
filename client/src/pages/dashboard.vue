@@ -18,10 +18,10 @@
     formatted: string
   }
 
-  const { data, isPending: loading } = useQuery(() => ({
-    ...dashboardQuery(companyStore.currentCompany?.id ?? 0),
-    enabled: !!companyStore.currentCompany,
-  }))
+  const { data, isPending: loading } = useQuery(
+    dashboardQuery,
+    () => companyStore.currentCompany?.id ?? 0,
+  )
 
   const balances = computed<BalanceSummary[]>(() =>
     (data.value?.balances ?? []).map(

@@ -1,7 +1,7 @@
 <script lang="ts" setup>
   import type { FunctionalComponent } from 'vue'
   import { LayoutDashboard, Repeat, Users, Wallet } from 'lucide-vue-next'
-  import { computed, onMounted, ref } from 'vue'
+  import { computed, ref } from 'vue'
   import { useRoute, useRouter } from 'vue-router'
   import AppLogo from '@/components/AppLogo.vue'
   import CompanySelector from '@/components/CompanySelector.vue'
@@ -56,9 +56,7 @@
     })
   })
 
-  onMounted(() => {
-    companyStore.fetchCompanies()
-  })
+
 
   async function handleLogout () {
     await authStore.logout()

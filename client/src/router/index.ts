@@ -10,6 +10,7 @@ import { setupLayouts } from 'virtual:generated-layouts'
 import { createRouter, createWebHistory } from 'vue-router'
 import { routes } from 'vue-router/auto-routes'
 import { useAuthStore } from '@/stores/auth'
+import { useCompanyStore } from '@/stores/company'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -41,7 +42,7 @@ router.isReady().then(() => {
 })
 
 router.beforeEach(
-  (
+  async (
     to: RouteLocationNormalized,
     _from: RouteLocationNormalized,
     next: NavigationGuardNext,
@@ -53,6 +54,13 @@ router.beforeEach(
 
     if (authRequired && !loggedIn) {
       return next('/auth/login')
+    }
+
+    if (loggedIn) {
+      const companyStore = useCompanyStore()
+      if (!companyStore.currentCompany) {
+        await companyStore.fetchCompanies()
+      }
     }
 
     return next()
