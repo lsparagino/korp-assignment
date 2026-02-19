@@ -2,16 +2,16 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Enums\WalletCurrency;
-use App\Enums\WalletStatus;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\StoreWalletRequest;
+use App\Http\Requests\Api\UpdateWalletRequest;
 use App\Http\Resources\WalletResource;
 use App\Models\Wallet;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Response;
-use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Log;
 
 class WalletController extends Controller
 {
@@ -21,17 +21,11 @@ class WalletController extends Controller
     {
         $this->authorize('viewAny', Wallet::class);
 
-        $perPage = $request->input('per_page', 10);
-        $perPage = min((int)$perPage, 500);
+        $perPage = min((int) $request->input('per_page', 10), 500);
         $companyId = $request->input('company_id');
 
-        if (!$companyId) {
+        if (! $companyId) {
             return WalletResource::collection(collect());
-        }
-
-        // Ensure user belongs to this company
-        if (!$request->user()->companies()->where('companies.id', $companyId)->exists()) {
-            abort(403, 'Unauthorized access to company.');
         }
 
         $query = Wallet::scopedToUser($request->user(), $companyId);
@@ -41,25 +35,17 @@ class WalletController extends Controller
         );
     }
 
-    public function store(Request $request): WalletResource
+    public function store(StoreWalletRequest $request): WalletResource
     {
         $this->authorize('create', Wallet::class);
 
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'currency' => ['required', 'string', Rule::enum(WalletCurrency::class)],
-        ]);
-
-        $companyId = $request->input('company_id');
-        if (!$companyId || !$request->user()->companies()->where('companies.id', $companyId)->exists()) {
-            abort(403, 'Unauthorized access to company.');
-        }
-
         $wallet = $request->user()->wallets()->create([
-            ...$validated,
-            'status' => WalletStatus::Active,
-            'company_id' => $companyId
+            ...$request->safe()->only(['name', 'currency']),
+            'status' => \App\Enums\WalletStatus::Active,
+            'company_id' => $request->company_id,
         ]);
+
+        Log::info('Wallet created', ['wallet_id' => $wallet->id, 'user_id' => $request->user()->id]);
 
         return new WalletResource($wallet);
     }
@@ -76,24 +62,19 @@ class WalletController extends Controller
         $this->authorize('update', $wallet);
 
         $wallet->update([
-            'status' => $wallet->status === WalletStatus::Active
-                ? WalletStatus::Frozen
-                : WalletStatus::Active,
+            'status' => $wallet->status === \App\Enums\WalletStatus::Active
+                ? \App\Enums\WalletStatus::Frozen
+                : \App\Enums\WalletStatus::Active,
         ]);
 
         return new WalletResource($wallet);
     }
 
-    public function update(Request $request, Wallet $wallet): WalletResource
+    public function update(UpdateWalletRequest $request, Wallet $wallet): WalletResource
     {
         $this->authorize('update', $wallet);
 
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'currency' => ['required', 'string', Rule::enum(WalletCurrency::class)],
-        ]);
-
-        $wallet->update($validated);
+        $wallet->update($request->validated());
 
         return new WalletResource($wallet);
     }
@@ -103,6 +84,8 @@ class WalletController extends Controller
         $this->authorize('delete', $wallet);
 
         $wallet->delete();
+
+        Log::info('Wallet deleted', ['wallet_id' => $wallet->id]);
 
         return response()->noContent();
     }

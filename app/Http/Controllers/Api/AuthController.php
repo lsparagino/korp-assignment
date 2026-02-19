@@ -3,110 +3,48 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
+use App\Http\Requests\Api\ConfirmPasswordRequest;
+use App\Http\Requests\Api\LoginRequest;
+use App\Http\Requests\Api\TwoFactorChallengeRequest;
+use App\Services\AuthService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\ValidationException;
 use Laravel\Fortify\Contracts\CreatesNewUsers;
-use Laravel\Fortify\Contracts\TwoFactorAuthenticationProvider;
 use Laravel\Fortify\Fortify;
 
 class AuthController extends Controller
 {
-    public function login(Request $request)
+    public function __construct(private AuthService $authService) {}
+
+    public function login(LoginRequest $request): JsonResponse
     {
-        $request->validate([
-            Fortify::username() => 'required|string',
-            'password' => 'required|string',
-        ]);
+        $result = $this->authService->attemptLogin(
+            $request->{Fortify::username()},
+            $request->password,
+            $request->ip()
+        );
 
-        $throttleKey = md5('login' . implode('|', [$request->{Fortify::username()}, $request->ip()]));
-
-        if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
-            $seconds = RateLimiter::availableIn($throttleKey);
-
-            return response()->json([
-                'message' => trans('auth.throttle', [
-                    'seconds' => $seconds,
-                    'minutes' => ceil($seconds / 60),
-                ]),
-            ], 429);
+        if (isset($result['two_factor'])) {
+            return response()->json($result);
         }
 
-        $user = User::where(Fortify::username(), $request->{Fortify::username()})->first();
-
-        if (!$user || !Hash::check($request->password, $user->password)) {
-            RateLimiter::hit($throttleKey);
-
-            throw ValidationException::withMessages([
-                Fortify::username() => [trans('auth.failed')],
-            ]);
-        }
-
-        RateLimiter::clear($throttleKey);
-
-        // Check 2FA
-        if ($user->two_factor_secret &&
-            $user->two_factor_confirmed_at) {
-            return response()->json([
-                'two_factor' => true,
-                'user_id' => $user->id,
-            ]);
-        }
-
-        $token = $user->createToken('auth_token')->plainTextToken;
-
-        return response()->json([
-            'access_token' => $token,
-            'token_type' => 'Bearer',
-            'user' => $user,
-        ]);
+        return response()->json($result);
     }
 
-    public function twoFactorChallenge(Request $request)
+    public function twoFactorChallenge(TwoFactorChallengeRequest $request): JsonResponse
     {
-        $request->validate([
-            'user_id' => 'required|exists:users,id',
-            'code' => 'nullable|string',
-            'recovery_code' => 'nullable|string',
-        ]);
+        $result = $this->authService->handleTwoFactorChallenge(
+            $request->user_id,
+            $request->code,
+            $request->recovery_code
+        );
 
-        $user = User::findOrFail($request->user_id);
-
-        if ($request->recovery_code) {
-            if (!$user->validRecoveryCode($request->recovery_code)) {
-                throw ValidationException::withMessages([
-                    'recovery_code' => [__('The provided recovery code was invalid.')],
-                ]);
-            }
-
-            $user->replaceRecoveryCode($request->recovery_code);
-        } elseif ($request->code) {
-            if (!app(TwoFactorAuthenticationProvider::class)->verify(
-                Fortify::currentEncrypter()->decrypt($user->two_factor_secret),
-                $request->code
-            )) {
-                throw ValidationException::withMessages([
-                    'code' => [__('The provided two factor authentication code was invalid.')],
-                ]);
-            }
-        } else {
-            throw ValidationException::withMessages([
-                'code' => [__('Please provide a code or recovery code.')],
-            ]);
-        }
-
-        $token = $user->createToken('auth_token')->plainTextToken;
-
-        return response()->json([
-            'access_token' => $token,
-            'token_type' => 'Bearer',
-            'user' => $user,
-        ]);
+        return response()->json($result);
     }
 
-    public function register(Request $request, CreatesNewUsers $creator)
+    public function register(Request $request, CreatesNewUsers $creator): JsonResponse
     {
         $user = $creator->create($request->all());
 
@@ -119,29 +57,23 @@ class AuthController extends Controller
         ], 201);
     }
 
-    public function logout(Request $request)
+    public function logout(Request $request): JsonResponse
     {
-        if ($request->user()->currentAccessToken()) {
-            $request->user()->currentAccessToken()->delete();
-        }
+        $this->authService->logout($request->user());
 
         return response()->json([
             'message' => 'Logged out',
         ]);
     }
 
-    public function user(Request $request)
+    public function user(Request $request): JsonResponse
     {
         return response()->json($request->user());
     }
 
-    public function confirmPassword(Request $request)
+    public function confirmPassword(ConfirmPasswordRequest $request): JsonResponse
     {
-        $request->validate([
-            'password' => 'required|string',
-        ]);
-
-        if (!Hash::check($request->password, $request->user()->password)) {
+        if (! Hash::check($request->password, $request->user()->password)) {
             throw ValidationException::withMessages([
                 'password' => [trans('auth.password')],
             ]);

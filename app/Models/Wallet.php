@@ -36,10 +36,20 @@ class Wallet extends Model
 
     public function getBalanceAttribute(): float
     {
-        $out = $this->fromTransactions()->sum('amount');
-        $in = $this->toTransactions()->sum('amount');
-
         return (float) ($this->toTransactions()->sum('amount') + $this->fromTransactions()->sum('amount'));
+    }
+
+    /**
+     * Scope to add pre-computed balance sums for eager loading.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeWithBalance($query)
+    {
+        return $query
+            ->withSum('toTransactions as balance_in', 'amount')
+            ->withSum('fromTransactions as balance_out', 'amount');
     }
 
     public function fromTransactions(): \Illuminate\Database\Eloquent\Relations\HasMany

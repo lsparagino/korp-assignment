@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\ProfileDeleteRequest;
 use App\Http\Requests\Settings\ProfileUpdateRequest;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\DB;
 
 class ProfileController extends Controller
 {
@@ -35,11 +36,13 @@ class ProfileController extends Controller
     {
         $user = $request->user();
 
-        if ($request->user()->currentAccessToken()) {
-            $request->user()->currentAccessToken()->delete();
-        }
+        DB::transaction(function () use ($request, $user) {
+            if ($request->user()->currentAccessToken()) {
+                $request->user()->currentAccessToken()->delete();
+            }
 
-        $user->delete();
+            $user->delete();
+        });
 
         return response()->json([
             'message' => 'Account deleted successfully',
