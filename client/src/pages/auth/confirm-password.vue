@@ -1,8 +1,8 @@
 <script lang="ts" setup>
-  import { reactive, ref } from 'vue'
+  import { reactive } from 'vue'
   import { useRouter } from 'vue-router'
   import { confirmPassword } from '@/api/auth'
-  import { getValidationErrors, isApiError } from '@/utils/errors'
+  import { useFormSubmit } from '@/composables/useFormSubmit'
 
   const router = useRouter()
 
@@ -10,29 +10,15 @@
     password: '',
   })
 
-  const processing = ref(false)
-  const errors = ref<Record<string, string[]>>({})
-
-  async function submit () {
-    processing.value = true
-    errors.value = {}
-
-    try {
-      await confirmPassword(form)
-      router.back()
-    } catch (error: unknown) {
-      if (isApiError(error, 422)) {
-        errors.value = getValidationErrors(error)
-      }
-    } finally {
-      processing.value = false
-    }
-  }
+  const { processing, errors, submit } = useFormSubmit({
+    submitFn: (data: typeof form) => confirmPassword(data),
+    onSuccess: () => router.back(),
+  })
 </script>
 
 <template>
   <AuthCard>
-    <v-form @submit.prevent="submit">
+    <v-form @submit.prevent="submit(form)">
       <div class="d-flex flex-column ga-6">
         <v-text-field
           v-model="form.password"

@@ -2,49 +2,44 @@
   import type { VAlert } from 'vuetify/components'
   import { reactive, ref } from 'vue'
   import { forgotPassword } from '@/api/auth'
-  import { getValidationErrors, isApiError } from '@/utils/errors'
+  import { isApiError } from '@/utils/errors'
+  import { useFormSubmit } from '@/composables/useFormSubmit'
 
   const form = reactive({
     email: '',
   })
 
-  const processing = ref<boolean>(false)
-  const errors = ref<Record<string, string[]>>({})
   const status = ref('')
   const alertType = ref<VAlert['type']>('success')
 
-  async function submit () {
-    processing.value = true
-    errors.value = {}
-    status.value = ''
-    try {
-      const response = await forgotPassword(form)
-      status.value = response.data.message
-      alertType.value = 'success'
-    } catch (error: unknown) {
-      if (isApiError(error, 422)) {
-        alertType.value = 'warning'
-        status.value = 'Your mailbox is full'
-      } else {
-        alertType.value = 'error'
-        status.value = 'An error occurred. Please try again.'
+  const { processing, submit } = useFormSubmit({
+    submitFn: async (data: typeof form) => {
+      try {
+        const response = await forgotPassword(data)
+        status.value = response.data.message
+        alertType.value = 'success'
+      } catch (error: unknown) {
+        if (isApiError(error, 422)) {
+          alertType.value = 'warning'
+          status.value = 'Your mailbox is full'
+        } else {
+          alertType.value = 'error'
+          status.value = 'An error occurred. Please try again.'
+        }
       }
-    } finally {
-      processing.value = false
-    }
-  }
+    },
+  })
 </script>
 
 <template>
   <AuthCard :alert-type="alertType" :status="status">
-    <v-form @submit.prevent="submit">
+    <v-form @submit.prevent="submit(form)">
       <div class="d-flex flex-column ga-6">
         <v-text-field
           v-model="form.email"
           autofocus
           color="primary"
           density="comfortable"
-          :error-messages="errors.email"
           hide-details="auto"
           label="Email address"
           name="email"

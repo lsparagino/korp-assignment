@@ -5,7 +5,6 @@
   import { deleteAccount as apiDeleteAccount, updateProfile } from '@/api/settings'
   import { useFormSubmit } from '@/composables/useFormSubmit'
   import { useAuthStore } from '@/stores/auth'
-  import { getValidationErrors, isApiError } from '@/utils/errors'
 
   const authStore = useAuthStore()
   const user = authStore.user!
@@ -23,28 +22,21 @@
   })
 
   const deleteDialog = ref(false)
-  const deleting = ref(false)
-  const deleteErrors = ref<Record<string, string[]>>({})
   const deleteForm = reactive({
     password: '',
   })
 
-  async function deleteAccount () {
-    deleting.value = true
-    deleteErrors.value = {}
-
-    try {
-      await apiDeleteAccount(deleteForm)
+  const {
+    processing: deleting,
+    errors: deleteErrors,
+    submit: deleteAccount,
+  } = useFormSubmit({
+    submitFn: (data: typeof deleteForm) => apiDeleteAccount(data),
+    onSuccess: () => {
       authStore.clearToken()
       window.location.href = '/'
-    } catch (error: unknown) {
-      if (isApiError(error, 422)) {
-        deleteErrors.value = getValidationErrors(error)
-      }
-    } finally {
-      deleting.value = false
-    }
-  }
+    },
+  })
 </script>
 
 <template>
@@ -145,7 +137,7 @@
               delete your account.
             </v-card-subtitle>
 
-            <v-form class="mt-6" @submit.prevent="deleteAccount">
+            <v-form class="mt-6" @submit.prevent="deleteAccount(deleteForm)">
               <v-text-field
                 v-model="deleteForm.password"
                 autocomplete="current-password"

@@ -3,14 +3,12 @@
   import { useRoute, useRouter } from 'vue-router'
   import { twoFactorChallenge } from '@/api/auth'
   import { useAuthStore } from '@/stores/auth'
-  import { getValidationErrors, isApiError } from '@/utils/errors'
+  import { useFormSubmit } from '@/composables/useFormSubmit'
 
   const route = useRoute()
   const router = useRouter()
   const authStore = useAuthStore()
   const showRecoveryInput = ref(false)
-  const processing = ref(false)
-  const errors = ref<Record<string, string[]>>({})
   const code = ref('')
   const recoveryCode = ref('')
 
@@ -38,11 +36,8 @@
     recoveryCode.value = ''
   }
 
-  async function submit () {
-    processing.value = true
-    errors.value = {}
-
-    try {
+  const { processing, errors, submit } = useFormSubmit({
+    submitFn: async () => {
       const payload = showRecoveryInput.value
         ? {
           recovery_code: recoveryCode.value,
@@ -55,14 +50,8 @@
       authStore.setToken(response.data.access_token)
       authStore.setUser(response.data.user)
       router.push('/dashboard')
-    } catch (error: unknown) {
-      if (isApiError(error, 422)) {
-        errors.value = getValidationErrors(error)
-      }
-    } finally {
-      processing.value = false
-    }
-  }
+    },
+  })
 
   watch(
     authConfigContent,
@@ -76,7 +65,7 @@
 
 <template>
   <AuthCard>
-    <v-form @submit.prevent="submit">
+    <v-form @submit.prevent="submit({})">
       <div class="d-flex flex-column ga-6">
         <template v-if="!showRecoveryInput">
           <div class="d-flex flex-column ga-4">

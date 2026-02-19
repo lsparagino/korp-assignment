@@ -17,11 +17,11 @@ interface TeamMemberForm {
 
 export const useTeamMemberStore = defineStore('team-member', () => {
     const queryCache = useQueryCache()
-    const currentPage = ref(1)
+    const page = ref(1)
 
     const { data, isPending: listLoading } = useQuery(
         teamMembersListQuery,
-        () => currentPage.value,
+        () => page.value,
     )
 
     const members = computed<TeamMember[]>(() => data.value?.members ?? [])
@@ -30,10 +30,6 @@ export const useTeamMemberStore = defineStore('team-member', () => {
         lastPage: data.value?.pagination?.last_page ?? 1,
         total: data.value?.pagination?.total ?? 0,
     }))
-
-    function setPage(page: number) {
-        currentPage.value = page
-    }
 
     function invalidateQueries() {
         queryCache.invalidateQueries({ key: TEAM_MEMBER_QUERY_KEYS.root })
@@ -55,11 +51,10 @@ export const useTeamMemberStore = defineStore('team-member', () => {
     })
 
     return {
-        currentPage,
+        page,
         members,
         pagination,
         listLoading,
-        setPage,
         createMember,
         updateMember,
         deleteMember,

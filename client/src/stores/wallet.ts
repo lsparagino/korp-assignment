@@ -10,15 +10,6 @@ import {
 } from '@/api/wallets'
 import { walletsListQuery, walletByIdQuery, WALLET_QUERY_KEYS } from '@/queries/wallets'
 
-interface PaginationMeta {
-    current_page: number
-    last_page: number
-    per_page: number
-    total: number
-    from: number | null
-    to: number | null
-}
-
 const DEFAULT_PER_PAGE = 10
 
 export const useWalletStore = defineStore('wallet', () => {
@@ -33,7 +24,7 @@ export const useWalletStore = defineStore('wallet', () => {
     )
 
     const wallets = computed<Wallet[]>(() => listData.value?.data ?? [])
-    const meta = computed<PaginationMeta>(() => listData.value?.meta ?? {
+    const meta = computed(() => listData.value?.meta ?? {
         current_page: 1,
         last_page: 1,
         per_page: DEFAULT_PER_PAGE,
@@ -41,15 +32,6 @@ export const useWalletStore = defineStore('wallet', () => {
         from: null,
         to: null,
     })
-
-    function setPage(newPage: number) {
-        page.value = newPage
-    }
-
-    function setPerPage(newPerPage: number) {
-        perPage.value = newPerPage
-        page.value = 1
-    }
 
     function invalidateQueries() {
         queryCache.invalidateQueries({ key: WALLET_QUERY_KEYS.root })
@@ -86,8 +68,6 @@ export const useWalletStore = defineStore('wallet', () => {
         wallets,
         meta,
         listLoading,
-        setPage,
-        setPerPage,
         useWalletById,
         createWallet,
         updateWallet,

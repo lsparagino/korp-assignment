@@ -1,11 +1,12 @@
 <script lang="ts" setup>
   import type { TeamMember } from '@/api/team-members'
-  import { computed, ref } from 'vue'
+  import { computed, ref, watch } from 'vue'
   import ConfirmDialog from '@/components/ui/ConfirmDialog.vue'
   import PageHeader from '@/components/layout/PageHeader.vue'
   import Pagination from '@/components/ui/Pagination.vue'
   import TeamMemberModal from '@/components/features/TeamMemberModal.vue'
   import { useConfirmDialog } from '@/composables/useConfirmDialog'
+  import { useUrlPagination } from '@/composables/useUrlPagination'
   import { useTeamMemberStore } from '@/stores/team-member'
   import { useAuthStore } from '@/stores/auth'
   import { getRoleColors } from '@/utils/colors'
@@ -15,14 +16,13 @@
   const showModal = ref(false)
   const selectedUser = ref<TeamMember | null>(null)
   const { confirmDialog, openConfirmDialog } = useConfirmDialog()
+  const { page, handlePageChange } = useUrlPagination()
+
+  watch(page, val => { teamMemberStore.page = val }, { immediate: true })
 
   const members = computed(() => teamMemberStore.members)
   const paginationData = computed(() => teamMemberStore.pagination)
   const processing = computed(() => teamMemberStore.listLoading)
-
-  function handlePageChange (page: number) {
-    teamMemberStore.setPage(page)
-  }
 
   function openCreateModal () {
     selectedUser.value = null

@@ -1,11 +1,11 @@
 <script lang="ts" setup>
   import type { Wallet } from '@/api/wallets'
-  import { computed } from 'vue'
-  import { useRoute, useRouter } from 'vue-router'
+  import { computed, watch } from 'vue'
   import ConfirmDialog from '@/components/ui/ConfirmDialog.vue'
   import PageHeader from '@/components/layout/PageHeader.vue'
   import Pagination from '@/components/ui/Pagination.vue'
   import { useConfirmDialog } from '@/composables/useConfirmDialog'
+  import { useUrlPagination } from '@/composables/useUrlPagination'
   import { useWalletStore } from '@/stores/wallet'
   import { useAuthStore } from '@/stores/auth'
   import { getErrorMessage, isApiError } from '@/utils/errors'
@@ -13,48 +13,18 @@
   import { formatCurrency, getAmountColor } from '@/utils/formatters'
   import { ref } from 'vue'
 
-  const route = useRoute()
-  const router = useRouter()
   const authStore = useAuthStore()
   const walletStore = useWalletStore()
   const snackbar = ref({ show: false, text: '', color: 'error' })
   const { confirmDialog, openConfirmDialog } = useConfirmDialog()
+  const { page, perPage, handlePageChange, handlePerPageChange } = useUrlPagination()
 
-  const defaultPerPage = 10
-  const page = computed(() => Number(route.query.page) || 1)
-  const perPage = computed(() => Number(route.query.per_page) || defaultPerPage)
-
-  walletStore.setPage(page.value)
-  walletStore.setPerPage(perPage.value)
+  watch(page, val => { walletStore.page = val }, { immediate: true })
+  watch(perPage, val => { walletStore.perPage = val }, { immediate: true })
 
   const wallets = computed(() => walletStore.wallets)
   const meta = computed(() => walletStore.meta)
   const processing = computed(() => walletStore.listLoading)
-
-  function updateUrl(newPage: number, newPerPage: number) {
-    const query = { ...route.query }
-    if (newPage === 1) {
-      delete query.page
-    } else {
-      query.page = String(newPage)
-    }
-    if (newPerPage === defaultPerPage) {
-      delete query.per_page
-    } else {
-      query.per_page = String(newPerPage)
-    }
-    router.push({ query })
-  }
-
-  function handlePageChange(newPage: number) {
-    walletStore.setPage(newPage)
-    updateUrl(newPage, perPage.value)
-  }
-
-  function handlePerPageChange(newPerPage: number) {
-    walletStore.setPerPage(newPerPage)
-    updateUrl(1, newPerPage)
-  }
 
   function toggleFreeze (wallet: Wallet) {
     const isFreezing = wallet.status === 'active'

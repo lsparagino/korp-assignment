@@ -1,6 +1,15 @@
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
+export interface PaginationMeta {
+    current_page: number
+    last_page: number
+    per_page: number
+    total: number
+    from: number | null
+    to: number | null
+}
+
 interface UrlPaginationOptions {
     defaultPerPage?: number
 }

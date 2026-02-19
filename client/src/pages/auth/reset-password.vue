@@ -2,7 +2,7 @@
   import { onMounted, reactive, ref } from 'vue'
   import { useRoute, useRouter } from 'vue-router'
   import { resetPassword } from '@/api/auth'
-  import { getValidationErrors, isApiError } from '@/utils/errors'
+  import { useFormSubmit } from '@/composables/useFormSubmit'
 
   const route = useRoute()
   const router = useRouter()
@@ -14,8 +14,6 @@
     password_confirmation: '',
   })
 
-  const processing = ref(false)
-  const errors = ref<Record<string, string[]>>({})
   const status = ref('')
 
   onMounted(() => {
@@ -23,29 +21,23 @@
     form.email = (route.query.email as string) || ''
   })
 
-  async function submit () {
-    processing.value = true
-    errors.value = {}
-
-    try {
-      const response = await resetPassword(form)
+  const { processing, errors, submit } = useFormSubmit({
+    submitFn: async (data: typeof form) => {
+      const response = await resetPassword(data)
       status.value = response.data.message
+    },
+    onSuccess: () => {
       setTimeout(() => router.push('/auth/login'), 3000)
-    } catch (error: unknown) {
-      if (isApiError(error, 422)) {
-        errors.value = getValidationErrors(error)
-      } else {
-        status.value = 'An error occurred. Please try again.'
-      }
-    } finally {
-      processing.value = false
-    }
-  }
+    },
+    onError: () => {
+      status.value = 'An error occurred. Please try again.'
+    },
+  })
 </script>
 
 <template>
   <AuthCard :status="status">
-    <v-form @submit.prevent="submit">
+    <v-form @submit.prevent="submit(form)">
       <div class="d-flex flex-column ga-6">
         <v-text-field
           v-model="form.email"

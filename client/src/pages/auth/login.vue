@@ -3,10 +3,11 @@
   import { useRouter } from 'vue-router'
   import { login } from '@/api/auth'
   import { useAuthStore } from '@/stores/auth'
-  import { getValidationErrors, isApiError } from '@/utils/errors'
+  import { useFormSubmit } from '@/composables/useFormSubmit'
 
   const router = useRouter()
   const authStore = useAuthStore()
+  const status = ref('')
 
   const form = reactive({
     email: '',
@@ -14,16 +15,9 @@
     remember: false,
   })
 
-  const errors = ref<Record<string, string[]>>({})
-  const processing = ref(false)
-  const status = ref('')
-
-  async function submit () {
-    processing.value = true
-    errors.value = {}
-
-    try {
-      const response = await login(form)
+  const { processing, errors, submit } = useFormSubmit({
+    submitFn: async (data: typeof form) => {
+      const response = await login(data)
 
       if (response.data.two_factor) {
         authStore.setTwoFactor(response.data.user_id)
@@ -34,21 +28,16 @@
       authStore.setToken(response.data.access_token)
       authStore.setUser(response.data.user)
       router.push('/dashboard')
-    } catch (error: unknown) {
-      if (isApiError(error, 422)) {
-        errors.value = getValidationErrors(error)
-      } else {
-        status.value = 'An error occurred during login.'
-      }
-    } finally {
-      processing.value = false
-    }
-  }
+    },
+    onError: () => {
+      status.value = 'An error occurred during login.'
+    },
+  })
 </script>
 
 <template>
   <AuthCard :error="status">
-    <v-form @submit.prevent="submit">
+    <v-form @submit.prevent="submit(form)">
       <div class="d-flex flex-column ga-4">
         <v-text-field
           v-model="form.email"

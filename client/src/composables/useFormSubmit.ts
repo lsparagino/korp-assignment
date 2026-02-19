@@ -4,6 +4,7 @@ import { getValidationErrors, isApiError } from '@/utils/errors'
 interface FormSubmitOptions<T> {
     submitFn: (form: T) => Promise<unknown>
     onSuccess?: () => void
+    onError?: (error: unknown) => void
     resetForm?: () => void
 }
 
@@ -26,6 +27,8 @@ export function useFormSubmit<T>(options: FormSubmitOptions<T>) {
         } catch (error: unknown) {
             if (isApiError(error, 422)) {
                 errors.value = getValidationErrors(error)
+            } else {
+                options.onError?.(error)
             }
         } finally {
             processing.value = false
@@ -39,3 +42,4 @@ export function useFormSubmit<T>(options: FormSubmitOptions<T>) {
         submit,
     }
 }
+

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-  import type { PaginationMeta } from '@/composables/usePagination'
+  import type { PaginationMeta } from '@/composables/useUrlPagination'
   import type { Transaction } from '@/api/transactions'
   import type { Wallet } from '@/api/wallets'
   import { ref } from 'vue'
