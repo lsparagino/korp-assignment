@@ -1,14 +1,14 @@
 <script lang="ts" setup>
   import { onMounted, ref } from 'vue'
   import { useRoute, useRouter } from 'vue-router'
-  import { api } from '@/plugins/api'
+  import { acceptInvitation, verifyInvitation } from '@/api/auth'
   import { useAuthStore } from '@/stores/auth'
 
   const route = useRoute()
   const router = useRouter()
   const auth = useAuthStore()
 
-  const token = (route.params as Record<string, string>).token
+  const token = (route.params as Record<string, string>)['token']!
   const email = ref('')
   const verifying = ref(true)
   const invalidToken = ref(false)
@@ -22,7 +22,7 @@
 
   onMounted(async () => {
     try {
-      const response = await api.get(`/invitation/${token}`)
+      const response = await verifyInvitation(token)
       email.value = response.data.email
     } catch {
       invalidToken.value = true
@@ -35,10 +35,7 @@
     processing.value = true
     error.value = ''
     try {
-      const response = await api.post(
-        `/accept-invitation/${token}`,
-        form.value,
-      )
+      const response = await acceptInvitation(token, form.value)
       auth.setToken(response.data.access_token)
       auth.setUser(response.data.user)
       router.push('/dashboard')

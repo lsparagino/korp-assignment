@@ -1,7 +1,7 @@
 <script lang="ts" setup>
   import { ref } from 'vue'
   import { useRouter } from 'vue-router'
-  import { api } from '@/plugins/api'
+  import { sendVerificationEmail } from '@/api/auth'
   import { useAuthStore } from '@/stores/auth'
 
   const router = useRouter()
@@ -12,7 +12,7 @@
   async function resend () {
     processing.value = true
     try {
-      await api.post('/email/verification-notification')
+      await sendVerificationEmail()
       status.value = 'verification-link-sent'
     } catch {
       // Handle error

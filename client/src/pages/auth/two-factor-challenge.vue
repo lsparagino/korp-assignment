@@ -1,7 +1,7 @@
 <script lang="ts" setup>
   import { computed, ref, watch } from 'vue'
   import { useRoute, useRouter } from 'vue-router'
-  import { api } from '@/plugins/api'
+  import { twoFactorChallenge } from '@/api/auth'
   import { useAuthStore } from '@/stores/auth'
 
   const route = useRoute()
@@ -49,7 +49,7 @@
         }
         : { code: code.value, user_id: authStore.twoFactorUserId }
 
-      const response = await api.post('/two-factor-challenge', payload)
+      const response = await twoFactorChallenge(payload)
 
       authStore.setToken(response.data.access_token)
       authStore.setUser(response.data.user)

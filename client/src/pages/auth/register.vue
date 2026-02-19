@@ -1,7 +1,7 @@
 <script lang="ts" setup>
   import { reactive, ref } from 'vue'
   import { useRouter } from 'vue-router'
-  import { api } from '@/plugins/api'
+  import { register } from '@/api/auth'
   import { useAuthStore } from '@/stores/auth'
 
   const router = useRouter()
@@ -22,7 +22,7 @@
     errors.value = {}
 
     try {
-      const response = await api.post('/register', form)
+      const response = await register(form)
       authStore.setToken(response.data.access_token)
       authStore.setUser(response.data.user)
 

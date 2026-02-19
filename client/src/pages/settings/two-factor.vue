@@ -2,7 +2,7 @@
   import { onMounted, ref } from 'vue'
   import Heading from '@/components/Heading.vue'
   import SettingsLayout from '@/components/SettingsLayout.vue'
-  import { api } from '@/plugins/api'
+  import { confirmTwoFactor, disableTwoFactor, enableTwoFactor, getRecoveryCodes, getTwoFactorQrCode } from '@/api/settings'
   import { useAuthStore } from '@/stores/auth'
 
   const authStore = useAuthStore()
@@ -23,8 +23,8 @@
   async function enable2FA () {
     processing.value = true
     try {
-      await api.post('/user/two-factor-authentication')
-      const response = await api.get('/user/two-factor-qr-code')
+      await enableTwoFactor()
+      const response = await getTwoFactorQrCode()
       qrCode.value = response.data
       confirming.value = true
     } catch (error) {
@@ -37,9 +37,7 @@
   async function confirm2FA () {
     processing.value = true
     try {
-      await api.post('/user/confirmed-two-factor-authentication', {
-        code: confirmationCode.value,
-      })
+      await confirmTwoFactor(confirmationCode.value)
       await authStore.fetchUser()
       enabled.value = true
       confirming.value = false
@@ -55,7 +53,7 @@
   async function disable2FA () {
     processing.value = true
     try {
-      await api.delete('/user/two-factor-authentication')
+      await disableTwoFactor()
       enabled.value = false
       qrCode.value = null
       recoveryCodes.value = []
@@ -68,7 +66,7 @@
 
   async function fetchRecoveryCodes () {
     try {
-      const response = await api.get('/user/two-factor-recovery-codes')
+      const response = await getRecoveryCodes()
       recoveryCodes.value = response.data
     } catch (error) {
       console.error('Error fetching recovery codes:', error)

@@ -2,7 +2,7 @@
   import { ref } from 'vue'
   import { useRouter } from 'vue-router'
   import Heading from '@/components/Heading.vue'
-  import { api } from '@/plugins/api'
+  import { deleteUser } from '@/api/auth'
   import { useAuthStore } from '@/stores/auth'
 
   const router = useRouter()
@@ -17,7 +17,7 @@
     errors.value = {}
 
     try {
-      await api.delete('/user', { data: { password: password.value } })
+      await deleteUser(password.value)
       authStore.clearToken()
       router.push('/')
     } catch (error: unknown) {

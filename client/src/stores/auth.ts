@@ -1,7 +1,7 @@
 import type { User } from '@/types'
 import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
-import { api } from '@/plugins/api'
+import { fetchUser as apiFetchUser, logout as apiLogout } from '@/api/auth'
 
 export const useAuthStore = defineStore('auth', () => {
   const user = ref<User | null>(JSON.parse(localStorage.getItem('user') || 'null'))
@@ -34,7 +34,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   async function fetchUser() {
     try {
-      const response = await api.get('/user')
+      const response = await apiFetchUser()
       setUser(response.data)
     } catch {
       clearToken()
@@ -43,7 +43,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   async function logout() {
     try {
-      await api.post('/logout')
+      await apiLogout()
     } finally {
       clearToken()
     }

@@ -3,7 +3,7 @@
   import { ref, watch } from 'vue'
   import PageHeader from '@/components/PageHeader.vue'
   import TransactionTable from '@/components/TransactionTable.vue'
-  import { api } from '@/plugins/api'
+  import { fetchDashboard as apiFetchDashboard } from '@/api/dashboard'
   import { useAuthStore } from '@/stores/auth'
   import { useCompanyStore } from '@/stores/company'
   import { formatCurrency, getAmountColor } from '@/utils/formatters'
@@ -32,7 +32,7 @@
   async function fetchDashboard () {
     loading.value = true
     try {
-      const response = await api.get('/dashboard')
+      const response = await apiFetchDashboard()
       const data = response.data
 
       balances.value = data.balances.map(

@@ -6,7 +6,7 @@
   import Pagination from '@/components/Pagination.vue'
   import { useConfirmDialog } from '@/composables/useConfirmDialog'
   import { usePagination } from '@/composables/usePagination'
-  import { api } from '@/plugins/api'
+  import { deleteWallet as apiDeleteWallet, fetchWallets, toggleWalletFreeze } from '@/api/wallets'
   import { useAuthStore } from '@/stores/auth'
   import { getCurrencyColors, getStatusColors } from '@/utils/colors'
   import { formatCurrency, getAmountColor } from '@/utils/formatters'
@@ -19,7 +19,7 @@
   const { meta, processing, handlePageChange, handlePerPageChange }
     = usePagination(
       async params => {
-        const response = await api.get('/wallets', { params })
+        const response = await fetchWallets(params)
         wallets.value = response.data.data
         meta.value = {
           current_page: response.data.meta.current_page,
@@ -41,12 +41,10 @@
       requiresPin: false,
       onConfirm: async () => {
         try {
-          await api.patch(`/wallets/${wallet.id}/toggle-freeze`)
-          const response = await api.get('/wallets', {
-            params: {
-              page: meta.value.current_page,
-              per_page: meta.value.per_page,
-            },
+          await toggleWalletFreeze(wallet.id)
+          const response = await fetchWallets({
+            page: meta.value.current_page,
+            per_page: meta.value.per_page,
           })
           wallets.value = response.data.data
         } catch (error) {
@@ -63,12 +61,10 @@
       requiresPin: true,
       onConfirm: async () => {
         try {
-          await api.delete(`/wallets/${wallet.id}`)
-          const response = await api.get('/wallets', {
-            params: {
-              page: meta.value.current_page,
-              per_page: meta.value.per_page,
-            },
+          await apiDeleteWallet(wallet.id)
+          const response = await fetchWallets({
+            page: meta.value.current_page,
+            per_page: meta.value.per_page,
           })
           wallets.value = response.data.data
         } catch (error: unknown) {

@@ -2,7 +2,7 @@
   import { Wallet } from 'lucide-vue-next'
   import { reactive, ref } from 'vue'
   import { useRouter } from 'vue-router'
-  import { api } from '@/plugins/api'
+  import { createWallet } from '@/api/wallets'
 
   const router = useRouter()
   const processing = ref(false)
@@ -23,7 +23,7 @@
     errors.value = {}
 
     try {
-      await api.post('/wallets', form)
+      await createWallet(form)
       router.push('/wallets/')
     } catch (error: unknown) {
       const err = error as {

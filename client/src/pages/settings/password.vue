@@ -2,7 +2,7 @@
   import { reactive, ref } from 'vue'
   import Heading from '@/components/Heading.vue'
   import SettingsLayout from '@/components/SettingsLayout.vue'
-  import { api } from '@/plugins/api'
+  import { updatePassword } from '@/api/settings'
 
   const form = reactive({
     current_password: '',
@@ -20,7 +20,7 @@
     recentlySuccessful.value = false
 
     try {
-      await api.put('/settings/password', form)
+      await updatePassword(form)
       recentlySuccessful.value = true
       Object.assign(form, {
         current_password: '',

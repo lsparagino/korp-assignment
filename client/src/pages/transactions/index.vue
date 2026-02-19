@@ -5,7 +5,8 @@
   import { useRoute, useRouter } from 'vue-router'
   import TransactionTable from '@/components/TransactionTable.vue'
   import { usePagination } from '@/composables/usePagination'
-  import { api } from '@/plugins/api'
+  import { fetchTransactions } from '@/api/transactions'
+  import { fetchWallets as apiFetchWallets } from '@/api/wallets'
   import { useAuthStore } from '@/stores/auth'
   import { useCompanyStore } from '@/stores/company'
 
@@ -39,16 +40,16 @@
     ...wallets.value,
   ])
 
-  async function fetchWallets () {
+  async function loadWallets () {
     try {
-      const response = await api.get('/wallets')
+      const response = await apiFetchWallets()
       wallets.value = response.data.data
     } catch (error) {
       console.error('Error fetching wallets:', error)
     }
   }
 
-  onMounted(fetchWallets)
+  onMounted(loadWallets)
 
   const activeAdvancedFiltersCount = computed(() => {
     let count = 0
@@ -149,18 +150,16 @@
         : null
 
       try {
-        const response = await api.get('/transactions', {
-          params: {
+        const response = await fetchTransactions({
             ...params,
-            date_from: route.query.date_from,
-            date_to: route.query.date_to,
-            type: route.query.type,
-            amount_min: route.query.amount_min,
-            amount_max: route.query.amount_max,
-            reference: route.query.reference,
-            from_wallet_id: route.query.from_wallet_id,
-            to_wallet_id: route.query.to_wallet_id,
-          },
+            date_from: route.query.date_from as string,
+            date_to: route.query.date_to as string,
+            type: route.query.type as string,
+            amount_min: route.query.amount_min as string,
+            amount_max: route.query.amount_max as string,
+            reference: route.query.reference as string,
+            from_wallet_id: route.query.from_wallet_id ? Number(route.query.from_wallet_id) : null,
+            to_wallet_id: route.query.to_wallet_id ? Number(route.query.to_wallet_id) : null,
         })
 
         // company.value = response.data.company // If company is returned in response

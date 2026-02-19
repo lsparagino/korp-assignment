@@ -1,7 +1,7 @@
 import type { Company } from '@/types'
 import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
-import { api } from '@/plugins/api'
+import { fetchCompanies as apiFetchCompanies } from '@/api/companies'
 
 export const useCompanyStore = defineStore('company', () => {
   const companies = ref<Company[]>([])
@@ -12,7 +12,7 @@ export const useCompanyStore = defineStore('company', () => {
 
   async function fetchCompanies() {
     try {
-      const response = await api.get('/companies')
+      const response = await apiFetchCompanies()
       companies.value = response.data.data
 
       if (companies.value.length > 0 && !currentCompany.value) {

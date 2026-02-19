@@ -1,7 +1,7 @@
 <script lang="ts" setup>
   import { reactive, ref } from 'vue'
   import { useRouter } from 'vue-router'
-  import { api } from '@/plugins/api'
+  import { confirmPassword } from '@/api/auth'
 
   const router = useRouter()
 
@@ -17,7 +17,7 @@
     errors.value = {}
 
     try {
-      await api.post('/user/confirm-password', form)
+      await confirmPassword(form)
       // Usually redirects back or to a specific page
       router.back()
     } catch (error: unknown) {

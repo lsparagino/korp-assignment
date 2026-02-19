@@ -1,7 +1,7 @@
 <script lang="ts" setup>
   import { reactive, ref } from 'vue'
   import { useRouter } from 'vue-router'
-  import { api } from '@/plugins/api'
+  import { login } from '@/api/auth'
   import { useAuthStore } from '@/stores/auth'
 
   const router = useRouter()
@@ -22,7 +22,7 @@
     errors.value = {}
 
     try {
-      const response = await api.post('/login', form)
+      const response = await login(form)
 
       if (response.data.two_factor) {
         authStore.setTwoFactor(response.data.user_id)

@@ -5,7 +5,7 @@
   import { useRoute, useRouter } from 'vue-router'
   import ConfirmDialog from '@/components/ConfirmDialog.vue'
   import { useConfirmDialog } from '@/composables/useConfirmDialog'
-  import { api } from '@/plugins/api'
+  import { deleteWallet as apiDeleteWallet, fetchWallet as apiFetchWallet, toggleWalletFreeze, updateWallet } from '@/api/wallets'
 
   const route = useRoute()
   const router = useRouter()
@@ -36,7 +36,7 @@
 
   async function fetchWallet () {
     try {
-      const response = await api.get(`/wallets/${walletId}`)
+      const response = await apiFetchWallet(walletId)
       wallet.value = response.data.data
       form.name = response.data.data.name
       form.currency = response.data.data.currency
@@ -53,7 +53,7 @@
     errors.value = {}
 
     try {
-      await api.put(`/wallets/${walletId}`, form)
+      await updateWallet(walletId, form)
       router.push('/wallets/')
     } catch (error: unknown) {
       const err = error as {
@@ -79,7 +79,7 @@
       requiresPin: false,
       onConfirm: async () => {
         try {
-          await api.patch(`/wallets/${wallet.value?.id}/toggle-freeze`)
+          await toggleWalletFreeze(wallet.value?.id!)
           fetchWallet()
         } catch (error) {
           console.error('Error toggling status:', error)
@@ -96,7 +96,7 @@
       requiresPin: true,
       onConfirm: async () => {
         try {
-          await api.delete(`/wallets/${wallet.value?.id}`)
+          await apiDeleteWallet(wallet.value?.id!)
           router.push('/wallets/')
         } catch (error: unknown) {
           const err = error as {

@@ -2,7 +2,7 @@
   import { reactive, ref } from 'vue'
   import Heading from '@/components/Heading.vue'
   import SettingsLayout from '@/components/SettingsLayout.vue'
-  import { api } from '@/plugins/api'
+  import { deleteAccount as apiDeleteAccount, updateProfile } from '@/api/settings'
   import { useAuthStore } from '@/stores/auth'
 
   const authStore = useAuthStore()
@@ -23,7 +23,7 @@
     recentlySuccessful.value = false
 
     try {
-      const response = await api.patch('/settings/profile', form)
+      const response = await updateProfile(form)
       authStore.setUser(response.data.user)
       recentlySuccessful.value = true
       setTimeout(() => (recentlySuccessful.value = false), 3000)
@@ -49,7 +49,7 @@
     deleteErrors.value = {}
 
     try {
-      await api.delete('/settings/profile', { data: deleteForm })
+      await apiDeleteAccount(deleteForm)
       authStore.clearToken()
       window.location.href = '/'
     } catch (error: unknown) {

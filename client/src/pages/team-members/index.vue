@@ -6,7 +6,7 @@
   import Pagination from '@/components/Pagination.vue'
   import TeamMemberModal from '@/components/TeamMemberModal.vue'
   import { useConfirmDialog } from '@/composables/useConfirmDialog'
-  import { api } from '@/plugins/api'
+  import { deleteTeamMember, fetchTeamMembers } from '@/api/team-members'
   import { useAuthStore } from '@/stores/auth'
   import { getRoleColors } from '@/utils/colors'
 
@@ -26,7 +26,7 @@
   async function fetchTeam (page = 1) {
     processing.value = true
     try {
-      const response = await api.get('/team-members', { params: { page } })
+      const response = await fetchTeamMembers(page)
       members.value = response.data.members
       paginationData.value = {
         currentPage: response.data.pagination.current_page,
@@ -57,7 +57,7 @@
       requiresPin: true,
       onConfirm: async () => {
         try {
-          await api.delete(`/team-members/${member.id}`)
+          await deleteTeamMember(member.id)
           fetchTeam(paginationData.value.currentPage)
         } catch (error) {
           console.error('Error deleting member:', error)

@@ -1,7 +1,7 @@
 <script lang="ts" setup>
   import { onMounted, reactive, ref } from 'vue'
   import { useRoute, useRouter } from 'vue-router'
-  import { api } from '@/plugins/api'
+  import { resetPassword } from '@/api/auth'
 
   const route = useRoute()
   const router = useRouter()
@@ -27,7 +27,7 @@
     errors.value = {}
 
     try {
-      const response = await api.post('/reset-password', form)
+      const response = await resetPassword(form)
       status.value = response.data.message
       setTimeout(() => router.push('/auth/login'), 3000)
     } catch (error: unknown) {

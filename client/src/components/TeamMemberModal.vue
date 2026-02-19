@@ -1,7 +1,8 @@
 <script lang="ts" setup>
   import type { TeamMember, Wallet } from '@/types'
   import { ref, watch } from 'vue'
-  import { api } from '@/plugins/api'
+  import { createTeamMember, updateTeamMember } from '@/api/team-members'
+  import { fetchWallets as apiFetchWallets } from '@/api/wallets'
 
   const props = defineProps<{
     user?: TeamMember | null
@@ -25,7 +26,7 @@
     val => {
       dialog.value = val
       if (val) {
-        fetchWallets()
+        loadWallets()
         errors.value = {}
         form.value = props.user
           ? {
@@ -42,9 +43,9 @@
     emit('update:modelValue', val)
   })
 
-  async function fetchWallets () {
+  async function loadWallets () {
     try {
-      const response = await api.get('/wallets')
+      const response = await apiFetchWallets()
       wallets.value = response.data.data
     } catch (error) {
       console.error('Error fetching wallets:', error)
@@ -56,8 +57,8 @@
     errors.value = {}
     try {
       await (props.user
-        ? api.put(`/team-members/${props.user.id}`, form.value)
-        : api.post('/team-members', form.value))
+        ? updateTeamMember(props.user.id, form.value)
+        : createTeamMember(form.value))
       emit('saved')
       dialog.value = false
     } catch (error: unknown) {

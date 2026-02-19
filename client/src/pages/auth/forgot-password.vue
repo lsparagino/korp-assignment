@@ -1,7 +1,7 @@
 <script lang="ts" setup>
   import type { VAlert } from 'vuetify/components'
   import { reactive, ref } from 'vue'
-  import { api } from '@/plugins/api'
+  import { forgotPassword } from '@/api/auth'
 
   const form = reactive({
     email: '',
@@ -17,7 +17,7 @@
     errors.value = {}
     status.value = ''
     try {
-      const response = await api.post('/forgot-password', form)
+      const response = await forgotPassword(form)
       status.value = response.data.message
       alertType.value = 'success'
     } catch (error: unknown) {
