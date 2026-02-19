@@ -1,44 +1,35 @@
 <script lang="ts" setup>
   import type { Wallet } from '@/api/wallets'
-  import { computed, ref } from 'vue'
-  import { useMutation, useQuery, useQueryCache } from '@pinia/colada'
+  import { computed } from 'vue'
+  import { useRoute, useRouter } from 'vue-router'
   import ConfirmDialog from '@/components/ui/ConfirmDialog.vue'
   import PageHeader from '@/components/layout/PageHeader.vue'
   import Pagination from '@/components/ui/Pagination.vue'
   import { useConfirmDialog } from '@/composables/useConfirmDialog'
-  import { deleteWallet as apiDeleteWallet, toggleWalletFreeze } from '@/api/wallets'
-  import { walletsListQuery, WALLET_QUERY_KEYS } from '@/queries/wallets'
+  import { useWalletStore } from '@/stores/wallet'
   import { useAuthStore } from '@/stores/auth'
   import { getErrorMessage, isApiError } from '@/utils/errors'
   import { getCurrencyColors, getStatusColors } from '@/utils/colors'
   import { formatCurrency, getAmountColor } from '@/utils/formatters'
-  import { useRoute, useRouter } from 'vue-router'
+  import { ref } from 'vue'
 
   const route = useRoute()
   const router = useRouter()
   const authStore = useAuthStore()
+  const walletStore = useWalletStore()
   const snackbar = ref({ show: false, text: '', color: 'error' })
   const { confirmDialog, openConfirmDialog } = useConfirmDialog()
-  const queryCache = useQueryCache()
 
   const defaultPerPage = 10
   const page = computed(() => Number(route.query.page) || 1)
   const perPage = computed(() => Number(route.query.per_page) || defaultPerPage)
 
-  const { data, isPending: processing } = useQuery(
-    walletsListQuery,
-    () => ({ page: page.value, perPage: perPage.value }),
-  )
+  walletStore.setPage(page.value)
+  walletStore.setPerPage(perPage.value)
 
-  const wallets = computed<Wallet[]>(() => data.value?.data ?? [])
-  const meta = computed(() => data.value?.meta ?? {
-    current_page: 1,
-    last_page: 1,
-    per_page: defaultPerPage,
-    total: 0,
-    from: null,
-    to: null,
-  })
+  const wallets = computed(() => walletStore.wallets)
+  const meta = computed(() => walletStore.meta)
+  const processing = computed(() => walletStore.listLoading)
 
   function updateUrl(newPage: number, newPerPage: number) {
     const query = { ...route.query }
@@ -56,26 +47,14 @@
   }
 
   function handlePageChange(newPage: number) {
+    walletStore.setPage(newPage)
     updateUrl(newPage, perPage.value)
   }
 
   function handlePerPageChange(newPerPage: number) {
+    walletStore.setPerPage(newPerPage)
     updateUrl(1, newPerPage)
   }
-
-  const { mutateAsync: toggleFreezeApi } = useMutation({
-    mutation: (walletId: number) => toggleWalletFreeze(walletId),
-    onSettled: () => {
-      queryCache.invalidateQueries({ key: WALLET_QUERY_KEYS.root })
-    },
-  })
-
-  const { mutateAsync: deleteWalletApi } = useMutation({
-    mutation: (walletId: number) => apiDeleteWallet(walletId),
-    onSettled: () => {
-      queryCache.invalidateQueries({ key: WALLET_QUERY_KEYS.root })
-    },
-  })
 
   function toggleFreeze (wallet: Wallet) {
     const isFreezing = wallet.status === 'active'
@@ -85,7 +64,7 @@
       requiresPin: false,
       onConfirm: async () => {
         try {
-          await toggleFreezeApi(wallet.id)
+          await walletStore.toggleFreeze(wallet.id)
         } catch (error) {
           console.error('Error toggling wallet status:', error)
         }
@@ -100,7 +79,7 @@
       requiresPin: true,
       onConfirm: async () => {
         try {
-          await deleteWalletApi(wallet.id)
+          await walletStore.deleteWallet(wallet.id)
         } catch (error: unknown) {
           if (isApiError(error, 403)) {
             snackbar.value = {

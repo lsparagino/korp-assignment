@@ -2,10 +2,9 @@
   import type { TeamMember } from '@/api/team-members'
   import type { Wallet } from '@/api/wallets'
   import { computed, ref, watch } from 'vue'
-  import { useMutation, useQuery, useQueryCache } from '@pinia/colada'
-  import { createTeamMember, updateTeamMember } from '@/api/team-members'
+  import { useQuery } from '@pinia/colada'
+  import { useTeamMemberStore } from '@/stores/team-member'
   import { walletsListQuery } from '@/queries/wallets'
-  import { TEAM_MEMBER_QUERY_KEYS } from '@/queries/team-members'
   import { getValidationErrors, isApiError } from '@/utils/errors'
 
   const props = defineProps<{
@@ -23,7 +22,7 @@
     wallets: [] as number[],
   })
   const errors = ref<Record<string, string[]>>({})
-  const queryCache = useQueryCache()
+  const teamMemberStore = useTeamMemberStore()
 
   const { data: walletsData } = useQuery(
     walletsListQuery,
@@ -52,21 +51,15 @@
     emit('update:modelValue', val)
   })
 
-  const { mutateAsync: saveMember } = useMutation({
-    mutation: (data: { form: { name: string, email: string, wallets: number[] }, userId?: number }) =>
-      data.userId
-        ? updateTeamMember(data.userId, data.form)
-        : createTeamMember(data.form),
-    onSettled: () => {
-      queryCache.invalidateQueries({ key: TEAM_MEMBER_QUERY_KEYS.root })
-    },
-  })
-
   async function save () {
     processing.value = true
     errors.value = {}
     try {
-      await saveMember({ form: form.value, userId: props.user?.id })
+      if (props.user?.id) {
+        await teamMemberStore.updateMember({ id: props.user.id, form: form.value })
+      } else {
+        await teamMemberStore.createMember(form.value)
+      }
       emit('saved')
       dialog.value = false
     } catch (error: unknown) {

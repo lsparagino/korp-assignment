@@ -1,39 +1,27 @@
 <script lang="ts" setup>
   import type { TeamMember } from '@/api/team-members'
   import { computed, ref } from 'vue'
-  import { useMutation, useQuery, useQueryCache } from '@pinia/colada'
   import ConfirmDialog from '@/components/ui/ConfirmDialog.vue'
   import PageHeader from '@/components/layout/PageHeader.vue'
   import Pagination from '@/components/ui/Pagination.vue'
   import TeamMemberModal from '@/components/features/TeamMemberModal.vue'
   import { useConfirmDialog } from '@/composables/useConfirmDialog'
-  import { deleteTeamMember } from '@/api/team-members'
-  import { teamMembersListQuery, TEAM_MEMBER_QUERY_KEYS } from '@/queries/team-members'
+  import { useTeamMemberStore } from '@/stores/team-member'
   import { useAuthStore } from '@/stores/auth'
   import { getRoleColors } from '@/utils/colors'
 
   const authStore = useAuthStore()
-  const queryCache = useQueryCache()
+  const teamMemberStore = useTeamMemberStore()
   const showModal = ref(false)
   const selectedUser = ref<TeamMember | null>(null)
   const { confirmDialog, openConfirmDialog } = useConfirmDialog()
 
-  const currentPage = ref(1)
-
-  const { data, isPending: processing } = useQuery(
-    teamMembersListQuery,
-    () => currentPage.value,
-  )
-
-  const members = computed<TeamMember[]>(() => data.value?.members ?? [])
-  const paginationData = computed(() => ({
-    currentPage: data.value?.pagination?.current_page ?? 1,
-    lastPage: data.value?.pagination?.last_page ?? 1,
-    total: data.value?.pagination?.total ?? 0,
-  }))
+  const members = computed(() => teamMemberStore.members)
+  const paginationData = computed(() => teamMemberStore.pagination)
+  const processing = computed(() => teamMemberStore.listLoading)
 
   function handlePageChange (page: number) {
-    currentPage.value = page
+    teamMemberStore.setPage(page)
   }
 
   function openCreateModal () {
@@ -46,13 +34,6 @@
     showModal.value = true
   }
 
-  const { mutateAsync: deleteTeamMemberMutation } = useMutation({
-    mutation: (id: number) => deleteTeamMember(id),
-    onSettled: () => {
-      queryCache.invalidateQueries({ key: TEAM_MEMBER_QUERY_KEYS.root })
-    },
-  })
-
   function deleteMember (member: TeamMember) {
     openConfirmDialog({
       title: 'Delete Member',
@@ -60,16 +41,12 @@
       requiresPin: true,
       onConfirm: async () => {
         try {
-          await deleteTeamMemberMutation(member.id)
+          await teamMemberStore.deleteMember(member.id)
         } catch (error) {
           console.error('Error deleting member:', error)
         }
       },
     })
-  }
-
-  function handleSaved () {
-    queryCache.invalidateQueries({ key: TEAM_MEMBER_QUERY_KEYS.root })
   }
 </script>
 
@@ -226,7 +203,6 @@
   <TeamMemberModal
     v-model="showModal"
     :user="selectedUser"
-    @saved="handleSaved"
   />
 
   <ConfirmDialog

@@ -4,16 +4,14 @@
   import { Snowflake, Trash2, Wallet } from 'lucide-vue-next'
   import { reactive, ref, watch } from 'vue'
   import { useRoute, useRouter } from 'vue-router'
-  import { useMutation, useQuery, useQueryCache } from '@pinia/colada'
   import ConfirmDialog from '@/components/ui/ConfirmDialog.vue'
   import { useConfirmDialog } from '@/composables/useConfirmDialog'
-  import { deleteWallet as apiDeleteWallet, toggleWalletFreeze, updateWallet } from '@/api/wallets'
-  import { walletByIdQuery, WALLET_QUERY_KEYS } from '@/queries/wallets'
+  import { useWalletStore } from '@/stores/wallet'
   import { getErrorMessage, getValidationErrors, isApiError } from '@/utils/errors'
 
   const route = useRoute()
   const router = useRouter()
-  const queryCache = useQueryCache()
+  const walletStore = useWalletStore()
   const processing = ref(false)
   const errors = ref<ValidationErrors>({})
   const snackbar = ref({ show: false, text: '', color: 'error' })
@@ -31,10 +29,7 @@
     { title: 'Euro (EUR)', value: 'EUR' },
   ]
 
-  const { data: queryData, isPending: loading } = useQuery(
-    walletByIdQuery,
-    () => walletId,
-  )
+  const { data: queryData, isPending: loading } = walletStore.useWalletById(walletId)
 
   const wallet = ref<WalletType | null>(null)
 
@@ -52,33 +47,12 @@
     }
   }
 
-  const { mutateAsync: updateWalletMutation } = useMutation({
-    mutation: (data: { name: string, currency: string }) => updateWallet(walletId, data),
-    onSettled: () => {
-      queryCache.invalidateQueries({ key: WALLET_QUERY_KEYS.root })
-    },
-  })
-
-  const { mutateAsync: toggleFreezeMutation } = useMutation({
-    mutation: (id: number) => toggleWalletFreeze(id),
-    onSettled: () => {
-      queryCache.invalidateQueries({ key: WALLET_QUERY_KEYS.root })
-    },
-  })
-
-  const { mutateAsync: deleteWalletMutation } = useMutation({
-    mutation: (id: number) => apiDeleteWallet(id),
-    onSettled: () => {
-      queryCache.invalidateQueries({ key: WALLET_QUERY_KEYS.root })
-    },
-  })
-
   async function submit () {
     processing.value = true
     errors.value = {}
 
     try {
-      await updateWalletMutation(form)
+      await walletStore.updateWallet({ id: walletId, form })
       router.push('/wallets/')
     } catch (error: unknown) {
       if (isApiError(error, 422)) {
@@ -98,7 +72,7 @@
       requiresPin: false,
       onConfirm: async () => {
         try {
-          await toggleFreezeMutation(wallet.value?.id!)
+          await walletStore.toggleFreeze(wallet.value?.id!)
         } catch (error) {
           console.error('Error toggling status:', error)
         }
@@ -114,7 +88,7 @@
       requiresPin: true,
       onConfirm: async () => {
         try {
-          await deleteWalletMutation(wallet.value?.id!)
+          await walletStore.deleteWallet(wallet.value?.id!)
           router.push('/wallets/')
         } catch (error: unknown) {
           if (isApiError(error, 403)) {

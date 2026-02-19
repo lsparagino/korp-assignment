@@ -3,6 +3,7 @@
   import Heading from '@/components/ui/Heading.vue'
   import SettingsLayout from '@/components/layout/SettingsLayout.vue'
   import { deleteAccount as apiDeleteAccount, updateProfile } from '@/api/settings'
+  import { useFormSubmit } from '@/composables/useFormSubmit'
   import { useAuthStore } from '@/stores/auth'
   import { getValidationErrors, isApiError } from '@/utils/errors'
 
@@ -14,28 +15,12 @@
     email: user.email,
   })
 
-  const processing = ref(false)
-  const recentlySuccessful = ref(false)
-  const errors = ref<Record<string, string[]>>({})
-
-  async function submit () {
-    processing.value = true
-    errors.value = {}
-    recentlySuccessful.value = false
-
-    try {
-      const response = await updateProfile(form)
+  const { processing, errors, recentlySuccessful, submit } = useFormSubmit({
+    submitFn: async (data: { name: string, email: string }) => {
+      const response = await updateProfile(data)
       authStore.setUser(response.data.user)
-      recentlySuccessful.value = true
-      setTimeout(() => (recentlySuccessful.value = false), 3000)
-    } catch (error: unknown) {
-      if (isApiError(error, 422)) {
-        errors.value = getValidationErrors(error)
-      }
-    } finally {
-      processing.value = false
-    }
-  }
+    },
+  })
 
   const deleteDialog = ref(false)
   const deleting = ref(false)
@@ -71,7 +56,7 @@
         variant="small"
       />
 
-      <v-form @submit.prevent="submit">
+      <v-form @submit.prevent="submit(form)">
         <div class="d-flex flex-column ga-4">
           <v-text-field
             v-model="form.name"

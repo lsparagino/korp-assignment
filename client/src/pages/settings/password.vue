@@ -1,9 +1,9 @@
 <script lang="ts" setup>
-  import { reactive, ref } from 'vue'
+  import { reactive } from 'vue'
   import Heading from '@/components/ui/Heading.vue'
   import SettingsLayout from '@/components/layout/SettingsLayout.vue'
   import { updatePassword } from '@/api/settings'
-  import { getValidationErrors, isApiError } from '@/utils/errors'
+  import { useFormSubmit } from '@/composables/useFormSubmit'
 
   const form = reactive({
     current_password: '',
@@ -11,32 +11,17 @@
     password_confirmation: '',
   })
 
-  const processing = ref(false)
-  const recentlySuccessful = ref(false)
-  const errors = ref<Record<string, string[]>>({})
-
-  async function submit () {
-    processing.value = true
-    errors.value = {}
-    recentlySuccessful.value = false
-
-    try {
-      await updatePassword(form)
-      recentlySuccessful.value = true
+  const { processing, errors, recentlySuccessful, submit } = useFormSubmit({
+    submitFn: (data: { current_password: string, password: string, password_confirmation: string }) =>
+      updatePassword(data),
+    resetForm: () => {
       Object.assign(form, {
         current_password: '',
         password: '',
         password_confirmation: '',
       })
-      setTimeout(() => (recentlySuccessful.value = false), 3000)
-    } catch (error: unknown) {
-      if (isApiError(error, 422)) {
-        errors.value = getValidationErrors(error)
-      }
-    } finally {
-      processing.value = false
-    }
-  }
+    },
+  })
 </script>
 
 <template>
@@ -48,7 +33,7 @@
         variant="small"
       />
 
-      <v-form @submit.prevent="submit">
+      <v-form @submit.prevent="submit(form)">
         <div class="d-flex flex-column ga-4">
           <v-text-field
             v-model="form.current_password"
