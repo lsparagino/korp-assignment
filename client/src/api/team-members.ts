@@ -1,5 +1,17 @@
 import { api } from '@/plugins/api'
 
+export interface TeamMember {
+    id: number
+    name: string
+    email: string
+    role: string
+    wallet_access: string
+    is_current: boolean
+    is_pending: boolean
+    assigned_wallets: number[]
+}
+
+
 interface TeamMemberForm {
     name: string
     email: string

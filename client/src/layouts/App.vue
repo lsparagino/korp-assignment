@@ -3,8 +3,8 @@
   import { LayoutDashboard, Repeat, Users, Wallet } from 'lucide-vue-next'
   import { computed, ref } from 'vue'
   import { useRoute, useRouter } from 'vue-router'
-  import AppLogo from '@/components/AppLogo.vue'
-  import CompanySelector from '@/components/CompanySelector.vue'
+  import AppLogo from '@/components/ui/AppLogo.vue'
+  import CompanySelector from '@/components/features/CompanySelector.vue'
   import { useAuthStore } from '@/stores/auth'
   import { useCompanyStore } from '@/stores/company'
 

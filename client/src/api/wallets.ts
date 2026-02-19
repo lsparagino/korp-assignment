@@ -1,5 +1,16 @@
 import { api } from '@/plugins/api'
 
+export interface Wallet {
+    id: number
+    name: string
+    address: string
+    balance: number
+    currency: string
+    status: 'active' | 'frozen'
+    can_delete: boolean
+}
+
+
 interface WalletParams {
     page?: number
     per_page?: number

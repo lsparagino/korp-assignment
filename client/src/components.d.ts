@@ -11,18 +11,18 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
-    AppLogo: typeof import('./components/AppLogo.vue')['default']
-    AuthCard: typeof import('./components/AuthCard.vue')['default']
-    CompanySelector: typeof import('./components/CompanySelector.vue')['default']
-    ConfirmDialog: typeof import('./components/ConfirmDialog.vue')['default']
-    DeleteUser: typeof import('./components/DeleteUser.vue')['default']
-    Heading: typeof import('./components/Heading.vue')['default']
-    PageHeader: typeof import('./components/PageHeader.vue')['default']
-    Pagination: typeof import('./components/Pagination.vue')['default']
+    AppLogo: typeof import('./components/ui/AppLogo.vue')['default']
+    AuthCard: typeof import('./components/ui/AuthCard.vue')['default']
+    CompanySelector: typeof import('./components/features/CompanySelector.vue')['default']
+    ConfirmDialog: typeof import('./components/ui/ConfirmDialog.vue')['default']
+    DeleteUser: typeof import('./components/features/DeleteUser.vue')['default']
+    Heading: typeof import('./components/ui/Heading.vue')['default']
+    PageHeader: typeof import('./components/layout/PageHeader.vue')['default']
+    Pagination: typeof import('./components/ui/Pagination.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
-    SettingsLayout: typeof import('./components/SettingsLayout.vue')['default']
-    TeamMemberModal: typeof import('./components/TeamMemberModal.vue')['default']
-    TransactionTable: typeof import('./components/TransactionTable.vue')['default']
+    SettingsLayout: typeof import('./components/layout/SettingsLayout.vue')['default']
+    TeamMemberModal: typeof import('./components/features/TeamMemberModal.vue')['default']
+    TransactionTable: typeof import('./components/features/TransactionTable.vue')['default']
   }
 }

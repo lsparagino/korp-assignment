@@ -1,9 +1,10 @@
 <script lang="ts" setup>
-  import type { Transaction, Wallet } from '@/types'
+  import type { Transaction } from '@/api/transactions'
+  import type { Wallet } from '@/api/wallets'
   import { computed } from 'vue'
   import { useQuery } from '@pinia/colada'
-  import PageHeader from '@/components/PageHeader.vue'
-  import TransactionTable from '@/components/TransactionTable.vue'
+  import PageHeader from '@/components/layout/PageHeader.vue'
+  import TransactionTable from '@/components/features/TransactionTable.vue'
   import { dashboardQuery } from '@/queries/dashboard'
   import { useAuthStore } from '@/stores/auth'
   import { useCompanyStore } from '@/stores/company'

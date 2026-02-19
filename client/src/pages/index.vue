@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-  import AppLogo from '@/components/AppLogo.vue'
+  import AppLogo from '@/components/ui/AppLogo.vue'
   import { useAuthStore } from '@/stores/auth'
 
   const authStore = useAuthStore()

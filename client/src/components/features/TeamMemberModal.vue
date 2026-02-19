@@ -1,5 +1,6 @@
 <script lang="ts" setup>
-  import type { TeamMember, Wallet } from '@/types'
+  import type { TeamMember } from '@/api/team-members'
+  import type { Wallet } from '@/api/wallets'
   import { computed, ref, watch } from 'vue'
   import { useMutation, useQuery, useQueryCache } from '@pinia/colada'
   import { createTeamMember, updateTeamMember } from '@/api/team-members'

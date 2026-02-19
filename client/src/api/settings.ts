@@ -1,5 +1,10 @@
 import { api } from '@/plugins/api'
 
+export interface RecoveryCode {
+    code: string
+}
+
+
 interface ProfileForm {
     name: string
     email: string

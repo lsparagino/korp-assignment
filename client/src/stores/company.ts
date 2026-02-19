@@ -1,4 +1,4 @@
-import type { Company } from '@/types'
+import type { Company } from '@/api/companies'
 import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 import { fetchCompanies as apiFetchCompanies } from '@/api/companies'

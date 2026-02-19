@@ -1,10 +1,11 @@
 <script lang="ts" setup>
-  import type { Transaction, Wallet } from '@/types'
+  import type { Transaction } from '@/api/transactions'
+  import type { Wallet } from '@/api/wallets'
   import { Calendar } from 'lucide-vue-next'
   import { computed, reactive, ref, watch } from 'vue'
   import { useRoute, useRouter } from 'vue-router'
   import { useQuery } from '@pinia/colada'
-  import TransactionTable from '@/components/TransactionTable.vue'
+  import TransactionTable from '@/components/features/TransactionTable.vue'
   import { transactionsListQuery } from '@/queries/transactions'
   import { walletsListQuery } from '@/queries/wallets'
   import { useAuthStore } from '@/stores/auth'

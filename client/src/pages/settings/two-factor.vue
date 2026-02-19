@@ -1,7 +1,7 @@
 <script lang="ts" setup>
   import { onMounted, ref } from 'vue'
-  import Heading from '@/components/Heading.vue'
-  import SettingsLayout from '@/components/SettingsLayout.vue'
+  import Heading from '@/components/ui/Heading.vue'
+  import SettingsLayout from '@/components/layout/SettingsLayout.vue'
   import { confirmTwoFactor, disableTwoFactor, enableTwoFactor, getRecoveryCodes, getTwoFactorQrCode } from '@/api/settings'
   import { useAuthStore } from '@/stores/auth'
 

@@ -1,10 +1,11 @@
 <script lang="ts" setup>
-  import type { ValidationErrors, Wallet as WalletType } from '@/types'
+  import type { Wallet as WalletType } from '@/api/wallets'
+  import type { ValidationErrors } from '@/utils/errors'
   import { Snowflake, Trash2, Wallet } from 'lucide-vue-next'
   import { reactive, ref, watch } from 'vue'
   import { useRoute, useRouter } from 'vue-router'
   import { useMutation, useQuery, useQueryCache } from '@pinia/colada'
-  import ConfirmDialog from '@/components/ConfirmDialog.vue'
+  import ConfirmDialog from '@/components/ui/ConfirmDialog.vue'
   import { useConfirmDialog } from '@/composables/useConfirmDialog'
   import { deleteWallet as apiDeleteWallet, toggleWalletFreeze, updateWallet } from '@/api/wallets'
   import { walletByIdQuery, WALLET_QUERY_KEYS } from '@/queries/wallets'

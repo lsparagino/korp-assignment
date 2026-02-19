@@ -1,4 +1,4 @@
-import type { Company } from '@/types'
+import type { Company } from '@/api/companies'
 import { defineQueryOptions } from '@pinia/colada'
 import { fetchCompanies } from '@/api/companies'
 

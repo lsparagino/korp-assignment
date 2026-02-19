@@ -1,5 +1,6 @@
 ---
-trigger: always_on
+trigger: model_decision
+description: Applies when working on Laravel server applications
 ---
 
 === herd rules ===

@@ -1,7 +1,7 @@
 <script lang="ts" setup>
   import { ref } from 'vue'
   import { useRouter } from 'vue-router'
-  import Heading from '@/components/Heading.vue'
+  import Heading from '@/components/ui/Heading.vue'
   import { deleteUser } from '@/api/auth'
   import { useAuthStore } from '@/stores/auth'
   import { getValidationErrors, isApiError } from '@/utils/errors'

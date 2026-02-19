@@ -1,5 +1,10 @@
 import type { AxiosError } from 'axios'
 
+export interface ValidationErrors {
+    [key: string]: string[]
+}
+
+
 interface ApiErrorResponse {
     errors?: Record<string, string[]>
     message?: string

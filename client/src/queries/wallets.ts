@@ -1,4 +1,4 @@
-import type { Wallet } from '@/types'
+import type { Wallet } from '@/api/wallets'
 import { defineQueryOptions } from '@pinia/colada'
 import { fetchWallet, fetchWallets } from '@/api/wallets'
 

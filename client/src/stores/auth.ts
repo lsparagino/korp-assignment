@@ -1,4 +1,4 @@
-import type { User } from '@/types'
+import type { User } from '@/api/auth'
 import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 import { fetchUser as apiFetchUser, logout as apiLogout } from '@/api/auth'

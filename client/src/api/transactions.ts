@@ -1,5 +1,19 @@
 import { api } from '@/plugins/api'
 
+export interface Transaction {
+    id: number
+    type: string
+    amount: number
+    currency: string
+    reference: string | null
+    from_wallet_id: number | null
+    to_wallet_id: number | null
+    from_wallet: { name: string, address: string } | null
+    to_wallet: { name: string, address: string } | null
+    created_at: string
+}
+
+
 interface TransactionParams {
     page?: number
     per_page?: number

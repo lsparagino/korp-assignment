@@ -1,8 +1,9 @@
 <script lang="ts" setup>
   import type { PaginationMeta } from '@/composables/usePagination'
-  import type { Transaction, Wallet } from '@/types'
+  import type { Transaction } from '@/api/transactions'
+  import type { Wallet } from '@/api/wallets'
   import { ref } from 'vue'
-  import Pagination from '@/components/Pagination.vue'
+  import Pagination from '@/components/ui/Pagination.vue'
   import { formatCurrency, formatDate } from '@/utils/formatters'
 
   interface Props {

@@ -1,5 +1,13 @@
 import { api } from '@/plugins/api'
 
+export interface User {
+    id: number
+    name: string
+    email: string
+    role: string
+    two_factor_confirmed_at: string | null
+}
+
 interface LoginForm {
     email: string
     password: string

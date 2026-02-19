@@ -1,7 +1,7 @@
 <script lang="ts" setup>
   import { reactive, ref } from 'vue'
-  import Heading from '@/components/Heading.vue'
-  import SettingsLayout from '@/components/SettingsLayout.vue'
+  import Heading from '@/components/ui/Heading.vue'
+  import SettingsLayout from '@/components/layout/SettingsLayout.vue'
   import { updatePassword } from '@/api/settings'
   import { getValidationErrors, isApiError } from '@/utils/errors'
 
