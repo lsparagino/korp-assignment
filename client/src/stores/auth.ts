@@ -10,6 +10,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   const isAdmin = computed(() => user.value?.role === 'admin')
   const isAuthenticated = computed(() => !!token.value)
+  const isEmailVerified = computed(() => !!user.value?.email_verified_at)
 
   function setToken(value: string) {
     token.value = value
@@ -55,6 +56,7 @@ export const useAuthStore = defineStore('auth', () => {
     twoFactorUserId,
     isAdmin,
     isAuthenticated,
+    isEmailVerified,
     setToken,
     clearToken,
     setUser,

@@ -56,6 +56,20 @@ router.beforeEach(
       return next('/auth/login')
     }
 
+    if (loggedIn && !authStore.isEmailVerified) {
+      if (to.path !== '/auth/verify-email') {
+        return next('/auth/verify-email')
+      }
+    }
+
+    if (loggedIn && authStore.isEmailVerified && to.path === '/auth/verify-email') {
+      const hasVerifyParams = to.query.id && to.query.hash && to.query.expires && to.query.signature
+
+      if (!authStore.user?.pending_email && !hasVerifyParams) {
+        return next('/dashboard')
+      }
+    }
+
     if (loggedIn) {
       const companyStore = useCompanyStore()
       if (!companyStore.currentCompany) {

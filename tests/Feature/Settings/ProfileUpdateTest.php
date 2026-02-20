@@ -2,7 +2,7 @@
 
 use App\Models\User;
 
-test('profile information can be updated', function () {
+test('profile email change stores pending email', function () {
     $user = User::factory()->create();
 
     $response = $this
@@ -14,13 +14,13 @@ test('profile information can be updated', function () {
 
     $response
         ->assertOk()
-        ->assertJsonPath('message', 'Profile updated successfully');
+        ->assertJsonPath('message', 'Profile updated. A verification link has been sent to your new email address.');
 
     $user->refresh();
 
     expect($user->name)->toBe('Test User');
-    expect($user->email)->toBe('test@example.com');
-    expect($user->email_verified_at)->toBeNull();
+    expect($user->email)->not->toBe('test@example.com');
+    expect($user->pending_email)->toBe('test@example.com');
 });
 
 test('email verification status is unchanged when the email address is unchanged', function () {

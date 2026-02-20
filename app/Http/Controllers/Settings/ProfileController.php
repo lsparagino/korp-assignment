@@ -15,17 +15,49 @@ class ProfileController extends Controller
      */
     public function update(ProfileUpdateRequest $request): JsonResponse
     {
-        $request->user()->fill($request->validated());
+        $user = $request->user();
+        $validated = $request->validated();
 
-        if ($request->user()->isDirty('email')) {
-            $request->user()->email_verified_at = null;
+        if (isset($validated['email']) && $validated['email'] !== $user->email) {
+            $user->pending_email = $validated['email'];
+            $user->save();
+
+            try {
+                $user->sendEmailVerificationNotification();
+            } catch (\Throwable $e) {
+                report($e);
+                $user->update(['pending_email' => null]);
+
+                return response()->json([
+                    'message' => 'There was a problem sending the verification email. Please try again.',
+                ], 500);
+            }
+
+            unset($validated['email']);
         }
 
-        $request->user()->save();
+        $user->fill($validated);
+        $user->save();
 
         return response()->json([
-            'message' => 'Profile updated successfully',
-            'user' => $request->user(),
+            'message' => $user->pending_email
+                ? 'Profile updated. A verification link has been sent to your new email address.'
+                : 'Profile updated successfully',
+            'user' => $user,
+        ]);
+    }
+
+    /**
+     * Cancel a pending email change.
+     */
+    public function cancelPendingEmail(): JsonResponse
+    {
+        $user = auth()->user();
+        $user->update(['pending_email' => null]);
+
+        return response()->json([
+            'message' => 'Pending email change cancelled',
+            'user' => $user,
         ]);
     }
 

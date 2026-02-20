@@ -47,3 +47,7 @@ export function disableTwoFactor() {
 export function getRecoveryCodes() {
     return api.get('/user/two-factor-recovery-codes')
 }
+
+export function cancelPendingEmail() {
+    return api.delete('/settings/pending-email')
+}

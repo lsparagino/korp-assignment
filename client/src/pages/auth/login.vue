@@ -15,6 +15,8 @@
     remember: false,
   })
 
+  const showPassword = ref(false)
+
   const { processing, errors, submit } = useFormSubmit({
     submitFn: async (data: typeof form) => {
       const response = await login(data)
@@ -68,6 +70,7 @@
           </div>
           <v-text-field
             v-model="form.password"
+            :append-inner-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
             color="primary"
             density="comfortable"
             :error-messages="errors.password"
@@ -75,8 +78,9 @@
             name="password"
             placeholder="Password"
             required
-            type="password"
+            :type="showPassword ? 'text' : 'password'"
             variant="outlined"
+            @click:append-inner="showPassword = !showPassword"
           />
         </div>
 

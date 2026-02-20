@@ -1,8 +1,8 @@
 <script lang="ts" setup>
-  import { reactive, ref } from 'vue'
+  import { computed, reactive, ref } from 'vue'
   import Heading from '@/components/ui/Heading.vue'
   import SettingsLayout from '@/components/layout/SettingsLayout.vue'
-  import { deleteAccount as apiDeleteAccount, updateProfile } from '@/api/settings'
+  import { deleteAccount as apiDeleteAccount, updateProfile, cancelPendingEmail as apiCancelPendingEmail } from '@/api/settings'
   import { useFormSubmit } from '@/composables/useFormSubmit'
   import { useAuthStore } from '@/stores/auth'
 
@@ -14,12 +14,32 @@
     email: user.email,
   })
 
+  const cancellingPendingEmail = ref(false)
+  const serverError = ref('')
+
+  const isDirty = computed(() => form.name !== user.name || form.email !== user.email)
+
   const { processing, errors, recentlySuccessful, submit } = useFormSubmit({
     submitFn: async (data: { name: string, email: string }) => {
+      serverError.value = ''
       const response = await updateProfile(data)
       authStore.setUser(response.data.user)
     },
+    onError: (error: unknown) => {
+      const e = error as { response?: { data?: { message?: string } } }
+      serverError.value = e.response?.data?.message || 'Something went wrong. Please try again.'
+    },
   })
+
+  async function cancelPendingEmail() {
+    cancellingPendingEmail.value = true
+    try {
+      const response = await apiCancelPendingEmail()
+      authStore.setUser(response.data.user)
+    } finally {
+      cancellingPendingEmail.value = false
+    }
+  }
 
   const deleteDialog = ref(false)
   const deleteForm = reactive({
@@ -48,6 +68,42 @@
         variant="small"
       />
 
+      <v-alert
+        v-if="serverError"
+        class="mb-4"
+        density="compact"
+        type="error"
+        variant="tonal"
+      >
+        {{ serverError }}
+      </v-alert>
+
+      <v-alert
+        v-if="authStore.user?.pending_email"
+        class="mb-2"
+        density="compact"
+        type="warning"
+        variant="tonal"
+      >
+        <div class="d-flex align-center justify-space-between">
+          <span>
+            A verification link has been sent to
+            <strong>{{ authStore.user.pending_email }}</strong>.
+            Please verify to update your email.
+          </span>
+          <v-btn
+            class="text-none font-weight-bold ms-4"
+            :disabled="processing"
+            :loading="cancellingPendingEmail"
+            size="small"
+            variant="text"
+            @click="cancelPendingEmail"
+          >
+            Cancel
+          </v-btn>
+        </div>
+      </v-alert>
+
       <v-form @submit.prevent="submit(form)">
         <div class="d-flex flex-column ga-4">
           <v-text-field
@@ -55,6 +111,7 @@
             autocomplete="name"
             color="primary"
             density="comfortable"
+            :disabled="cancellingPendingEmail"
             :error-messages="errors.name"
             hide-details="auto"
             label="Name"
@@ -69,6 +126,7 @@
             autocomplete="username"
             color="primary"
             density="comfortable"
+            :disabled="cancellingPendingEmail"
             :error-messages="errors.email"
             hide-details="auto"
             label="Email address"
@@ -83,6 +141,7 @@
             <v-btn
               class="text-none font-weight-bold"
               color="primary"
+              :disabled="!isDirty || cancellingPendingEmail"
               :loading="processing"
               type="submit"
               variant="flat"

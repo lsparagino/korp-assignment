@@ -1,7 +1,7 @@
 <?php
 
 use App\Models\User;
-use Illuminate\Auth\Notifications\VerifyEmail;
+use App\Notifications\VerifyEmailNotification;
 use Illuminate\Support\Facades\Notification;
 
 test('sends verification notification', function () {
@@ -11,11 +11,11 @@ test('sends verification notification', function () {
 
     $response = $this->actingAs($user, 'sanctum')
         ->postJson('/api/v0/email/verification-notification');
-    
+
     $response->assertOk();
     $response->assertJson(['message' => 'Verification link sent']);
 
-    Notification::assertSentTo($user, VerifyEmail::class);
+    Notification::assertSentTo($user, VerifyEmailNotification::class);
 });
 
 test('does not send verification notification if email already verified', function () {
@@ -25,7 +25,7 @@ test('does not send verification notification if email already verified', functi
 
     $response = $this->actingAs($user, 'sanctum')
         ->postJson('/api/v0/email/verification-notification');
-    
+
     $response->assertStatus(400);
     $response->assertJson(['message' => 'Email already verified']);
 

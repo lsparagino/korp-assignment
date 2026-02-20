@@ -1,6 +1,6 @@
 <script lang="ts" setup>
   import type { VAlert } from 'vuetify/components'
-  import { reactive, ref } from 'vue'
+  import { computed, reactive, ref } from 'vue'
   import { forgotPassword } from '@/api/auth'
   import { isApiError } from '@/utils/errors'
   import { useFormSubmit } from '@/composables/useFormSubmit'
@@ -11,6 +11,22 @@
 
   const status = ref('')
   const alertType = ref<VAlert['type']>('success')
+
+  const cooldown = ref(0)
+  const canSubmit = computed(() => cooldown.value === 0)
+
+  let timerInterval: ReturnType<typeof setInterval>
+
+  function startCooldown() {
+    cooldown.value = 60
+    timerInterval = setInterval(() => {
+      if (cooldown.value > 0) {
+        cooldown.value--
+      } else {
+        clearInterval(timerInterval)
+      }
+    }, 1000)
+  }
 
   const { processing, submit } = useFormSubmit({
     submitFn: async (data: typeof form) => {
@@ -25,6 +41,10 @@
         } else {
           alertType.value = 'error'
           status.value = 'An error occurred. Please try again.'
+        }
+      } finally {
+        if (alertType.value === 'success' || alertType.value === 'warning') {
+          startCooldown()
         }
       }
     },
@@ -53,12 +73,18 @@
           block
           class="text-none font-weight-bold"
           color="primary"
+          :disabled="!canSubmit"
           height="48"
           :loading="processing"
           rounded="lg"
           type="submit"
         >
-          Email password reset link
+          <template v-if="!canSubmit">
+            Wait {{ cooldown }}s to resend
+          </template>
+          <template v-else>
+            Email password reset link
+          </template>
         </v-btn>
       </div>
     </v-form>

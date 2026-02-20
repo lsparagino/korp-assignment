@@ -34,6 +34,9 @@ Route::post('/reset-password', [PasswordResetController::class, 'resetPassword']
 Route::get('/invitation/{token}', [InvitationController::class, 'show'])->name('invitation.verify');
 Route::post('/accept-invitation/{token}', [InvitationController::class, 'store'])->name('invitation.accept');
 
+// Email Verification (public — link works without being logged in)
+Route::get('/email/verify/{id}/{hash}', [VerificationController::class, 'verify'])->name('verification.verify');
+
 // Protected Routes
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', [AuthController::class, 'user']);
@@ -42,7 +45,6 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Email Verification
     Route::post('/email/verification-notification', [VerificationController::class, 'resend']);
-    Route::get('/email/verify/{id}/{hash}', [VerificationController::class, 'verify'])->name('verification.verify');
 
     // Two Factor Authentication
     Route::post('/user/two-factor-authentication', [TwoFactorController::class, 'store']);
@@ -72,5 +74,6 @@ Route::middleware('auth:sanctum')->group(function () {
     // Settings Routes
     Route::patch('/settings/profile', [ProfileController::class, 'update'])->name('settings.profile.update');
     Route::delete('/settings/profile', [ProfileController::class, 'destroy'])->name('settings.profile.destroy');
+    Route::delete('/settings/pending-email', [ProfileController::class, 'cancelPendingEmail'])->name('settings.pending-email.destroy');
     Route::put('/settings/password', [PasswordController::class, 'update'])->name('settings.password.update');
 });

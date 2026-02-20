@@ -30,9 +30,9 @@ class FortifyServiceProvider extends ServiceProvider
         $this->configureActions();
         $this->configureRateLimiting();
 
-        $clientUrl = config('app.client_url');
+        $clientUrl = config('app.client_url', config('app.url'));
         ResetPassword::createUrlUsing(function ($user, string $token) use ($clientUrl) {
-            return "$clientUrl?token=" . $token;
+            return $clientUrl.'/auth/reset-password?token='.$token.'&email='.urlencode($user->email);
         });
     }
 

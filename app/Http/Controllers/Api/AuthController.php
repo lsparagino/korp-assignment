@@ -44,6 +44,17 @@ class AuthController extends Controller
     {
         $user = $creator->create($request->all());
 
+        try {
+            $user->sendEmailVerificationNotification();
+        } catch (\Throwable $e) {
+            report($e);
+            $user->delete();
+
+            return response()->json([
+                'message' => 'There was a problem sending the verification email. Please try again.',
+            ], 500);
+        }
+
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([

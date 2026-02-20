@@ -14,6 +14,7 @@
     password_confirmation: '',
   })
 
+  const showPassword = ref(false)
   const status = ref('')
 
   onMounted(() => {
@@ -54,6 +55,7 @@
         <v-text-field
           v-model="form.password"
           autofocus
+          :append-inner-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
           color="primary"
           density="comfortable"
           :error-messages="errors.password"
@@ -62,8 +64,9 @@
           name="password"
           placeholder="Password"
           required
-          type="password"
+          :type="showPassword ? 'text' : 'password'"
           variant="outlined"
+          @click:append-inner="showPassword = !showPassword"
         />
 
         <v-text-field
@@ -76,7 +79,7 @@
           name="password_confirmation"
           placeholder="Confirm password"
           required
-          type="password"
+          :type="showPassword ? 'text' : 'password'"
           variant="outlined"
         />
 

@@ -1,9 +1,12 @@
+import axios from 'axios'
 import { api } from '@/plugins/api'
 
 export interface User {
     id: number
     name: string
     email: string
+    pending_email: string | null
+    email_verified_at: string | null
     role: string
     two_factor_confirmed_at: string | null
 }
@@ -58,6 +61,16 @@ export function twoFactorChallenge(payload: Record<string, unknown>) {
 
 export function sendVerificationEmail() {
     return api.post('/email/verification-notification')
+}
+
+export function verifyEmail(id: string, hash: string, expires: string, signature: string) {
+    return axios.get(`${import.meta.env.VITE_API_BASE_URL}/email/verify/${id}/${hash}`, {
+        params: { expires, signature },
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+        }
+    })
 }
 
 export function fetchUser() {
