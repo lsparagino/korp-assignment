@@ -8,9 +8,6 @@ use Illuminate\Http\JsonResponse;
 
 class PasswordController extends Controller
 {
-    /**
-     * Update the user's password.
-     */
     public function update(PasswordUpdateRequest $request): JsonResponse
     {
         $request->user()->update([

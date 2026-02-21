@@ -24,7 +24,7 @@ class UpdateTeamMemberRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $this->route('team_member')->id],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,'.$this->route('teamMember')->id],
             'wallets' => ['required', 'array', 'min:1'],
             'wallets.*' => ['exists:wallets,id'],
         ];

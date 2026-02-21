@@ -2,7 +2,7 @@
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CompanyController;
-use App\Http\Controllers\Api\DataController;
+use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\PasswordResetController;
 use App\Http\Controllers\Api\TeamMemberController;
 use App\Http\Controllers\Api\TransactionController;
@@ -25,14 +25,16 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-// Public Auth Routes
-Route::post('/login', [AuthController::class, 'login'])->name('login');
-Route::post('/two-factor-challenge', [AuthController::class, 'twoFactorChallenge']);
-Route::post('/register', [AuthController::class, 'register']);
-Route::post('/forgot-password', [PasswordResetController::class, 'forgotPassword']);
-Route::post('/reset-password', [PasswordResetController::class, 'resetPassword']);
-Route::get('/invitation/{token}', [InvitationController::class, 'show'])->name('invitation.verify');
-Route::post('/accept-invitation/{token}', [InvitationController::class, 'store'])->name('invitation.accept');
+// Public Auth Routes with strict rate limiting (5 requests / min)
+Route::middleware('throttle:5,1')->group(function () {
+    Route::post('/login', [AuthController::class, 'login'])->name('login');
+    Route::post('/two-factor-challenge', [AuthController::class, 'twoFactorChallenge']);
+    Route::post('/register', [AuthController::class, 'register']);
+    Route::post('/forgot-password', [PasswordResetController::class, 'forgotPassword']);
+    Route::post('/reset-password', [PasswordResetController::class, 'resetPassword']);
+    Route::get('/invitation/{token}', [InvitationController::class, 'show'])->name('invitation.verify');
+    Route::post('/accept-invitation/{token}', [InvitationController::class, 'store'])->name('invitation.accept');
+});
 
 // Email Verification (public — link works without being logged in)
 Route::get('/email/verify/{id}/{hash}', [VerificationController::class, 'verify'])->name('verification.verify');
@@ -60,11 +62,11 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/companies', [CompanyController::class, 'index']);
 
         // Data Routes
-        Route::get('/dashboard', [DataController::class, 'dashboard'])->name('dashboard');
+        Route::get('/dashboard', [DashboardController::class, 'dashboard'])->name('dashboard');
         Route::apiResource('transactions', TransactionController::class)->only(['index']);
 
         // Team Routes
-        Route::apiResource('team-members', TeamMemberController::class);
+        Route::apiResource('team-members', TeamMemberController::class)->parameters(['team-members' => 'teamMember']);
 
         // Wallet Routes
         Route::apiResource('wallets', WalletController::class);

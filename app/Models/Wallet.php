@@ -40,9 +40,6 @@ class Wallet extends Model
         return (float) ($this->toTransactions()->sum('amount') + $this->fromTransactions()->sum('amount'));
     }
 
-    /**
-     * Scope to add pre-computed balance sums for eager loading.
-     */
     public function scopeWithBalance(Builder $query): Builder
     {
         return $query
@@ -60,9 +57,6 @@ class Wallet extends Model
         return $this->hasMany(Transaction::class, 'to_wallet_id');
     }
 
-    /**
-     * The members assigned to this wallet.
-     */
     public function members(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
     {
         return $this->belongsToMany(User::class, 'wallet_user');
@@ -70,6 +64,10 @@ class Wallet extends Model
 
     public function hasTransactions(): bool
     {
+        if (array_key_exists('from_transactions_exists', $this->attributes) && array_key_exists('to_transactions_exists', $this->attributes)) {
+            return $this->from_transactions_exists || $this->to_transactions_exists;
+        }
+
         return $this->fromTransactions()->exists() || $this->toTransactions()->exists();
     }
 
@@ -78,9 +76,6 @@ class Wallet extends Model
         return $this->belongsTo(Company::class);
     }
 
-    /**
-     * Scope a query to wallets accessible to the given user in a specific company.
-     */
     public function scopeScopedToUser(Builder $query, User $user, ?int $companyId = null): Builder
     {
         if ($companyId !== null) {
@@ -95,6 +90,15 @@ class Wallet extends Model
             $q->where('user_id', $user->id)
                 ->orWhereHas('members', fn ($mq) => $mq->where('users.id', $user->id));
         });
+    }
+
+    public function toggleFreeze(): void
+    {
+        $this->update([
+            'status' => $this->status === \App\Enums\WalletStatus::Active
+                ? \App\Enums\WalletStatus::Frozen
+                : \App\Enums\WalletStatus::Active,
+        ]);
     }
 
     protected function casts(): array

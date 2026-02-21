@@ -79,8 +79,7 @@ test('admins can delete team members', function () {
     $response = $this->actingAs($this->admin, 'sanctum')
         ->deleteJson("/api/v0/team-members/{$member->id}?company_id={$this->company->id}");
 
-    $response->assertStatus(200)
-        ->assertJsonPath('message', 'Member deleted successfully');
+    $response->assertNoContent();
 
     $this->assertDatabaseMissing('users', ['id' => $member->id]);
 });

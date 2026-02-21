@@ -26,12 +26,14 @@ class TransactionFactory extends Factory
             'amount' => function (array $attributes) {
                 // Ensure magnitude is positive, then apply sign based on type
                 $magnitude = abs($this->faker->randomFloat(2, 1, 1000));
+
                 return $attributes['type'] === TransactionType::Debit ? -$magnitude : $magnitude;
             },
             'reference' => $this->faker->sentence(4),
             'from_wallet_id' => Wallet::factory(),
             'to_wallet_id' => function (array $attributes) {
                 $fromWallet = Wallet::find($attributes['from_wallet_id']);
+
                 return Wallet::factory()->create([
                     'currency' => $fromWallet?->currency ?? 'USD',
                 ])->id;

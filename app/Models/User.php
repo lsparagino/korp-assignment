@@ -19,11 +19,6 @@ class User extends Authenticatable implements MustVerifyEmail
     /** @use HasFactory<UserFactory> */
     use HasApiTokens, HasFactory, Notifiable, TwoFactorAuthenticatable;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
     protected $fillable = [
         'name',
         'email',
@@ -34,11 +29,6 @@ class User extends Authenticatable implements MustVerifyEmail
         'invited_at',
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var list<string>
-     */
     protected $hidden = [
         'password',
         'two_factor_secret',
@@ -51,17 +41,11 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->role === UserRole::Admin;
     }
 
-    /**
-     * Send the email verification notification with a client-facing URL.
-     */
     public function sendEmailVerificationNotification(): void
     {
         $this->notify(new VerifyEmailNotification);
     }
 
-    /**
-     * Route notifications for the mail channel.
-     */
     public function routeNotificationForMail(?\Illuminate\Notifications\Notification $notification): string
     {
         if ($notification instanceof VerifyEmailNotification && $this->pending_email) {
@@ -71,19 +55,11 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->email;
     }
 
-    /**
-     * Get the wallets for the user.
-     *
-     * @return HasMany<Wallet>
-     */
     public function wallets(): HasMany
     {
         return $this->hasMany(Wallet::class);
     }
 
-    /**
-     * The wallets assigned to this member.
-     */
     public function assignedWallets(): BelongsToMany
     {
         return $this->belongsToMany(Wallet::class, 'wallet_user');
@@ -94,17 +70,11 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->belongsToMany(Company::class, 'company_user')->withTimestamps();
     }
 
-    /**
-     * Determine if the user has a pending invitation.
-     */
     public function getIsPendingAttribute(): bool
     {
         return $this->invitation_token !== null;
     }
 
-    /**
-     * Determine if the given recovery code is valid.
-     */
     public function validRecoveryCode(string $code): bool
     {
         return collect($this->recoveryCodes())->first(function ($recoveryCode) use ($code) {
@@ -112,11 +82,6 @@ class User extends Authenticatable implements MustVerifyEmail
         }) !== null;
     }
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
     protected function casts(): array
     {
         return [

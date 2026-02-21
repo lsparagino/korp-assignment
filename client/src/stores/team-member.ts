@@ -24,11 +24,11 @@ export const useTeamMemberStore = defineStore('team-member', () => {
         () => page.value,
     )
 
-    const members = computed<TeamMember[]>(() => data.value?.members ?? [])
+    const members = computed<TeamMember[]>(() => data.value?.data ?? [])
     const pagination = computed(() => ({
-        currentPage: data.value?.pagination?.current_page ?? 1,
-        lastPage: data.value?.pagination?.last_page ?? 1,
-        total: data.value?.pagination?.total ?? 0,
+        currentPage: data.value?.meta?.current_page ?? 1,
+        lastPage: data.value?.meta?.last_page ?? 1,
+        total: data.value?.meta?.total ?? 0,
     }))
 
     function invalidateQueries() {

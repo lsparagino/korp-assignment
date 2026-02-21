@@ -27,7 +27,7 @@ test('users with two factor enabled receive challenged response on login', funct
 });
 
 test('users can challenge with recovery code', function () {
-     if (! Features::canManageTwoFactorAuthentication()) {
+    if (! Features::canManageTwoFactorAuthentication()) {
         $this->markTestSkipped('Two-factor authentication is not enabled.');
     }
 

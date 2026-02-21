@@ -8,14 +8,13 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\ValidationException;
+use Laravel\Fortify\Contracts\CreatesNewUsers;
 use Laravel\Fortify\Contracts\TwoFactorAuthenticationProvider;
 use Laravel\Fortify\Fortify;
 
 class AuthService
 {
     /**
-     * Attempt to authenticate a user and return the result.
-     *
      * @return array{two_factor?: bool, user_id?: int, access_token?: string, token_type?: string, user?: User}
      */
     public function attemptLogin(string $username, string $password, string $ip): array
@@ -57,8 +56,6 @@ class AuthService
     }
 
     /**
-     * Handle a two-factor authentication challenge.
-     *
      * @return array{access_token: string, token_type: string, user: User}
      */
     public function handleTwoFactorChallenge(int $userId, ?string $code, ?string $recoveryCode): array
@@ -85,8 +82,32 @@ class AuthService
     }
 
     /**
-     * Revoke the current access token.
+     * @return array{access_token: string, token_type: string, user: User}
      */
+    public function register(array $data, CreatesNewUsers $creator): array
+    {
+        $user = $creator->create($data);
+
+        try {
+            $user->sendEmailVerificationNotification();
+        } catch (\Throwable $e) {
+            report($e);
+            $user->delete();
+
+            throw new HttpResponseException(response()->json([
+                'message' => 'There was a problem sending the verification email. Please try again.',
+            ], 500));
+        }
+
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        return [
+            'access_token' => $token,
+            'token_type' => 'Bearer',
+            'user' => $user,
+        ];
+    }
+
     public function logout(User $user): void
     {
         if ($user->currentAccessToken()) {
@@ -94,9 +115,15 @@ class AuthService
         }
     }
 
-    /**
-     * @throws HttpResponseException
-     */
+    public function confirmPassword(User $user, string $password): void
+    {
+        if (! Hash::check($password, $user->password)) {
+            throw ValidationException::withMessages([
+                'password' => [trans('auth.password')],
+            ]);
+        }
+    }
+
     private function checkThrottling(string $throttleKey): void
     {
         if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
@@ -111,9 +138,6 @@ class AuthService
         }
     }
 
-    /**
-     * @throws ValidationException
-     */
     private function verifyRecoveryCode(User $user, string $recoveryCode): void
     {
         if (! $user->validRecoveryCode($recoveryCode)) {
@@ -125,9 +149,6 @@ class AuthService
         $user->replaceRecoveryCode($recoveryCode);
     }
 
-    /**
-     * @throws ValidationException
-     */
     private function verifyTwoFactorCode(User $user, string $code): void
     {
         if (! app(TwoFactorAuthenticationProvider::class)->verify(

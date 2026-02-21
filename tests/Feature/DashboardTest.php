@@ -1,7 +1,7 @@
 <?php
 
-use App\Models\User;
 use App\Models\Company;
+use App\Models\User;
 
 test('guests are denied access to dashboard', function () {
     $response = $this->getJson('/api/v0/dashboard');
@@ -12,7 +12,7 @@ test('authenticated users can visit the dashboard', function () {
     $user = User::factory()->create();
     $company = Company::factory()->create();
     $user->companies()->attach($company);
-    
+
     $this->actingAs($user, 'sanctum');
 
     $response = $this->getJson("/api/v0/dashboard?company_id={$company->id}");

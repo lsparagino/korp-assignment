@@ -5,14 +5,12 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\ConfirmPasswordRequest;
 use App\Http\Requests\Api\LoginRequest;
+use App\Http\Requests\Api\RegisterRequest;
 use App\Http\Requests\Api\TwoFactorChallengeRequest;
 use App\Services\AuthService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\ValidationException;
 use Laravel\Fortify\Contracts\CreatesNewUsers;
-use Laravel\Fortify\Fortify;
 
 class AuthController extends Controller
 {
@@ -21,7 +19,7 @@ class AuthController extends Controller
     public function login(LoginRequest $request): JsonResponse
     {
         $result = $this->authService->attemptLogin(
-            $request->{Fortify::username()},
+            $request->email,
             $request->password,
             $request->ip()
         );
@@ -40,37 +38,18 @@ class AuthController extends Controller
         return response()->json($result);
     }
 
-    public function register(Request $request, CreatesNewUsers $creator): JsonResponse
+    public function register(RegisterRequest $request, CreatesNewUsers $creator): JsonResponse
     {
-        $user = $creator->create($request->all());
+        $result = $this->authService->register($request->validated(), $creator);
 
-        try {
-            $user->sendEmailVerificationNotification();
-        } catch (\Throwable $e) {
-            report($e);
-            $user->delete();
-
-            return response()->json([
-                'message' => 'There was a problem sending the verification email. Please try again.',
-            ], 500);
-        }
-
-        $token = $user->createToken('auth_token')->plainTextToken;
-
-        return response()->json([
-            'access_token' => $token,
-            'token_type' => 'Bearer',
-            'user' => $user,
-        ], 201);
+        return response()->json($result, 201);
     }
 
     public function logout(Request $request): JsonResponse
     {
         $this->authService->logout($request->user());
 
-        return response()->json([
-            'message' => 'Logged out',
-        ]);
+        return response()->json(['message' => 'Logged out']);
     }
 
     public function user(Request $request): JsonResponse
@@ -80,14 +59,8 @@ class AuthController extends Controller
 
     public function confirmPassword(ConfirmPasswordRequest $request): JsonResponse
     {
-        if (! Hash::check($request->password, $request->user()->password)) {
-            throw ValidationException::withMessages([
-                'password' => [trans('auth.password')],
-            ]);
-        }
+        $this->authService->confirmPassword($request->user(), $request->password);
 
-        return response()->json([
-            'message' => 'Password confirmed',
-        ]);
+        return response()->json(['message' => 'Password confirmed']);
     }
 }

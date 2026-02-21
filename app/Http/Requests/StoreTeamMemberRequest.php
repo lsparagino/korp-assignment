@@ -12,7 +12,11 @@ class StoreTeamMemberRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return $this->user()->isAdmin();
+        $companyId = $this->input('company_id');
+
+        return $this->user()->isAdmin()
+            && $companyId
+            && $this->user()->companies()->where('companies.id', $companyId)->exists();
     }
 
     /**

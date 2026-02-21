@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Enums\UserRole;
 use App\Mail\TeamMemberInvitation;
 use App\Models\User;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
@@ -13,11 +14,22 @@ use Illuminate\Support\Str;
 
 class TeamMemberService
 {
-    /**
-     * Invite a new team member.
-     *
-     * Creates a user, attaches to company, syncs wallets, and sends invitation email.
-     */
+    public function list(int $companyId): LengthAwarePaginator
+    {
+        return User::query()
+            ->whereHas('companies', function ($q) use ($companyId) {
+                $q->where('companies.id', $companyId);
+            })
+            ->with(['assignedWallets' => function ($q) use ($companyId) {
+                $q->where('company_id', $companyId);
+            }])
+            ->withCount(['assignedWallets' => function ($q) use ($companyId) {
+                $q->where('company_id', $companyId);
+            }])
+            ->orderBy('name')
+            ->paginate(10);
+    }
+
     public function invite(string $name, string $email, int $companyId, array $wallets = []): User
     {
         $user = DB::transaction(function () use ($name, $email, $companyId, $wallets) {
@@ -48,26 +60,20 @@ class TeamMemberService
         return $user;
     }
 
-    /**
-     * Update an existing team member.
-     */
     public function update(User $member, string $name, string $email, array $wallets = []): User
     {
-        $member->update([
-            'name' => $name,
-            'email' => $email,
-        ]);
+        DB::transaction(function () use ($member, $name, $email, $wallets) {
+            $member->update([
+                'name' => $name,
+                'email' => $email,
+            ]);
 
-        if (! empty($wallets)) {
             $member->assignedWallets()->sync($wallets);
-        }
+        });
 
         return $member;
     }
 
-    /**
-     * Delete a team member.
-     */
     public function delete(User $member): void
     {
         $member->delete();

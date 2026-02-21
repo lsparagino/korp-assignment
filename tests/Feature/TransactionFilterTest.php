@@ -2,10 +2,10 @@
 
 namespace Tests\Feature;
 
+use App\Enums\TransactionType;
 use App\Models\Transaction;
 use App\Models\User;
 use App\Models\Wallet;
-use App\Enums\TransactionType;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -14,7 +14,9 @@ class TransactionFilterTest extends TestCase
     use RefreshDatabase;
 
     private User $user;
+
     private Wallet $wallet;
+
     private \App\Models\Company $company;
 
     protected function setUp(): void
@@ -23,7 +25,7 @@ class TransactionFilterTest extends TestCase
         $this->company = \App\Models\Company::factory()->create();
         $this->user = User::factory()->create();
         $this->user->companies()->attach($this->company);
-        
+
         $this->wallet = Wallet::factory()->create([
             'user_id' => $this->user->id,
             'company_id' => $this->company->id,

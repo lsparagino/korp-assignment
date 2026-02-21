@@ -7,15 +7,17 @@ use App\Http\Requests\Api\StoreWalletRequest;
 use App\Http\Requests\Api\UpdateWalletRequest;
 use App\Http\Resources\WalletResource;
 use App\Models\Wallet;
+use App\Services\WalletService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Response;
-use Illuminate\Support\Facades\Log;
 
 class WalletController extends Controller
 {
     use AuthorizesRequests;
+
+    public function __construct(private WalletService $walletService) {}
 
     public function index(Request $request): AnonymousResourceCollection
     {
@@ -28,7 +30,8 @@ class WalletController extends Controller
             return WalletResource::collection(collect());
         }
 
-        $query = Wallet::scopedToUser($request->user(), $companyId);
+        $query = Wallet::scopedToUser($request->user(), $companyId)
+            ->withExists(['fromTransactions', 'toTransactions']);
 
         return WalletResource::collection(
             $query->latest()->paginate($perPage)
@@ -39,13 +42,10 @@ class WalletController extends Controller
     {
         $this->authorize('create', Wallet::class);
 
-        $wallet = $request->user()->wallets()->create([
+        $wallet = $this->walletService->create($request->user(), [
             ...$request->safe()->only(['name', 'currency']),
-            'status' => \App\Enums\WalletStatus::Active,
             'company_id' => $request->company_id,
         ]);
-
-        Log::info('Wallet created', ['wallet_id' => $wallet->id, 'user_id' => $request->user()->id]);
 
         return new WalletResource($wallet);
     }
@@ -61,11 +61,7 @@ class WalletController extends Controller
     {
         $this->authorize('update', $wallet);
 
-        $wallet->update([
-            'status' => $wallet->status === \App\Enums\WalletStatus::Active
-                ? \App\Enums\WalletStatus::Frozen
-                : \App\Enums\WalletStatus::Active,
-        ]);
+        $wallet->toggleFreeze();
 
         return new WalletResource($wallet);
     }
@@ -84,8 +80,6 @@ class WalletController extends Controller
         $this->authorize('delete', $wallet);
 
         $wallet->delete();
-
-        Log::info('Wallet deleted', ['wallet_id' => $wallet->id]);
 
         return response()->noContent();
     }

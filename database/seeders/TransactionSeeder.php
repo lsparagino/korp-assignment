@@ -34,7 +34,6 @@ class TransactionSeeder extends Seeder
                 ]);
             }
 
-
             // External Outbound
             Transaction::factory(1)->create([
                 'from_wallet_id' => $wallet->id,

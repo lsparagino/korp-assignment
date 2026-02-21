@@ -20,7 +20,7 @@ test('email can be verified', function () {
 
     Event::assertDispatched(Verified::class);
     expect($user->fresh()->hasVerifiedEmail())->toBeTrue();
-    $response->assertOk(); 
+    $response->assertOk();
     $response->assertJson(['message' => 'Email verified successfully']);
 });
 
@@ -53,7 +53,7 @@ test('already verified user visiting verification link receives success', functi
     );
 
     $response = $this->actingAs($user, 'sanctum')->getJson($verificationUrl);
-    
+
     $response->assertOk();
     $response->assertJson(['message' => 'Email already verified']);
 
