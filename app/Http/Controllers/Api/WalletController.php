@@ -24,7 +24,7 @@ class WalletController extends Controller
         $this->authorize('viewAny', Wallet::class);
 
         $perPage = min((int) $request->input('per_page', 10), 500);
-        $companyId = $request->input('company_id');
+        $companyId = $request->company_id;
 
         if (! $companyId) {
             return WalletResource::collection(collect());

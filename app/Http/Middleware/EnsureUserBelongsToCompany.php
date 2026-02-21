@@ -17,7 +17,7 @@ class EnsureUserBelongsToCompany
         }
 
         if (! $request->user()->companies()->where('companies.id', $companyId)->exists()) {
-            abort(403, 'Unauthorized access to company.');
+            abort(403, __('messages.unauthorized_company'));
         }
 
         return $next($request);

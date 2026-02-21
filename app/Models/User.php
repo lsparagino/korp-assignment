@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Notifications\Notification;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Laravel\Sanctum\HasApiTokens;
 
@@ -46,7 +47,7 @@ class User extends Authenticatable implements MustVerifyEmail
         $this->notify(new VerifyEmailNotification);
     }
 
-    public function routeNotificationForMail(?\Illuminate\Notifications\Notification $notification): string
+    public function routeNotificationForMail(?Notification $notification): string
     {
         if ($notification instanceof VerifyEmailNotification && $this->pending_email) {
             return $this->pending_email;

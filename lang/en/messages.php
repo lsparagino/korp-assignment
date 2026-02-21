@@ -25,6 +25,8 @@ return [
     // Team Members
     'member_invited' => 'Member invited successfully',
     'member_updated' => 'Member updated successfully',
+    'full_access' => 'Full Access',
+    'wallets' => 'Wallets',
 
     // Profile
     'profile_updated' => 'Profile updated successfully',
@@ -35,5 +37,8 @@ return [
 
     // Invitations
     'invitation_accepted' => 'Account activated successfully',
+
+    // Authorization
+    'unauthorized_company' => 'Unauthorized access to company.',
 
 ];

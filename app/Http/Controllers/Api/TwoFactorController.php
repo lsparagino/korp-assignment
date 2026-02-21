@@ -48,7 +48,7 @@ class TwoFactorController extends Controller
     public function recoveryCodes(Request $request): JsonResponse
     {
         if (is_null($request->user()->two_factor_recovery_codes)) {
-            return response()->json(['message' => '2FA not enabled'], 400);
+            return response()->json(['message' => __('messages.two_factor_not_enabled')], 400);
         }
 
         return response()->json(

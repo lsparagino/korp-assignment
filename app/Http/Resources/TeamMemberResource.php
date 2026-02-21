@@ -16,8 +16,8 @@ class TeamMemberResource extends JsonResource
             'email' => $this->email,
             'role' => $this->role->name,
             'wallet_access' => $this->role === UserRole::Admin
-                ? 'Full Access'
-                : ($this->assigned_wallets_count.' Wallets'),
+                ? __('messages.full_access')
+                : ($this->assigned_wallets_count.' '.__('messages.wallets')),
             'is_pending' => $this->is_pending,
             'is_current' => $this->id === auth()->id(),
             'assigned_wallets' => $this->whenLoaded('assignedWallets', fn () => $this->assignedWallets->pluck('id')),
