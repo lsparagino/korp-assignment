@@ -181,4 +181,25 @@ class TransactionFilterTest extends TestCase
         $response->assertJsonCount(1, 'data');
         $this->assertEquals($wallet1->id, $response->json('data.0.to_wallet_id'));
     }
+
+    public function test_guests_are_denied_access_to_transactions(): void
+    {
+        $response = $this->getJson('/api/v0/transactions');
+
+        $response->assertUnauthorized();
+    }
+
+    public function test_transactions_are_paginated(): void
+    {
+        Transaction::factory()->count(15)->create([
+            'to_wallet_id' => $this->wallet->id,
+        ]);
+
+        $response = $this->actingAs($this->user, 'sanctum')
+            ->getJson("/api/v0/transactions?per_page=5&company_id={$this->company->id}");
+
+        $response->assertStatus(200)
+            ->assertJsonCount(5, 'data')
+            ->assertJsonPath('meta.total', 15);
+    }
 }

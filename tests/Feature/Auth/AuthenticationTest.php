@@ -72,3 +72,30 @@ test('users are rate limited', function () {
 
     $response->assertTooManyRequests();
 });
+
+test('authenticated user can get their profile', function () {
+    $user = User::factory()->create();
+
+    $response = $this->actingAs($user, 'sanctum')->getJson('/api/v0/user');
+
+    $response->assertOk()
+        ->assertJsonPath('id', $user->id)
+        ->assertJsonPath('email', $user->email);
+});
+
+test('guests cannot access user profile', function () {
+    $response = $this->getJson('/api/v0/user');
+
+    $response->assertUnauthorized();
+});
+
+test('password confirmation fails with wrong password', function () {
+    $user = User::factory()->create();
+
+    $response = $this->actingAs($user, 'sanctum')->postJson('/api/v0/user/confirm-password', [
+        'password' => 'wrong-password',
+    ]);
+
+    $response->assertStatus(422)
+        ->assertJsonValidationErrors('password');
+});

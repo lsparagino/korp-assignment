@@ -99,3 +99,72 @@ test('wallets list is paginated', function () {
         ->assertJsonCount(10, 'data')
         ->assertJsonPath('meta.total', 15);
 });
+
+test('admins can view a single wallet', function () {
+    $admin = User::factory()->create(['role' => UserRole::Admin]);
+    $admin->companies()->attach($this->company);
+    $wallet = Wallet::factory()->create([
+        'user_id' => $admin->id,
+        'company_id' => $this->company->id,
+    ]);
+
+    $response = $this->actingAs($admin, 'sanctum')
+        ->getJson("/api/v0/wallets/{$wallet->id}?company_id={$this->company->id}");
+
+    $response->assertOk()
+        ->assertJsonPath('data.id', $wallet->id)
+        ->assertJsonPath('data.name', $wallet->name);
+});
+
+test('members can only view wallets assigned to them', function () {
+    $admin = User::factory()->create(['role' => UserRole::Admin]);
+    $admin->companies()->attach($this->company);
+    $member = User::factory()->create(['role' => UserRole::Member]);
+    $member->companies()->attach($this->company);
+
+    $wallet = Wallet::factory()->create([
+        'user_id' => $admin->id,
+        'company_id' => $this->company->id,
+    ]);
+
+    // Member cannot view unassigned wallet
+    $response = $this->actingAs($member, 'sanctum')
+        ->getJson("/api/v0/wallets/{$wallet->id}?company_id={$this->company->id}");
+
+    $response->assertForbidden();
+
+    // After assignment, member can view
+    $wallet->members()->attach($member);
+
+    $response = $this->actingAs($member, 'sanctum')
+        ->getJson("/api/v0/wallets/{$wallet->id}?company_id={$this->company->id}");
+
+    $response->assertOk();
+});
+
+test('admins can update a wallet', function () {
+    $admin = User::factory()->create(['role' => UserRole::Admin]);
+    $admin->companies()->attach($this->company);
+    $wallet = Wallet::factory()->create([
+        'user_id' => $admin->id,
+        'company_id' => $this->company->id,
+        'currency' => WalletCurrency::USD,
+    ]);
+
+    $response = $this->actingAs($admin, 'sanctum')
+        ->putJson("/api/v0/wallets/{$wallet->id}?company_id={$this->company->id}", [
+            'name' => 'Updated Wallet Name',
+            'currency' => WalletCurrency::USD->value,
+        ]);
+
+    $response->assertOk()
+        ->assertJsonPath('data.name', 'Updated Wallet Name');
+
+    expect($wallet->fresh()->name)->toBe('Updated Wallet Name');
+});
+
+test('guests are denied access to wallets', function () {
+    $response = $this->getJson('/api/v0/wallets');
+
+    $response->assertUnauthorized();
+});
