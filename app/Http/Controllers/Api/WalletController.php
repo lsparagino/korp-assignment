@@ -31,7 +31,8 @@ class WalletController extends Controller
         }
 
         $query = Wallet::scopedToUser($request->user(), $companyId)
-            ->withExists(['fromTransactions', 'toTransactions']);
+            ->withExists(['fromTransactions', 'toTransactions'])
+            ->withBalance();
 
         return WalletResource::collection(
             $query->latest()->paginate($perPage)

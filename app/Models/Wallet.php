@@ -2,9 +2,14 @@
 
 namespace App\Models;
 
+use App\Enums\WalletCurrency;
+use App\Enums\WalletStatus;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
 
 class Wallet extends Model
@@ -30,7 +35,7 @@ class Wallet extends Model
         });
     }
 
-    public function user(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
@@ -47,17 +52,17 @@ class Wallet extends Model
             ->withSum('fromTransactions as balance_out', 'amount');
     }
 
-    public function fromTransactions(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function fromTransactions(): HasMany
     {
         return $this->hasMany(Transaction::class, 'from_wallet_id');
     }
 
-    public function toTransactions(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function toTransactions(): HasMany
     {
         return $this->hasMany(Transaction::class, 'to_wallet_id');
     }
 
-    public function members(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    public function members(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'wallet_user');
     }
@@ -71,7 +76,7 @@ class Wallet extends Model
         return $this->fromTransactions()->exists() || $this->toTransactions()->exists();
     }
 
-    public function company(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    public function company(): BelongsTo
     {
         return $this->belongsTo(Company::class);
     }
@@ -95,17 +100,17 @@ class Wallet extends Model
     public function toggleFreeze(): void
     {
         $this->update([
-            'status' => $this->status === \App\Enums\WalletStatus::Active
-                ? \App\Enums\WalletStatus::Frozen
-                : \App\Enums\WalletStatus::Active,
+            'status' => $this->status === WalletStatus::Active
+                ? WalletStatus::Frozen
+                : WalletStatus::Active,
         ]);
     }
 
     protected function casts(): array
     {
         return [
-            'currency' => \App\Enums\WalletCurrency::class,
-            'status' => \App\Enums\WalletStatus::class,
+            'currency' => WalletCurrency::class,
+            'status' => WalletStatus::class,
         ];
     }
 }

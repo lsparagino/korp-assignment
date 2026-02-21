@@ -7,14 +7,12 @@ use App\Http\Requests\StoreTeamMemberRequest;
 use App\Http\Requests\UpdateTeamMemberRequest;
 use App\Http\Resources\TeamMemberResource;
 use App\Models\User;
-use App\Policies\TeamMemberPolicy;
 use App\Services\TeamMemberService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Response;
-use Illuminate\Support\Facades\Gate;
 
 class TeamMemberController extends Controller
 {
@@ -24,9 +22,9 @@ class TeamMemberController extends Controller
 
     public function index(Request $request): JsonResponse|AnonymousResourceCollection
     {
-        Gate::allowIf(fn (User $user) => app(TeamMemberPolicy::class)->viewAny($user));
+        $this->authorize('viewAny', User::class);
 
-        $companyId = $request->input('company_id');
+        $companyId = $request->company_id;
 
         if (! $companyId) {
             return response()->json([
@@ -48,16 +46,16 @@ class TeamMemberController extends Controller
         $user = $this->teamMemberService->invite(
             $request->name,
             $request->email,
-            $request->input('company_id'),
+            $request->company_id,
             $request->wallets ?? []
         );
 
-        return response()->json(['message' => 'Member invited successfully', 'user' => $user], 201);
+        return response()->json(['message' => __('messages.member_invited'), 'user' => $user], 201);
     }
 
     public function update(UpdateTeamMemberRequest $request, User $teamMember): JsonResponse
     {
-        Gate::allowIf(fn (User $user) => app(TeamMemberPolicy::class)->update($user, $teamMember));
+        $this->authorize('update', $teamMember);
 
         $this->teamMemberService->update(
             $teamMember,
@@ -66,12 +64,12 @@ class TeamMemberController extends Controller
             $request->wallets ?? []
         );
 
-        return response()->json(['message' => 'Member updated successfully', 'user' => $teamMember]);
+        return response()->json(['message' => __('messages.member_updated'), 'user' => $teamMember]);
     }
 
     public function destroy(User $teamMember): Response
     {
-        Gate::allowIf(fn (User $user) => app(TeamMemberPolicy::class)->delete($user, $teamMember));
+        $this->authorize('delete', $teamMember);
 
         $this->teamMemberService->delete($teamMember);
 

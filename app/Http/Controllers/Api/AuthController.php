@@ -49,7 +49,7 @@ class AuthController extends Controller
     {
         $this->authService->logout($request->user());
 
-        return response()->json(['message' => 'Logged out']);
+        return response()->json(['message' => __('messages.logged_out')]);
     }
 
     public function user(Request $request): JsonResponse
@@ -61,6 +61,6 @@ class AuthController extends Controller
     {
         $this->authService->confirmPassword($request->user(), $request->password);
 
-        return response()->json(['message' => 'Password confirmed']);
+        return response()->json(['message' => __('messages.password_confirmed')]);
     }
 }

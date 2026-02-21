@@ -15,7 +15,7 @@ class PasswordController extends Controller
         ]);
 
         return response()->json([
-            'message' => 'Password updated successfully',
+            'message' => __('messages.password_updated'),
         ]);
     }
 }

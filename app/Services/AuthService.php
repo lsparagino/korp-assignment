@@ -4,11 +4,14 @@ namespace App\Services;
 
 use App\Models\User;
 use Illuminate\Http\Exceptions\HttpResponseException;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\ValidationException;
 use Laravel\Fortify\Contracts\CreatesNewUsers;
+use Laravel\Fortify\Contracts\ResetsUserPasswords;
 use Laravel\Fortify\Contracts\TwoFactorAuthenticationProvider;
 use Laravel\Fortify\Fortify;
 
@@ -95,7 +98,7 @@ class AuthService
             $user->delete();
 
             throw new HttpResponseException(response()->json([
-                'message' => 'There was a problem sending the verification email. Please try again.',
+                'message' => __('messages.verification_email_failed'),
             ], 500));
         }
 
@@ -122,6 +125,49 @@ class AuthService
                 'password' => [trans('auth.password')],
             ]);
         }
+    }
+
+    public function sendPasswordResetLink(array $credentials): string
+    {
+        return Password::broker(config('fortify.passwords'))->sendResetLink($credentials);
+    }
+
+    public function resetPassword(array $data, ResetsUserPasswords $resets): string
+    {
+        return Password::broker(config('fortify.passwords'))->reset(
+            $data,
+            function ($user, $password) use ($resets, $data) {
+                $resets->reset($user, [
+                    'password' => $data['password'],
+                    'password_confirmation' => $data['password_confirmation'],
+                ]);
+            }
+        );
+    }
+
+    /**
+     * @return array{message: string, user: User, access_token: string, token_type: string}
+     */
+    public function acceptInvitation(string $token, string $password): array
+    {
+        $user = User::where('invitation_token', $token)->firstOrFail();
+
+        $accessToken = DB::transaction(function () use ($user, $password) {
+            $user->update([
+                'password' => Hash::make($password),
+                'invitation_token' => null,
+                'email_verified_at' => now(),
+            ]);
+
+            return $user->createToken('auth_token')->plainTextToken;
+        });
+
+        return [
+            'message' => __('messages.invitation_accepted'),
+            'user' => $user,
+            'access_token' => $accessToken,
+            'token_type' => 'Bearer',
+        ];
     }
 
     private function checkThrottling(string $throttleKey): void

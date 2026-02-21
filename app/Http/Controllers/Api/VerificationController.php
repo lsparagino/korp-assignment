@@ -13,13 +13,9 @@ class VerificationController extends Controller
 
     public function resend(Request $request): JsonResponse
     {
-        if ($request->user()->hasVerifiedEmail() && ! $request->user()->pending_email) {
-            return response()->json(['message' => 'Email already verified'], 400);
-        }
+        $result = $this->verificationService->resendVerification($request->user());
 
-        $request->user()->sendEmailVerificationNotification();
-
-        return response()->json(['message' => 'Verification link sent']);
+        return response()->json(['message' => $result['message']], $result['status']);
     }
 
     public function verify(Request $request, int $id, string $hash): JsonResponse

@@ -9,9 +9,11 @@ use Illuminate\Http\Request;
 
 class DashboardController extends Controller
 {
-    public function dashboard(Request $request, DashboardService $dashboardService): JsonResponse
+    public function __construct(private DashboardService $dashboardService) {}
+
+    public function dashboard(Request $request): JsonResponse
     {
-        $data = $dashboardService->getDashboardData($request->user(), $request->input('company_id'));
+        $data = $this->dashboardService->getDashboardData($request->user(), $request->company_id);
 
         return response()->json($data);
     }

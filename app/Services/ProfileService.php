@@ -21,7 +21,7 @@ class ProfileService
                 $user->update(['pending_email' => null]);
                 Log::error('Failed to send verification email during profile update', ['error' => $e->getMessage(), 'user_id' => $user->id]);
 
-                return ['success' => false, 'message' => 'There was a problem sending the verification email. Please try again.'];
+                return ['success' => false, 'message' => __('messages.verification_email_failed')];
             }
 
             unset($validated['email']);
@@ -35,8 +35,8 @@ class ProfileService
         return [
             'success' => true,
             'message' => $user->pending_email
-                ? 'Profile updated. A verification link has been sent to your new email address.'
-                : 'Profile updated successfully',
+                ? __('messages.profile_updated_pending_email')
+                : __('messages.profile_updated'),
             'user' => $user,
         ];
     }

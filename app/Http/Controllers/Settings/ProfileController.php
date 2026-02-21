@@ -31,7 +31,7 @@ class ProfileController extends Controller
         $this->profileService->cancelPendingEmail($request->user());
 
         return response()->json([
-            'message' => 'Pending email change cancelled',
+            'message' => __('messages.pending_email_cancelled'),
             'user' => $request->user(),
         ]);
     }
@@ -41,7 +41,7 @@ class ProfileController extends Controller
         $this->profileService->deleteUserAndTokens($request->user(), $request->user()->currentAccessToken());
 
         return response()->json([
-            'message' => 'Account deleted successfully',
+            'message' => __('messages.account_deleted'),
         ]);
     }
 }

@@ -16,7 +16,7 @@ class TransactionController extends Controller
     public function index(FilterTransactionsRequest $request): AnonymousResourceCollection
     {
         $perPage = (int) $request->input('per_page', 10);
-        $companyId = $request->input('company_id');
+        $companyId = $request->company_id;
 
         $walletIds = Wallet::scopedToUser($request->user(), $companyId)->pluck('id');
 

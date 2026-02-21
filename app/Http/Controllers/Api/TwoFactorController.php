@@ -16,27 +16,27 @@ class TwoFactorController extends Controller
     {
         $enable($request->user());
 
-        return response()->json(['message' => '2FA enabled, please confirm']);
+        return response()->json(['message' => __('messages.two_factor_enabled')]);
     }
 
     public function confirm(Request $request, ConfirmTwoFactorAuthentication $confirm): JsonResponse
     {
         $confirm($request->user(), $request->code);
 
-        return response()->json(['message' => '2FA confirmed']);
+        return response()->json(['message' => __('messages.two_factor_confirmed')]);
     }
 
     public function destroy(Request $request, DisableTwoFactorAuthentication $disable): JsonResponse
     {
         $disable($request->user());
 
-        return response()->json(['message' => '2FA disabled']);
+        return response()->json(['message' => __('messages.two_factor_disabled')]);
     }
 
     public function qrCode(Request $request): JsonResponse
     {
         if (is_null($request->user()->two_factor_secret)) {
-            return response()->json(['message' => '2FA not enabled'], 400);
+            return response()->json(['message' => __('messages.two_factor_not_enabled')], 400);
         }
 
         return response()->json([
@@ -60,6 +60,6 @@ class TwoFactorController extends Controller
     {
         $generate($request->user());
 
-        return response()->json(['message' => 'Recovery codes regenerated']);
+        return response()->json(['message' => __('messages.recovery_codes_regenerated')]);
     }
 }

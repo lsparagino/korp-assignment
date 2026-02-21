@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\WalletStatus;
 use App\Models\User;
 use App\Models\Wallet;
 use Illuminate\Support\Collection;
@@ -14,7 +15,7 @@ class WalletService
         $wallet = $user->wallets()->create([
             'name' => $data['name'],
             'currency' => $data['currency'],
-            'status' => \App\Enums\WalletStatus::Active,
+            'status' => WalletStatus::Active,
             'company_id' => $data['company_id'],
         ]);
 
