@@ -28,11 +28,7 @@ class DashboardService
         $top3 = $this->walletService->getTopWallets($allWallets);
         $othersAggregated = $this->walletService->getOthersAggregation($allWallets);
 
-        $recentTransactions = Transaction::forWallets($walletIds)
-            ->latest()
-            ->limit(10)
-            ->with(['fromWallet', 'toWallet'])
-            ->get();
+        $recentTransactions = Transaction::recentForWallets($walletIds)->get();
 
         Log::info('Dashboard data accessed', ['user_id' => $user->id, 'company_id' => $companyId]);
 

@@ -42,6 +42,14 @@ class Transaction extends Model
         });
     }
 
+    public function scopeRecentForWallets(Builder $query, Collection $walletIds, int $limit = 10): Builder
+    {
+        return $query->forWallets($walletIds)
+            ->with(['fromWallet', 'toWallet'])
+            ->latest()
+            ->limit($limit);
+    }
+
     protected function casts(): array
     {
         return [

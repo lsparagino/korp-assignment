@@ -4,16 +4,16 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\AcceptInvitationRequest;
 use App\Models\User;
-use App\Services\AuthService;
+use App\Services\InvitationService;
 use Illuminate\Http\JsonResponse;
 
 class InvitationController extends Controller
 {
-    public function __construct(private AuthService $authService) {}
+    public function __construct(private InvitationService $invitationService) {}
 
     public function show(string $token): JsonResponse
     {
-        $user = User::where('invitation_token', $token)->firstOrFail();
+        $user = User::findByInvitationTokenOrFail($token);
 
         return response()->json([
             'email' => $user->email,
@@ -23,7 +23,7 @@ class InvitationController extends Controller
 
     public function store(AcceptInvitationRequest $request, string $token): JsonResponse
     {
-        $result = $this->authService->acceptInvitation($token, $request->password);
+        $result = $this->invitationService->acceptInvitation($token, $request->password);
 
         return response()->json($result);
     }

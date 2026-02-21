@@ -21,7 +21,6 @@ class StoreWalletRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:255'],
             'currency' => ['required', 'string', Rule::enum(WalletCurrency::class)],
-            'company_id' => ['required', 'integer', 'exists:companies,id'],
         ];
     }
 }

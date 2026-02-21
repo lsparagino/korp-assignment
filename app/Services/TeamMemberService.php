@@ -16,10 +16,7 @@ class TeamMemberService
 {
     public function list(int $companyId): LengthAwarePaginator
     {
-        return User::query()
-            ->whereHas('companies', function ($q) use ($companyId) {
-                $q->where('companies.id', $companyId);
-            })
+        return User::forCompany($companyId)
             ->with(['assignedWallets' => function ($q) use ($companyId) {
                 $q->where('company_id', $companyId);
             }])

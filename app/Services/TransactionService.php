@@ -3,8 +3,9 @@
 namespace App\Services;
 
 use App\Models\Transaction;
+use App\Models\User;
+use App\Models\Wallet;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
-use Illuminate\Support\Collection;
 
 class TransactionService
 {
@@ -13,8 +14,10 @@ class TransactionService
      *
      * @param  array<string, mixed>  $filters
      */
-    public function getFilteredTransactions(Collection $walletIds, array $filters, int $perPage): LengthAwarePaginator
+    public function getFilteredTransactions(User $user, ?int $companyId, array $filters, int $perPage): LengthAwarePaginator
     {
+        $walletIds = Wallet::scopedToUser($user, $companyId)->pluck('id');
+
         $query = Transaction::forWallets($walletIds);
 
         if (! empty($filters['type'])) {

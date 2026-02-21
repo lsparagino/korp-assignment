@@ -6,6 +6,7 @@ use App\Enums\UserRole;
 use App\Notifications\VerifyEmailNotification;
 use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -74,6 +75,30 @@ class User extends Authenticatable implements MustVerifyEmail
     public function getIsPendingAttribute(): bool
     {
         return $this->invitation_token !== null;
+    }
+
+    public function scopeForCompany(Builder $query, int $companyId): Builder
+    {
+        return $query->whereHas('companies', function ($q) use ($companyId) {
+            $q->where('companies.id', $companyId);
+        });
+    }
+
+    public static function findByInvitationTokenOrFail(string $token): static
+    {
+        return static::where('invitation_token', $token)->firstOrFail();
+    }
+
+    /**
+     * @return array{access_token: string, token_type: string, user: static}
+     */
+    public function createAuthTokenResponse(): array
+    {
+        return [
+            'access_token' => $this->createToken('auth_token')->plainTextToken,
+            'token_type' => 'Bearer',
+            'user' => $this,
+        ];
     }
 
     public function validRecoveryCode(string $code): bool

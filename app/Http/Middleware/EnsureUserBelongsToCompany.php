@@ -16,9 +16,13 @@ class EnsureUserBelongsToCompany
             return $next($request);
         }
 
+        $companyId = (int) $companyId;
+
         if (! $request->user()->companies()->where('companies.id', $companyId)->exists()) {
             abort(403, __('messages.unauthorized_company'));
         }
+
+        $request->merge(['company_id' => $companyId]);
 
         return $next($request);
     }

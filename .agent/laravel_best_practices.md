@@ -1,3 +1,32 @@
+# Laravel Best Practices — Index
+
+| # | Section | Line |
+|---|---------|------|
+| 1 | Single responsibility principle | 30 |
+| 2 | Methods should do just one thing | 71 |
+| 3 | Fat models, skinny controllers | 114 |
+| 4 | Validation | 156 |
+| 5 | Business logic should be in service class | 198 |
+| 6 | Don't repeat yourself (DRY) | 238 |
+| 7 | Prefer Eloquent over Query Builder and raw SQL | 281 |
+| 8 | Mass assignment | 310 |
+| 9 | Do not execute queries in Blade templates / N+1 problem | 333 |
+| 10 | Chunk data for data-heavy tasks | 355 |
+| 11 | Prefer descriptive method and variable names over comments | 379 |
+| 12 | Do not put JS and CSS in Blade templates | 396 |
+| 13 | Use config and language files, constants instead of text | 424 |
+| 14 | Use standard Laravel tools accepted by community | 450 |
+| 15 | Follow Laravel naming conventions | 478 |
+| 16 | Convention over configuration | 517 |
+| 17 | Use shorter and more readable syntax where possible | 557 |
+| 18 | Use IoC / Service container instead of new Class | 596 |
+| 19 | Do not get data from the .env file directly | 619 |
+| 20 | Store dates in the standard format | 641 |
+| 21 | Do not use DocBlocks | 667 |
+| 22 | Other good practices | 702 |
+
+---
+
 ### **Single responsibility principle**
 
 A class should have only one responsibility.

@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\ForgotPasswordRequest;
 use App\Http\Requests\Api\ResetPasswordRequest;
-use App\Services\AuthService;
+use App\Services\PasswordResetService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Password;
 use Laravel\Fortify\Contracts\ResetsUserPasswords;
@@ -13,11 +13,11 @@ use Laravel\Fortify\Fortify;
 
 class PasswordResetController extends Controller
 {
-    public function __construct(private AuthService $authService) {}
+    public function __construct(private PasswordResetService $passwordResetService) {}
 
     public function forgotPassword(ForgotPasswordRequest $request): JsonResponse
     {
-        $status = $this->authService->sendPasswordResetLink(
+        $status = $this->passwordResetService->sendPasswordResetLink(
             $request->only(Fortify::email())
         );
 
@@ -28,7 +28,7 @@ class PasswordResetController extends Controller
 
     public function resetPassword(ResetPasswordRequest $request, ResetsUserPasswords $resets): JsonResponse
     {
-        $status = $this->authService->resetPassword(
+        $status = $this->passwordResetService->resetPassword(
             $request->only(Fortify::email(), 'password', 'password_confirmation', 'token'),
             $resets
         );

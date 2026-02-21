@@ -3,13 +3,30 @@
 namespace App\Services;
 
 use App\Enums\WalletStatus;
+use App\Http\Resources\WalletResource;
 use App\Models\User;
 use App\Models\Wallet;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 
 class WalletService
 {
+    public function listForUser(User $user, ?int $companyId, int $perPage): AnonymousResourceCollection
+    {
+        if (! $companyId) {
+            return WalletResource::collection(collect());
+        }
+
+        $wallets = Wallet::scopedToUser($user, $companyId)
+            ->withExists(['fromTransactions', 'toTransactions'])
+            ->withBalance()
+            ->latest()
+            ->paginate($perPage);
+
+        return WalletResource::collection($wallets);
+    }
+
     public function create(User $user, array $data): Wallet
     {
         $wallet = $user->wallets()->create([

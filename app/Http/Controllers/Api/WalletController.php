@@ -24,19 +24,8 @@ class WalletController extends Controller
         $this->authorize('viewAny', Wallet::class);
 
         $perPage = min((int) $request->input('per_page', 10), 500);
-        $companyId = $request->company_id;
 
-        if (! $companyId) {
-            return WalletResource::collection(collect());
-        }
-
-        $query = Wallet::scopedToUser($request->user(), $companyId)
-            ->withExists(['fromTransactions', 'toTransactions'])
-            ->withBalance();
-
-        return WalletResource::collection(
-            $query->latest()->paginate($perPage)
-        );
+        return $this->walletService->listForUser($request->user(), $request->company_id, $perPage);
     }
 
     public function store(StoreWalletRequest $request): WalletResource
