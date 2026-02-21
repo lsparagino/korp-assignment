@@ -7,12 +7,9 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class StoreTeamMemberRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
-        $companyId = $this->input('company_id');
+        $companyId = $this->company_id;
 
         return $this->user()->isAdmin()
             && $companyId

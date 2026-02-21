@@ -13,6 +13,9 @@ return [
     'two_factor_disabled' => '2FA disabled',
     'two_factor_not_enabled' => '2FA not enabled',
     'recovery_codes_regenerated' => 'Recovery codes regenerated',
+    'two_factor_code_or_recovery_required' => 'Please provide a code or recovery code.',
+    'invalid_recovery_code' => 'The provided recovery code was invalid.',
+    'invalid_two_factor_code' => 'The provided two factor authentication code was invalid.',
 
     // Email Verification
     'email_already_verified' => 'Email already verified',

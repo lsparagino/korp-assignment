@@ -14,6 +14,7 @@ use Laravel\Fortify\Contracts\CreatesNewUsers;
 use Laravel\Fortify\Contracts\ResetsUserPasswords;
 use Laravel\Fortify\Contracts\TwoFactorAuthenticationProvider;
 use Laravel\Fortify\Fortify;
+use Throwable;
 
 class AuthService
 {
@@ -71,7 +72,7 @@ class AuthService
             $this->verifyTwoFactorCode($user, $code);
         } else {
             throw ValidationException::withMessages([
-                'code' => [__('Please provide a code or recovery code.')],
+                'code' => [__('messages.two_factor_code_or_recovery_required')],
             ]);
         }
 
@@ -93,7 +94,7 @@ class AuthService
 
         try {
             $user->sendEmailVerificationNotification();
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             report($e);
             $user->delete();
 
@@ -188,7 +189,7 @@ class AuthService
     {
         if (! $user->validRecoveryCode($recoveryCode)) {
             throw ValidationException::withMessages([
-                'recovery_code' => [__('The provided recovery code was invalid.')],
+                'recovery_code' => [__('messages.invalid_recovery_code')],
             ]);
         }
 
@@ -202,7 +203,7 @@ class AuthService
             $code
         )) {
             throw ValidationException::withMessages([
-                'code' => [__('The provided two factor authentication code was invalid.')],
+                'code' => [__('messages.invalid_two_factor_code')],
             ]);
         }
     }
