@@ -45,8 +45,8 @@
 
   <!-- Filters -->
   <v-card border class="mb-6" flat rounded="lg">
-    <v-card-title class="pa-4 bg-grey-lighten-5 d-flex align-center justify-space-between border-b">
-      <span class="text-subtitle-1 font-weight-bold text-grey-darken-3">{{ $t('transactions.filterOptions') }}</span>
+    <v-card-title class="pa-4 bg-grey-lighten-4 d-flex align-center justify-space-between border-b">
+      <span class="text-grey-darken-1 text-uppercase text-caption font-weight-bold">{{ $t('transactions.filterOptions') }}</span>
       <v-chip
         v-if="activeFiltersCount > 0"
         class="font-weight-bold"

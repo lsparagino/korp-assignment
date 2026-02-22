@@ -168,17 +168,11 @@
       <h2 class="text-h6 font-weight-bold text-grey-darken-2 mb-4">
         {{ $t('dashboard.recentTransactions') }}
       </h2>
-      <v-card
+      <TransactionTable
         v-if="recentTransactions.length > 0"
-        border
-        flat
-        rounded="lg"
-      >
-        <TransactionTable
-          :is-admin="authStore.isAdmin"
-          :items="recentTransactions"
-        />
-      </v-card>
+        :is-admin="authStore.isAdmin"
+        :items="recentTransactions"
+      />
       <v-card
         v-else
         border

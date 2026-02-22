@@ -5,7 +5,7 @@
   import TeamMemberModal from '@/components/features/TeamMemberModal.vue'
   import PageHeader from '@/components/layout/PageHeader.vue'
   import ConfirmDialog from '@/components/ui/ConfirmDialog.vue'
-  import Pagination from '@/components/ui/Pagination.vue'
+  import DataTable from '@/components/ui/DataTable.vue'
   import { useConfirmDialog } from '@/composables/useConfirmDialog'
   import { useRefreshData } from '@/composables/useRefreshData'
   import { useUrlPagination } from '@/composables/useUrlPagination'
@@ -80,97 +80,89 @@
     </div>
   </PageHeader>
 
-  <v-card border flat :loading="processing" rounded="lg">
-    <div class="overflow-x-auto">
-      <v-table density="comfortable">
-        <thead class="bg-grey-lighten-4">
-          <tr>
-            <th class="text-grey-darken-1 text-uppercase text-caption font-weight-bold text-left">
-              {{ $t('teamMembers.tableHeaders.name') }}
-            </th>
-            <th class="text-grey-darken-1 text-uppercase text-caption font-weight-bold text-left">
-              {{ $t('teamMembers.tableHeaders.email') }}
-            </th>
-            <th class="text-grey-darken-1 text-uppercase text-caption font-weight-bold text-left">
-              {{ $t('teamMembers.tableHeaders.role') }}
-            </th>
-            <th class="text-grey-darken-1 text-uppercase text-caption font-weight-bold text-left">
-              {{ $t('teamMembers.tableHeaders.walletAccess') }}
-            </th>
-            <th
-              v-if="authStore.isAdmin"
-              class="text-grey-darken-1 text-uppercase text-caption font-weight-bold text-right"
-            >
-              {{ $t('teamMembers.tableHeaders.actions') }}
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="m in members" :key="m.id">
-            <td class="font-weight-bold text-grey-darken-3">
-              <div class="d-flex align-center ga-2">
-                {{ m.name }}
-                <v-chip
-                  v-if="m.id === authStore.user?.id"
-                  class="font-weight-bold"
-                  color="primary"
-                  size="x-small"
-                  variant="flat"
-                >{{ $t('teamMembers.you') }}</v-chip>
-                <v-chip
-                  v-if="m.is_pending"
-                  class="font-weight-bold"
-                  color="warning"
-                  size="x-small"
-                  variant="flat"
-                >{{ $t('teamMembers.pendingInvitation') }}</v-chip>
-              </div>
-            </td>
-            <td class="text-grey-darken-2">{{ m.email }}</td>
-            <td>
-              <v-chip
-                class="text-uppercase font-weight-bold"
-                :color="m.role === 'admin' ? 'primary' : 'grey-darken-1'"
-                size="small"
-                variant="flat"
-              >{{ m.role }}</v-chip>
-            </td>
-            <td>
-              <span class="text-caption text-grey-darken-2">{{ m.wallet_access }}</span>
-            </td>
-            <td v-if="authStore.isAdmin" class="text-right">
-              <div class="d-flex ga-2 justify-end">
-                <v-btn
-                  color="primary"
-                  density="comfortable"
-                  icon="mdi-pencil"
-                  size="small"
-                  variant="text"
-                  @click="openEdit(m)"
-                />
-                <v-btn
-                  v-if="m.id !== authStore.user?.id"
-                  color="error"
-                  density="comfortable"
-                  icon="mdi-delete"
-                  size="small"
-                  variant="text"
-                  @click="confirmDelete(m)"
-                />
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </v-table>
-    </div>
+  <DataTable
+    :loading="processing"
+    :meta="meta"
+    @update:page="handlePageChange"
+  >
+    <template #columns>
+      <th class="text-grey-darken-1 text-uppercase text-caption font-weight-bold text-left">
+        {{ $t('teamMembers.tableHeaders.name') }}
+      </th>
+      <th class="text-grey-darken-1 text-uppercase text-caption font-weight-bold text-left">
+        {{ $t('teamMembers.tableHeaders.email') }}
+      </th>
+      <th class="text-grey-darken-1 text-uppercase text-caption font-weight-bold text-left">
+        {{ $t('teamMembers.tableHeaders.role') }}
+      </th>
+      <th class="text-grey-darken-1 text-uppercase text-caption font-weight-bold text-left">
+        {{ $t('teamMembers.tableHeaders.walletAccess') }}
+      </th>
+      <th
+        v-if="authStore.isAdmin"
+        class="text-grey-darken-1 text-uppercase text-caption font-weight-bold text-right"
+      >
+        {{ $t('teamMembers.tableHeaders.actions') }}
+      </th>
+    </template>
 
-    <div class="border-t">
-      <Pagination
-        :meta="meta"
-        @update:page="handlePageChange"
-      />
-    </div>
-  </v-card>
+    <template #body>
+      <tr v-for="m in members" :key="m.id">
+        <td class="font-weight-bold text-grey-darken-3">
+          <div class="d-flex align-center ga-2">
+            {{ m.name }}
+            <v-chip
+              v-if="m.id === authStore.user?.id"
+              class="font-weight-bold"
+              color="primary"
+              size="x-small"
+              variant="flat"
+            >{{ $t('teamMembers.you') }}</v-chip>
+            <v-chip
+              v-if="m.is_pending"
+              class="font-weight-bold"
+              color="warning"
+              size="x-small"
+              variant="flat"
+            >{{ $t('teamMembers.pendingInvitation') }}</v-chip>
+          </div>
+        </td>
+        <td class="text-grey-darken-2">{{ m.email }}</td>
+        <td>
+          <v-chip
+            class="text-uppercase font-weight-bold"
+            :color="m.role === 'admin' ? 'primary' : 'grey-darken-1'"
+            size="small"
+            variant="flat"
+          >{{ m.role }}</v-chip>
+        </td>
+        <td>
+          <span class="text-caption text-grey-darken-2">{{ m.wallet_access }}</span>
+        </td>
+        <td v-if="authStore.isAdmin" class="text-right">
+          <div class="d-flex ga-2 justify-end">
+            <v-btn
+              color="primary"
+              density="comfortable"
+              icon="mdi-pencil"
+              size="small"
+              variant="text"
+              @click="openEdit(m)"
+            />
+            <v-btn
+              v-if="m.id !== authStore.user?.id"
+              color="error"
+              density="comfortable"
+              icon="mdi-delete"
+              size="small"
+              variant="text"
+              @click="confirmDelete(m)"
+            />
+          </div>
+        </td>
+      </tr>
+    </template>
+  </DataTable>
 
   <TeamMemberModal
     v-model="showModal"

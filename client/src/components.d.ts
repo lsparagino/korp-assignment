@@ -15,6 +15,7 @@ declare module 'vue' {
     AuthCard: typeof import('./components/ui/AuthCard.vue')['default']
     CompanySelector: typeof import('./components/features/CompanySelector.vue')['default']
     ConfirmDialog: typeof import('./components/ui/ConfirmDialog.vue')['default']
+    DataTable: typeof import('./components/ui/DataTable.vue')['default']
     DeleteUser: typeof import('./components/features/DeleteUser.vue')['default']
     Heading: typeof import('./components/ui/Heading.vue')['default']
     PageHeader: typeof import('./components/layout/PageHeader.vue')['default']

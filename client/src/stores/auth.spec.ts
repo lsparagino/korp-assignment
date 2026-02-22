@@ -68,7 +68,7 @@ describe('useAuthStore', () => {
     it('clears token, user, and localStorage', () => {
       const store = useAuthStore()
       store.setToken('abc123')
-      store.setUser({ id: 1, name: 'Test', email: 'test@example.com', role: 'member', two_factor_confirmed_at: null })
+      store.setUser({ id: 1, name: 'Test', email: 'test@example.com', pending_email: null, email_verified_at: null, role: 'member', two_factor_confirmed_at: null })
 
       store.clearToken()
 
@@ -83,7 +83,7 @@ describe('useAuthStore', () => {
   describe('setUser', () => {
     it('sets user and persists to localStorage', () => {
       const store = useAuthStore()
-      const user = { id: 1, name: 'Test', email: 'test@example.com', role: 'admin', two_factor_confirmed_at: null }
+      const user = { id: 1, name: 'Test', email: 'test@example.com', pending_email: null, email_verified_at: null, role: 'admin', two_factor_confirmed_at: null }
 
       store.setUser(user)
 
@@ -93,13 +93,13 @@ describe('useAuthStore', () => {
 
     it('isAdmin reflects admin role', () => {
       const store = useAuthStore()
-      store.setUser({ id: 1, name: 'Test', email: 'test@example.com', role: 'admin', two_factor_confirmed_at: null })
+      store.setUser({ id: 1, name: 'Test', email: 'test@example.com', pending_email: null, email_verified_at: null, role: 'admin', two_factor_confirmed_at: null })
       expect(store.isAdmin).toBe(true)
     })
 
     it('isAdmin is false for non-admin role', () => {
       const store = useAuthStore()
-      store.setUser({ id: 1, name: 'Test', email: 'test@example.com', role: 'member', two_factor_confirmed_at: null })
+      store.setUser({ id: 1, name: 'Test', email: 'test@example.com', pending_email: null, email_verified_at: null, role: 'member', two_factor_confirmed_at: null })
       expect(store.isAdmin).toBe(false)
     })
   })
@@ -115,7 +115,7 @@ describe('useAuthStore', () => {
   describe('fetchUser', () => {
     it('sets user on successful fetch', async () => {
       const { fetchUser: apiFetchUser } = await import('@/api/auth')
-      const user = { id: 1, name: 'Fetched', email: 'fetched@example.com', role: 'admin', two_factor_confirmed_at: null }
+      const user = { id: 1, name: 'Fetched', email: 'fetched@example.com', pending_email: null, email_verified_at: null, role: 'admin', two_factor_confirmed_at: null }
       vi.mocked(apiFetchUser).mockResolvedValue({ data: user } as any)
 
       const store = useAuthStore()
