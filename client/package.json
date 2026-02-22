@@ -11,7 +11,10 @@
     "type-check": "vue-tsc --build --force",
     "lint": "eslint . --fix",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "e2e": "playwright test",
+    "e2e:ui": "playwright test --ui",
+    "e2e:headed": "playwright test --headed"
   },
   "dependencies": {
     "@fontsource/roboto": "5.2.7",
@@ -27,6 +30,7 @@
   },
   "devDependencies": {
     "@pinia/colada-devtools": "^0.4.2",
+    "@playwright/test": "^1.58.2",
     "@tsconfig/node22": "^22.0.0",
     "@types/luxon": "^3.7.1",
     "@types/node": "^22.9.0",

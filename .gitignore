@@ -31,3 +31,4 @@ yarn-error.log
 /terraform/terraform.tfstate
 /terraform/terraform.tfstate.backup
 /terraform/terraform.tfvars
+/database/e2e.sqlite

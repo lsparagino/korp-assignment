@@ -68,3 +68,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/settings/pending-email', [ProfileController::class, 'cancelPendingEmail'])->name('settings.pending-email.destroy');
     Route::put('/settings/password', [PasswordController::class, 'update'])->name('settings.password.update');
 });
+
+// E2E Testing Routes (only available when APP_ENV=testing)
+if (app()->environment('testing')) {
+    Route::prefix('test')->group(function () {
+        Route::post('/reset-database', [App\Http\Controllers\Api\TestingController::class, 'resetDatabase']);
+        Route::post('/create-user', [App\Http\Controllers\Api\TestingController::class, 'createUser']);
+        Route::post('/login', [App\Http\Controllers\Api\TestingController::class, 'loginUser']);
+    });
+}
