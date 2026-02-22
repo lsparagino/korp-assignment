@@ -15,7 +15,7 @@ const FILTER_KEYS = [
   'from_wallet_id', 'to_wallet_id',
 ] as const
 
-export function useTransactionFilters() {
+export function useTransactionFilters () {
   const route = useRoute()
   const router = useRouter()
   const { t } = useI18n()
@@ -100,7 +100,7 @@ export function useTransactionFilters() {
     + ['date_from', 'date_to', 'type'].filter(k => route.query[k]).length,
   )
 
-  function handleFilter() {
+  function handleFilter () {
     const raw: Record<string, string | undefined> = {
       ...route.query,
       page: '1',
@@ -120,7 +120,7 @@ export function useTransactionFilters() {
     router.push({ query })
   }
 
-  function clearFilters() {
+  function clearFilters () {
     const query = { ...route.query }
     for (const key of FILTER_KEYS) {
       delete query[key]
@@ -129,7 +129,7 @@ export function useTransactionFilters() {
     router.push({ query })
   }
 
-  async function invalidateQueries() {
+  async function invalidateQueries () {
     await Promise.all([
       queryCache.invalidateQueries({ key: TRANSACTION_QUERY_KEYS.root }),
       queryCache.invalidateQueries({ key: WALLET_QUERY_KEYS.root }),
@@ -159,4 +159,3 @@ export function useTransactionFilters() {
     invalidateQueries,
   }
 }
-

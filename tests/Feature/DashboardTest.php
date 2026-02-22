@@ -77,4 +77,3 @@ test('wallet balance uses eager-loaded values when available', function () {
     expect($eagerBalance)->toBe($accessorBalance);
     expect($eagerBalance)->toBe(250.0);
 });
-

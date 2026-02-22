@@ -5,7 +5,7 @@ description: Development Workflow
 ALWAYS follow the workflow when implementing a new feature or fixing a bug. This ensures consistency, quality, and maintainability of the codebase.
 
 1. Plan your tasks, review them with user. Include tests when possible
-2. Write code, following the [project structure](#project-structure) and [conventions](#standards)
+2. Write code, following the project structure and conventions
 3. **ALWAYS test implementations work**:
    - Write tests for logic and components
    - Use the agent-browser to test like a real user

@@ -1,8 +1,8 @@
 import type { Wallet } from '@/api/wallets'
+import type { PaginationMeta } from '@/composables/useUrlPagination'
 import { defineQuery, defineQueryOptions, useQuery } from '@pinia/colada'
 import { computed, ref } from 'vue'
 import { fetchWallet, fetchWallets } from '@/api/wallets'
-import type { PaginationMeta } from '@/composables/useUrlPagination'
 
 interface WalletsQueryParams {
   page: number
@@ -58,4 +58,3 @@ export const walletByIdQuery = defineQueryOptions(
     },
   }),
 )
-

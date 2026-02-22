@@ -21,7 +21,9 @@
 
   const { members, meta, isPending: processing, refetch, page } = useTeamMemberList()
 
-  watch(urlPage, val => { page.value = val }, { immediate: true })
+  watch(urlPage, val => {
+    page.value = val
+  }, { immediate: true })
 
   const { refreshing, refresh } = useRefreshData(async () => {
     await refetch()

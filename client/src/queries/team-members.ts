@@ -1,8 +1,8 @@
 import type { TeamMember } from '@/api/team-members'
+import type { PaginationMeta } from '@/composables/useUrlPagination'
 import { defineQuery, defineQueryOptions, useQuery } from '@pinia/colada'
 import { computed, ref } from 'vue'
 import { fetchTeamMembers } from '@/api/team-members'
-import type { PaginationMeta } from '@/composables/useUrlPagination'
 
 export const TEAM_MEMBER_QUERY_KEYS = {
   root: ['team-members'] as const,
@@ -34,4 +34,3 @@ export const useTeamMemberList = defineQuery(() => {
 
   return { ...rest, page, members, meta }
 })
-

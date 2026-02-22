@@ -24,8 +24,12 @@
 
   const { wallets, meta, isPending: processing, refetch, page, perPage } = useWalletList()
 
-  watch(urlPage, val => { page.value = val }, { immediate: true })
-  watch(urlPerPage, val => { perPage.value = val }, { immediate: true })
+  watch(urlPage, val => {
+    page.value = val
+  }, { immediate: true })
+  watch(urlPerPage, val => {
+    perPage.value = val
+  }, { immediate: true })
 
   const { refreshing, refresh } = useRefreshData(async () => {
     await refetch()
