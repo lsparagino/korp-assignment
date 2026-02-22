@@ -1,7 +1,5 @@
-import type { Wallet } from '@/api/wallets'
 import { useMutation, useQuery, useQueryCache } from '@pinia/colada'
 import { defineStore } from 'pinia'
-import { computed, ref } from 'vue'
 import {
   createWallet as apiCreateWallet,
   deleteWallet as apiDeleteWallet,
@@ -9,36 +7,14 @@ import {
   updateWallet as apiUpdateWallet,
 } from '@/api/wallets'
 import { DASHBOARD_QUERY_KEYS } from '@/queries/dashboard'
-import { WALLET_QUERY_KEYS, walletByIdQuery, walletsListQuery } from '@/queries/wallets'
-
-const DEFAULT_PER_PAGE = 10
+import { WALLET_QUERY_KEYS, walletByIdQuery } from '@/queries/wallets'
 
 export const useWalletStore = defineStore('wallet', () => {
   const queryCache = useQueryCache()
 
-  const page = ref(1)
-  const perPage = ref(DEFAULT_PER_PAGE)
-
-  const { data: listData, isPending: listLoading } = useQuery(
-    walletsListQuery,
-    () => ({ page: page.value, perPage: perPage.value }),
-  )
-
-  const wallets = computed<Wallet[]>(() => listData.value?.data ?? [])
-  const meta = computed(() => listData.value?.meta ?? {
-    current_page: 1,
-    last_page: 1,
-    per_page: DEFAULT_PER_PAGE,
-    total: 0,
-    from: null,
-    to: null,
-  })
-
   async function invalidateQueries() {
-    await Promise.all([
-      queryCache.invalidateQueries({ key: WALLET_QUERY_KEYS.root }),
-      queryCache.invalidateQueries({ key: DASHBOARD_QUERY_KEYS.root }),
-    ])
+    await queryCache.invalidateQueries({ key: WALLET_QUERY_KEYS.root })
+    await queryCache.invalidateQueries({ key: DASHBOARD_QUERY_KEYS.root })
   }
 
   function useWalletById(id: string | number) {
@@ -67,11 +43,6 @@ export const useWalletStore = defineStore('wallet', () => {
   })
 
   return {
-    page,
-    perPage,
-    wallets,
-    meta,
-    listLoading,
     useWalletById,
     createWallet,
     updateWallet,
@@ -80,3 +51,5 @@ export const useWalletStore = defineStore('wallet', () => {
     invalidateQueries,
   }
 })
+
+

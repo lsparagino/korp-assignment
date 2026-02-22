@@ -5,7 +5,7 @@ import { computed, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { useDatePicker } from '@/composables/useDatePicker'
-import { useUrlPagination } from '@/composables/useUrlPagination'
+import { type PaginationMeta, useUrlPagination } from '@/composables/useUrlPagination'
 import { TRANSACTION_QUERY_KEYS, transactionsListQuery } from '@/queries/transactions'
 import { WALLET_QUERY_KEYS, walletsListQuery } from '@/queries/wallets'
 
@@ -85,7 +85,7 @@ export function useTransactionFilters() {
   )
 
   const transactions = computed<Transaction[]>(() => transactionsData.value?.data ?? [])
-  const meta = computed(() => transactionsData.value?.meta ?? {
+  const meta = computed<PaginationMeta>(() => transactionsData.value?.meta ?? {
     current_page: 1, last_page: 1, per_page: 25, total: 0, from: null, to: null,
   })
 

@@ -1,6 +1,6 @@
 <script lang="ts" setup>
   import type { Wallet } from '@/api/wallets'
-  import { computed, ref, watch } from 'vue'
+  import { ref, watch } from 'vue'
   import { useI18n } from 'vue-i18n'
   import PageHeader from '@/components/layout/PageHeader.vue'
   import ConfirmDialog from '@/components/ui/ConfirmDialog.vue'
@@ -8,6 +8,7 @@
   import { useConfirmDialog } from '@/composables/useConfirmDialog'
   import { useRefreshData } from '@/composables/useRefreshData'
   import { useUrlPagination } from '@/composables/useUrlPagination'
+  import { useWalletList } from '@/queries/wallets'
   import { useAuthStore } from '@/stores/auth'
   import { useWalletStore } from '@/stores/wallet'
   import { getCurrencyColors, getStatusColors } from '@/utils/colors'
@@ -19,19 +20,16 @@
   const walletStore = useWalletStore()
   const snackbar = ref({ show: false, text: '', color: 'error' })
   const { confirmDialog, openConfirmDialog } = useConfirmDialog()
-  const { page, perPage, handlePageChange, handlePerPageChange } = useUrlPagination()
-  const { refreshing, refresh } = useRefreshData(() => walletStore.invalidateQueries())
+  const { page: urlPage, perPage: urlPerPage, handlePageChange, handlePerPageChange } = useUrlPagination()
 
-  watch(page, val => {
-    walletStore.page = val
-  }, { immediate: true })
-  watch(perPage, val => {
-    walletStore.perPage = val
-  }, { immediate: true })
+  const { wallets, meta, isPending: processing, refetch, page, perPage } = useWalletList()
 
-  const wallets = computed(() => walletStore.wallets)
-  const meta = computed(() => walletStore.meta)
-  const processing = computed(() => walletStore.listLoading)
+  watch(urlPage, val => { page.value = val }, { immediate: true })
+  watch(urlPerPage, val => { perPage.value = val }, { immediate: true })
+
+  const { refreshing, refresh } = useRefreshData(async () => {
+    await refetch()
+  })
 
   function toggleFreeze (wallet: Wallet) {
     const isFreezing = wallet.status === 'active'

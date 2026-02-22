@@ -1,6 +1,6 @@
 <script lang="ts" setup>
   import type { TeamMember } from '@/api/team-members'
-  import { computed, ref, watch } from 'vue'
+  import { ref, watch } from 'vue'
   import { useI18n } from 'vue-i18n'
   import TeamMemberModal from '@/components/features/TeamMemberModal.vue'
   import PageHeader from '@/components/layout/PageHeader.vue'
@@ -9,6 +9,7 @@
   import { useConfirmDialog } from '@/composables/useConfirmDialog'
   import { useRefreshData } from '@/composables/useRefreshData'
   import { useUrlPagination } from '@/composables/useUrlPagination'
+  import { useTeamMemberList } from '@/queries/team-members'
   import { useAuthStore } from '@/stores/auth'
   import { useTeamMemberStore } from '@/stores/team-member'
 
@@ -16,15 +17,15 @@
   const authStore = useAuthStore()
   const teamMemberStore = useTeamMemberStore()
   const { confirmDialog, openConfirmDialog } = useConfirmDialog()
-  const { page, handlePageChange } = useUrlPagination()
-  const { refreshing, refresh } = useRefreshData(() => teamMemberStore.invalidateQueries())
+  const { page: urlPage, handlePageChange } = useUrlPagination()
 
-  watch(page, val => {
-    teamMemberStore.page = val
-  }, { immediate: true })
+  const { members, meta, isPending: processing, refetch, page } = useTeamMemberList()
 
-  const members = computed(() => teamMemberStore.members)
-  const processing = computed(() => teamMemberStore.listLoading)
+  watch(urlPage, val => { page.value = val }, { immediate: true })
+
+  const { refreshing, refresh } = useRefreshData(async () => {
+    await refetch()
+  })
 
   const showModal = ref(false)
   const selectedMember = ref<TeamMember | null>(null)
@@ -163,14 +164,7 @@
 
     <div class="border-t">
       <Pagination
-        :meta="{
-          current_page: teamMemberStore.pagination.currentPage,
-          last_page: teamMemberStore.pagination.lastPage,
-          per_page: 15,
-          total: teamMemberStore.pagination.total,
-          from: null,
-          to: null,
-        }"
+        :meta="meta"
         @update:page="handlePageChange"
       />
     </div>
