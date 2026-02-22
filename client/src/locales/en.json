@@ -1,0 +1,273 @@
+{
+    "common": {
+        "cancel": "Cancel",
+        "save": "Save",
+        "saved": "Saved.",
+        "delete": "Delete",
+        "email": "Email",
+        "emailAddress": "Email address",
+        "password": "Password",
+        "confirmPassword": "Confirm password",
+        "name": "Name",
+        "fullName": "Full name",
+        "logOut": "Log out",
+        "continue": "Continue",
+        "back": "Back",
+        "actions": "Actions",
+        "loading": "Loading...",
+        "genericError": "Something went wrong. Please try again.",
+        "errorOccurred": "An error occurred. Please try again."
+    },
+    "nav": {
+        "dashboard": "Dashboard",
+        "wallets": "Wallets",
+        "transactions": "Transactions",
+        "teamMembers": "Team Members",
+        "settings": "Settings",
+        "disconnect": "Disconnect",
+        "createWallet": "Create Wallet"
+    },
+    "company": {
+        "selectCompany": "Select company"
+    },
+    "landing": {
+        "headline": "Secure your wealth with confidence",
+        "subheadline": "The ultimate platform for managing your multi-currency wallets and team members securely.",
+        "getStarted": "Get Started",
+        "createAccount": "Create Account",
+        "goToDashboard": "Go to Dashboard"
+    },
+    "auth": {
+        "login": {
+            "title": "Log in to your account",
+            "description": "Enter your email and password below to log in",
+            "passwordLabel": "Password",
+            "forgotPassword": "Forgot password?",
+            "rememberMe": "Remember me",
+            "submit": "Log in",
+            "noAccount": "Don't have an account?",
+            "signUp": "Sign up",
+            "error": "An error occurred during login."
+        },
+        "register": {
+            "title": "Create an account",
+            "description": "Enter your details below to create your account",
+            "submit": "Create account",
+            "hasAccount": "Already have an account?",
+            "logIn": "Log in"
+        },
+        "forgotPassword": {
+            "title": "Forgot password",
+            "description": "Enter your email to receive a password reset link",
+            "submit": "Email password reset link",
+            "waitToResend": "Wait {seconds}s to resend",
+            "mailboxFull": "Your mailbox is full",
+            "returnTo": "Or, return to",
+            "logIn": "log in"
+        },
+        "resetPassword": {
+            "title": "Reset password",
+            "description": "Please enter your new password below",
+            "submit": "Reset password"
+        },
+        "confirmPassword": {
+            "title": "Confirm your password",
+            "description": "This is a secure area of the application. Please confirm your password before continuing.",
+            "submit": "Confirm Password"
+        },
+        "twoFactor": {
+            "authCode": "Authentication Code",
+            "authCodeDescription": "Enter the authentication code provided by your authenticator application.",
+            "useRecoveryCode": "login using a recovery code",
+            "recoveryCode": "Recovery Code",
+            "recoveryCodeDescription": "Please confirm access to your account by entering one of your emergency recovery codes.",
+            "useAuthCode": "login using an authentication code",
+            "recoveryCodeLabel": "Recovery Code",
+            "recoveryCodePlaceholder": "Enter recovery code",
+            "orYouCan": "or you can"
+        },
+        "verifyEmail": {
+            "title": "Verify email",
+            "description": "Please verify your email address by clicking on the link we just emailed to you.",
+            "verifying": "Verifying your email...",
+            "verified": "Email verified successfully! Redirecting...",
+            "verificationFailed": "Verification failed. The link may be invalid or expired.",
+            "resendLink": "A new verification link has been sent to your email address.",
+            "resendFailed": "Failed to send verification email. Please try again.",
+            "resendButton": "Resend verification email",
+            "resendButtonCooldown": "Resend verification email ({seconds}s)",
+            "continueToDashboard": "Continue to dashboard"
+        },
+        "invitation": {
+            "title": "Activate Your Account",
+            "description": "Join the SecureWallet team.",
+            "verifying": "Verifying invitation...",
+            "invalidTitle": "Invalid or Expired Invitation",
+            "invalidMessage": "This invitation link is invalid or has already been used. Please contact your administrator.",
+            "backToLogin": "Back to Login",
+            "setPasswordMessage": "Hello! Please set a password for your account {email}.",
+            "newPassword": "New Password",
+            "confirmPasswordLabel": "Confirm Password",
+            "activateAccount": "Activate Account"
+        }
+    },
+    "dashboard": {
+        "title": "Dashboard",
+        "totalBalance": "Total {currency} Balance",
+        "topPerformingWallets": "Top Performing Wallets",
+        "otherWallets": "Other Wallets ({count})",
+        "noWallets": "No wallets found. Create one to get started.",
+        "recentTransactions": "Recent Transactions",
+        "noTransactions": "No transactions yet."
+    },
+    "wallets": {
+        "title": "Wallets",
+        "createWallet": "Create Wallet",
+        "createNewWallet": "Create New Wallet",
+        "editWallet": "Edit Wallet",
+        "backToWallets": "Back to Wallets",
+        "walletName": "Wallet Name",
+        "walletNamePlaceholder": "e.g. Savings, Marketing, Operations",
+        "baseCurrency": "Base Currency",
+        "currencyUSD": "US Dollar (USD)",
+        "currencyEUR": "Euro (EUR)",
+        "saveChanges": "Save Changes",
+        "walletAddress": "Wallet Address",
+        "managementActions": "Management Actions",
+        "managementDescription": "Manage the status or permanently delete this wallet.",
+        "freezeWallet": "Freeze Wallet",
+        "unfreezeWallet": "Unfreeze Wallet",
+        "deleteWallet": "Delete Wallet",
+        "cannotDeleteInfo": "Only wallets with no transaction history can be deleted.",
+        "confirmFreeze": "Are you sure you want to freeze the wallet \"{name}\"?",
+        "confirmUnfreeze": "Are you sure you want to unfreeze the wallet \"{name}\"?",
+        "confirmDelete": "Warning: You are about to permanently delete the wallet \"{name}\". This action cannot be undone.",
+        "confirmDeleteEdit": "Warning: You are about to permanently delete the wallet \"{name}\". This action cannot be undone. Only empty wallets can be deleted.",
+        "deleteUnauthorized": "You are not authorized to delete this wallet.",
+        "deleteUnauthorizedEdit": "You are not authorized to delete this wallet (it might not be empty).",
+        "tableHeaders": {
+            "name": "Name",
+            "address": "Address",
+            "balance": "Balance",
+            "currency": "Currency",
+            "status": "Status"
+        }
+    },
+    "transactions": {
+        "title": "Transactions",
+        "transactionsList": "Transactions List",
+        "filterOptions": "Filter Options",
+        "activeFilters": "{count} active",
+        "dateFrom": "Date From",
+        "dateTo": "Date To",
+        "type": "Type",
+        "typeAll": "All",
+        "typeDebit": "Debit",
+        "typeCredit": "Credit",
+        "advancedFilters": "Advanced Filters",
+        "amountRange": "Amount Range",
+        "min": "Min",
+        "max": "Max",
+        "reference": "Reference",
+        "referencePlaceholder": "Contains...",
+        "fromWallet": "From Wallet",
+        "toWallet": "To Wallet",
+        "selectSource": "Select source wallet",
+        "selectDestination": "Select destination wallet",
+        "clear": "Clear",
+        "filter": "Filter",
+        "external": "External",
+        "noTransactions": "No transactions found.",
+        "transactionDetails": "Transaction Details",
+        "date": "Date",
+        "amount": "Amount",
+        "tableHeaders": {
+            "date": "Date",
+            "type": "Type",
+            "amount": "Amount",
+            "fromWallet": "From Wallet",
+            "toWallet": "To Wallet",
+            "reference": "Reference",
+            "actions": "Actions"
+        }
+    },
+    "teamMembers": {
+        "title": "Team Members",
+        "addMember": "Add Member",
+        "editMember": "Edit Member",
+        "you": "YOU",
+        "pendingInvitation": "Pending Invitation",
+        "deleteMember": "Delete Member",
+        "confirmDelete": "Are you sure you want to permanently delete {name}? This action cannot be undone.",
+        "walletAccess": "Wallet Access",
+        "updateMember": "Update Member",
+        "inviteMember": "Invite Member",
+        "fullNamePlaceholder": "John Doe",
+        "emailPlaceholder": "john{'@'}example.com",
+        "tableHeaders": {
+            "name": "Name",
+            "email": "Email",
+            "role": "Role",
+            "walletAccess": "Wallet Access",
+            "actions": "Actions"
+        }
+    },
+    "settings": {
+        "nav": {
+            "profile": "Profile",
+            "password": "Password",
+            "twoFactor": "Two-Factor"
+        },
+        "profile": {
+            "title": "Profile information",
+            "description": "Update your name and email address",
+            "pendingEmail": "A verification link has been sent to {email}. Please verify to update your email.",
+            "deleteAccount": "Delete account",
+            "deleteAccountDescription": "Permanently delete your account and all of its data.",
+            "deleteAccountButton": "Delete Account",
+            "deleteAccountDialogTitle": "Delete Account",
+            "deleteAccountDialogMessage": "Are you sure you want to delete your account? Once your account is deleted, all of its resources and data will be permanently deleted. Please enter your password to confirm you would like to permanently delete your account."
+        },
+        "password": {
+            "title": "Update password",
+            "description": "Ensure your account is using a long, random password to stay secure",
+            "currentPassword": "Current password",
+            "newPassword": "New password",
+            "savePassword": "Save password"
+        },
+        "twoFactor": {
+            "title": "Two-Factor Authentication",
+            "description": "Manage your two-factor authentication settings",
+            "disabled": "Disabled",
+            "enabled": "Enabled",
+            "setupInProgress": "Setup in Progress",
+            "enableDescription": "When you enable two-factor authentication, you will be prompted for a secure pin during login.",
+            "enable": "Enable 2FA",
+            "disable": "Disable 2FA",
+            "setupDescription": "Scan the QR code with your authenticator app and enter the code below to confirm.",
+            "enterCode": "Enter the 6-digit code:",
+            "confirmationCode": "Confirmation Code",
+            "confirmAndEnable": "Confirm & Enable",
+            "enabledDescription": "Two-factor authentication is enabled. You can manage your recovery codes below.",
+            "recoveryCodes": "Recovery Codes"
+        }
+    },
+    "deleteUser": {
+        "title": "Delete Account",
+        "description": "Permanently delete your account. Any data you have in SecureWallet will be lost forever.",
+        "button": "Delete Account",
+        "dialogTitle": "Are you sure?",
+        "dialogMessage": "Once your account is deleted, all of its resources and data will be permanently deleted. Please enter your password to confirm you would like to permanently delete your account."
+    },
+    "confirmDialog": {
+        "defaultTitle": "Confirm Action",
+        "defaultMessage": "Are you sure you want to proceed?",
+        "defaultConfirm": "Yes, Proceed",
+        "verificationRequired": "Verification Required",
+        "verificationHint": "Please enter the code above to confirm this action."
+    },
+    "pagination": {
+        "showing": "Showing {from} to {to} of {total} entries",
+        "perPage": "Per page:"
+    }
+}

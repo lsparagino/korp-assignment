@@ -1,12 +1,7 @@
 <script lang="ts" setup>
-  import { Calendar } from 'lucide-vue-next'
+  import PageHeader from '@/components/layout/PageHeader.vue'
   import TransactionTable from '@/components/features/TransactionTable.vue'
   import { useTransactionFilters } from '@/composables/useTransactionFilters'
-  import { useAuthStore } from '@/stores/auth'
-  import { useCompanyStore } from '@/stores/company'
-
-  const auth = useAuthStore()
-  const companyStore = useCompanyStore()
 
   const {
     filterForm,
@@ -32,237 +27,210 @@
 </script>
 
 <template>
-  <div class="mb-8">
-    <h1 class="text-h5 font-weight-bold text-grey-darken-2">
-      Transactions
-      <span
-        v-if="companyStore.currentCompany"
-        class="text-grey-darken-1"
-      >- {{ companyStore.currentCompany.name }}</span>
-    </h1>
-  </div>
+  <PageHeader :title="$t('transactions.title')" />
 
-  <!-- Filter Card -->
+  <!-- Filters -->
   <v-card border class="mb-6" flat rounded="lg">
-    <v-card-text class="pa-6">
-      <div class="d-flex align-center justify-space-between mb-4">
-        <span
-          class="text-subtitle-2 font-weight-bold text-grey-darken-3"
-        >Filter Options</span>
-        <v-chip
-          v-if="activeFiltersCount > 0"
-          color="primary"
-          density="comfortable"
-          size="x-small"
-          variant="flat"
-        >
-          {{ activeFiltersCount }} active
-        </v-chip>
-      </div>
-      <v-row>
-        <v-col cols="12" md="4">
-          <label
-            class="text-caption font-weight-bold text-grey-darken-2 d-block mb-2"
-          >
-            Date From
-          </label>
+    <v-card-title class="pa-4 bg-grey-lighten-5 d-flex align-center justify-space-between border-b">
+      <span class="text-subtitle-1 font-weight-bold text-grey-darken-3">{{ $t('transactions.filterOptions') }}</span>
+      <v-chip
+        v-if="activeFiltersCount > 0"
+        class="font-weight-bold"
+        color="primary"
+        size="small"
+        variant="flat"
+      >
+        {{ $t('transactions.activeFilters', { count: activeFiltersCount }) }}
+      </v-chip>
+    </v-card-title>
+    <v-card-text class="pa-4">
+      <v-row align="center" dense>
+        <v-col cols="12" md="3" sm="6">
           <v-menu
             v-model="dateFromMenu"
             :close-on-content-click="false"
-            location="bottom"
-            min-width="auto"
+            offset-y
             transition="scale-transition"
           >
             <template #activator="{ props }">
               <v-text-field
                 v-model="filterForm.date_from"
+                clearable
+                color="primary"
                 density="comfortable"
                 hide-details
-                placeholder="YYYY-MM-DD"
+                :label="$t('transactions.dateFrom')"
+                prepend-inner-icon="mdi-calendar"
                 readonly
-                rounded="lg"
-                v-bind="props"
                 variant="outlined"
-              >
-                <template #append-inner>
-                  <v-icon
-                    class="cursor-pointer"
-                    color="grey-darken-1"
-                    :icon="Calendar"
-                    size="18"
-                  />
-                </template>
-              </v-text-field>
+                v-bind="props"
+                @click:clear="filterForm.date_from = ''"
+              />
             </template>
             <v-date-picker
               v-model="dateFromValue"
-              color="primary"
-              hide-header
-              @update:model-value="onDateSelected('from', $event)"
+              @update:model-value="
+                onDateSelected('from', $event);
+                dateFromMenu = false;
+              "
             />
           </v-menu>
         </v-col>
 
-        <v-col cols="12" md="4">
-          <label
-            class="text-caption font-weight-bold text-grey-darken-2 d-block mb-2"
-          >
-            Date To
-          </label>
+        <v-col cols="12" md="3" sm="6">
           <v-menu
             v-model="dateToMenu"
             :close-on-content-click="false"
-            location="bottom"
-            min-width="auto"
+            offset-y
             transition="scale-transition"
           >
             <template #activator="{ props }">
               <v-text-field
                 v-model="filterForm.date_to"
+                clearable
+                color="primary"
                 density="comfortable"
                 hide-details
-                placeholder="YYYY-MM-DD"
+                :label="$t('transactions.dateTo')"
+                prepend-inner-icon="mdi-calendar"
                 readonly
-                rounded="lg"
-                v-bind="props"
                 variant="outlined"
-              >
-                <template #append-inner>
-                  <v-icon
-                    class="cursor-pointer"
-                    color="grey-darken-1"
-                    :icon="Calendar"
-                    size="18"
-                  />
-                </template>
-              </v-text-field>
+                v-bind="props"
+                @click:clear="filterForm.date_to = ''"
+              />
             </template>
             <v-date-picker
               v-model="dateToValue"
-              color="primary"
-              hide-header
-              @update:model-value="onDateSelected('to', $event)"
+              @update:model-value="
+                onDateSelected('to', $event);
+                dateToMenu = false;
+              "
             />
           </v-menu>
         </v-col>
 
-        <v-col cols="12" md="4">
-          <label
-            class="text-caption font-weight-bold text-grey-darken-2 d-block mb-2"
-          >
-            Type
-          </label>
+        <v-col cols="12" md="3" sm="6">
           <v-select
             v-model="filterForm.type"
+            color="primary"
             density="comfortable"
             hide-details
             :items="types"
-            rounded="lg"
+            :label="$t('transactions.type')"
             variant="outlined"
           />
+        </v-col>
+
+        <v-col class="d-flex ga-2" cols="12" md="3" sm="6">
+          <v-btn
+            class="text-none font-weight-bold"
+            color="primary"
+            height="48"
+            prepend-icon="mdi-filter-variant"
+            rounded="lg"
+            variant="flat"
+            @click="handleFilter"
+          >
+            {{ $t('transactions.filter') }}
+          </v-btn>
+          <v-btn
+            class="text-none font-weight-bold"
+            color="grey-darken-1"
+            height="48"
+            prepend-icon="mdi-close"
+            rounded="lg"
+            variant="outlined"
+            @click="clearFilters"
+          >
+            {{ $t('transactions.clear') }}
+          </v-btn>
         </v-col>
       </v-row>
 
       <v-expansion-panels v-model="advancedPanel" class="mt-4">
-        <v-expansion-panel border elevation="0">
-          <v-expansion-panel-title
-            class="text-caption font-weight-bold text-primary min-h-0"
-          >
-            <v-icon class="mr-3" icon="mdi-filter-cog" />Advanced
-            Filters
+        <v-expansion-panel elevation="0" rounded="lg">
+          <v-expansion-panel-title class="text-subtitle-2 font-weight-bold text-grey-darken-2">
+            {{ $t('transactions.advancedFilters') }}
             <v-chip
               v-if="activeAdvancedFiltersCount > 0"
               class="ms-2"
               color="primary"
-              density="comfortable"
               size="x-small"
               variant="flat"
             >
               {{ activeAdvancedFiltersCount }}
             </v-chip>
           </v-expansion-panel-title>
-          <v-expansion-panel-text class="pa-0 mt-4">
-            <v-row>
-              <v-col cols="12" md="6">
-                <label
-                  class="text-caption font-weight-bold text-grey-darken-2 d-block mb-2"
-                >
-                  Amount Range
-                </label>
-                <div class="d-flex align-center gap-2">
+          <v-expansion-panel-text>
+            <v-row dense>
+              <v-col cols="12" sm="6">
+                <div class="text-caption text-grey-darken-1 mb-1 font-weight-bold">
+                  {{ $t('transactions.amountRange') }}
+                </div>
+                <div class="d-flex ga-2">
                   <v-text-field
                     v-model="filterForm.amount_min"
+                    color="primary"
                     density="comfortable"
                     hide-details
-                    placeholder="Min"
-                    rounded="lg"
+                    :placeholder="$t('transactions.min')"
                     type="number"
                     variant="outlined"
                   />
-                  <span class="text-grey-darken-1 mx-2">-</span>
                   <v-text-field
                     v-model="filterForm.amount_max"
+                    color="primary"
                     density="comfortable"
                     hide-details
-                    placeholder="Max"
-                    rounded="lg"
+                    :placeholder="$t('transactions.max')"
                     type="number"
                     variant="outlined"
                   />
                 </div>
               </v-col>
-              <v-col cols="12" md="6">
-                <label
-                  class="text-caption font-weight-bold text-grey-darken-2 d-block mb-2"
-                >
-                  Reference
-                </label>
+
+              <v-col cols="12" sm="6">
+                <div class="text-caption text-grey-darken-1 mb-1 font-weight-bold">
+                  {{ $t('transactions.reference') }}
+                </div>
                 <v-text-field
                   v-model="filterForm.reference"
+                  color="primary"
                   density="comfortable"
                   hide-details
-                  placeholder="Contains..."
-                  rounded="lg"
+                  :placeholder="$t('transactions.referencePlaceholder')"
                   variant="outlined"
                 />
               </v-col>
-            </v-row>
-            <v-row class="mt-4">
-              <v-col cols="12" md="6">
-                <label
-                  class="text-caption font-weight-bold text-grey-darken-2 d-block mb-2"
-                >
-                  From Wallet
-                </label>
+
+              <v-col cols="12" sm="6">
                 <v-select
                   v-model="filterForm.from_wallet_id"
                   clearable
+                  color="primary"
                   density="comfortable"
                   hide-details
                   item-title="name"
                   item-value="id"
                   :items="walletOptions"
-                  placeholder="Select source wallet"
-                  rounded="lg"
+                  :label="$t('transactions.fromWallet')"
+                  :placeholder="$t('transactions.selectSource')"
                   variant="outlined"
                 />
               </v-col>
-              <v-col cols="12" md="6">
-                <label
-                  class="text-caption font-weight-bold text-grey-darken-2 d-block mb-2"
-                >
-                  To Wallet
-                </label>
+
+              <v-col cols="12" sm="6">
                 <v-select
                   v-model="filterForm.to_wallet_id"
                   clearable
+                  color="primary"
                   density="comfortable"
                   hide-details
                   item-title="name"
                   item-value="id"
                   :items="walletOptions"
-                  placeholder="Select destination wallet"
-                  rounded="lg"
+                  :label="$t('transactions.toWallet')"
+                  :placeholder="$t('transactions.selectDestination')"
                   variant="outlined"
                 />
               </v-col>
@@ -271,36 +239,15 @@
         </v-expansion-panel>
       </v-expansion-panels>
     </v-card-text>
-    <v-divider />
-    <v-card-actions class="pa-4 bg-grey-lighten-5 justify-end">
-      <v-btn
-        class="text-none mr-2"
-        color="grey-darken-1"
-        rounded="lg"
-        variant="outlined"
-        @click="clearFilters"
-      >
-        Clear
-      </v-btn>
-      <v-btn
-        class="text-none font-weight-bold px-6"
-        color="primary"
-        rounded="lg"
-        variant="flat"
-        @click="handleFilter"
-      >
-        Filter
-      </v-btn>
-    </v-card-actions>
   </v-card>
 
+  <!-- Transactions Table -->
   <TransactionTable
-    :is-admin="auth.isAdmin"
     :items="transactions"
     :loading="processing"
     :meta="meta"
-    :show-pagination="true"
-    title="Transactions List"
+    show-pagination
+    :title="$t('transactions.transactionsList')"
     :wallets="wallets"
     @update:page="handlePageChange"
     @update:per-page="handlePerPageChange"

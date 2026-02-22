@@ -3,11 +3,13 @@
   import { LayoutDashboard, Repeat, Users, Wallet } from 'lucide-vue-next'
   import { computed, ref } from 'vue'
   import { useRoute, useRouter } from 'vue-router'
+  import { useI18n } from 'vue-i18n'
   import AppLogo from '@/components/ui/AppLogo.vue'
   import CompanySelector from '@/components/features/CompanySelector.vue'
   import { useAuthStore } from '@/stores/auth'
   import { useCompanyStore } from '@/stores/company'
 
+  const { t } = useI18n()
   const route = useRoute()
   const router = useRouter()
   const authStore = useAuthStore()
@@ -24,25 +26,25 @@
 
   const navItems: NavItem[] = [
     {
-      title: 'Dashboard',
+      title: t('nav.dashboard'),
       icon: LayoutDashboard,
       to: '/dashboard',
       active: computed(() => route.path === '/dashboard'),
     },
     {
-      title: 'Wallets',
+      title: t('nav.wallets'),
       icon: Wallet,
       to: '/wallets/',
       active: computed(() => route.path.startsWith('/wallets')),
     },
     {
-      title: 'Transactions',
+      title: t('nav.transactions'),
       icon: Repeat,
       to: '/transactions/',
       active: computed(() => route.path.startsWith('/transactions')),
     },
     {
-      title: 'Team Members',
+      title: t('nav.teamMembers'),
       icon: Users,
       to: '/team-members/',
       active: computed(() => route.path.startsWith('/team-members')),
@@ -161,7 +163,7 @@
                         <v-list-item-title
                           class="text-start"
                         >
-                          Settings
+                          {{ $t('nav.settings') }}
                         </v-list-item-title>
                       </v-list-item>
                       <v-list-item
@@ -178,7 +180,7 @@
                         <v-list-item-title
                           class="text-error text-start"
                         >
-                          Disconnect
+                          {{ $t('nav.disconnect') }}
                         </v-list-item-title>
                       </v-list-item>
                     </v-list>
@@ -245,7 +247,7 @@
               size="large"
               to="/wallets/create/"
             >
-              Create Wallet
+              {{ $t('nav.createWallet') }}
             </v-btn>
           </div>
         </div>

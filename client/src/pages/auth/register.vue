@@ -1,10 +1,12 @@
 <script lang="ts" setup>
   import { reactive, ref } from 'vue'
   import { useRouter } from 'vue-router'
+  import { useI18n } from 'vue-i18n'
   import { register } from '@/api/auth'
   import { useAuthStore } from '@/stores/auth'
   import { useFormSubmit } from '@/composables/useFormSubmit'
 
+  const { t } = useI18n()
   const router = useRouter()
   const authStore = useAuthStore()
 
@@ -27,7 +29,7 @@
     onSuccess: () => router.push('/auth/verify-email'),
     onError: (error: unknown) => {
       const e = error as { response?: { data?: { message?: string } } }
-      serverError.value = e.response?.data?.message || 'Something went wrong. Please try again.'
+      serverError.value = e.response?.data?.message || t('common.genericError')
     },
   })
 </script>
@@ -53,9 +55,9 @@
           density="comfortable"
           :error-messages="errors.name"
           hide-details="auto"
-          label="Name"
+          :label="$t('common.name')"
           name="name"
-          placeholder="Full name"
+          :placeholder="$t('common.fullName')"
           required
           type="text"
           variant="outlined"
@@ -67,7 +69,7 @@
           density="comfortable"
           :error-messages="errors.email"
           hide-details="auto"
-          label="Email address"
+          :label="$t('common.emailAddress')"
           name="email"
           placeholder="email@example.com"
           required
@@ -81,9 +83,9 @@
           density="comfortable"
           :error-messages="errors.password"
           hide-details="auto"
-          label="Password"
+          :label="$t('common.password')"
           name="password"
-          placeholder="Password"
+          :placeholder="$t('common.password')"
           required
           type="password"
           variant="outlined"
@@ -95,9 +97,9 @@
           density="comfortable"
           :error-messages="errors.password_confirmation"
           hide-details="auto"
-          label="Confirm password"
+          :label="$t('common.confirmPassword')"
           name="password_confirmation"
-          placeholder="Confirm password"
+          :placeholder="$t('common.confirmPassword')"
           required
           type="password"
           variant="outlined"
@@ -112,17 +114,17 @@
           rounded="lg"
           type="submit"
         >
-          Create account
+          {{ $t('auth.register.submit') }}
         </v-btn>
       </div>
     </v-form>
 
     <template #footer>
-      <span class="text-body-2 text-grey-darken-1">Already have an account?</span>
+      <span class="text-body-2 text-grey-darken-1">{{ $t('auth.register.hasAccount') }}</span>
       <router-link
         class="text-body-2 font-weight-bold text-decoration-none text-primary ms-1"
         to="/auth/login"
-      >Log in</router-link>
+      >{{ $t('auth.register.logIn') }}</router-link>
     </template>
   </AuthCard>
 </template>
@@ -131,6 +133,6 @@
 meta:
     layout: Auth
     public: true
-    title: Create an account
-    description: Enter your details below to create your account
+    title: auth.register.title
+    description: auth.register.description
 </route>

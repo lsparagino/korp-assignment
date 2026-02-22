@@ -28,9 +28,9 @@
           density="comfortable"
           :error-messages="errors.password"
           hide-details="auto"
-          label="Password"
+          :label="$t('common.password')"
           name="password"
-          placeholder="Password"
+          :placeholder="$t('common.password')"
           required
           type="password"
           variant="outlined"
@@ -45,7 +45,7 @@
           rounded="lg"
           type="submit"
         >
-          Confirm Password
+          {{ $t('auth.confirmPassword.submit') }}
         </v-btn>
       </div>
     </v-form>
@@ -56,6 +56,6 @@
 meta:
     layout: Auth
     public: true
-    title: Confirm your password
-    description: This is a secure area of the application. Please confirm your password before continuing.
+    title: auth.confirmPassword.title
+    description: auth.confirmPassword.description
 </route>

@@ -1,9 +1,11 @@
 <script lang="ts" setup>
   import { onMounted, ref } from 'vue'
   import { useRoute, useRouter } from 'vue-router'
+  import { useI18n } from 'vue-i18n'
   import { acceptInvitation, verifyInvitation } from '@/api/auth'
   import { useAuthStore } from '@/stores/auth'
 
+  const { t } = useI18n()
   const route = useRoute()
   const router = useRouter()
   const auth = useAuthStore()
@@ -41,7 +43,7 @@
       router.push('/dashboard')
     } catch (error_: unknown) {
       const err = error_ as { response?: { data?: { message?: string } } }
-      error.value = err.response?.data?.message || 'Something went wrong.'
+      error.value = err.response?.data?.message || t('common.genericError')
     } finally {
       processing.value = false
     }
@@ -51,17 +53,16 @@
 <template>
   <div v-if="verifying" class="py-8 text-center">
     <v-progress-circular color="primary" indeterminate />
-    <div class="text-grey mt-4">Verifying invitation...</div>
+    <div class="text-grey mt-4">{{ $t('auth.invitation.verifying') }}</div>
   </div>
 
   <div v-else-if="invalidToken" class="py-4 text-center">
     <v-icon color="error" icon="lucide:alert-circle" size="48" />
     <h2 class="text-h6 font-weight-bold mt-4">
-      Invalid or Expired Invitation
+      {{ $t('auth.invitation.invalidTitle') }}
     </h2>
     <p class="text-body-2 text-grey mt-2">
-      This invitation link is invalid or has already been used. Please
-      contact your administrator.
+      {{ $t('auth.invitation.invalidMessage') }}
     </p>
     <v-btn
       block
@@ -70,15 +71,18 @@
       to="/auth/login"
       variant="tonal"
     >
-      Back to Login
+      {{ $t('auth.invitation.backToLogin') }}
     </v-btn>
   </div>
 
   <template v-else>
     <div class="mb-6 text-center">
       <p class="text-body-2 text-grey-darken-1">
-        Hello! Please set a password for your account
-        <strong>{{ email }}</strong>.
+        <i18n-t keypath="auth.invitation.setPasswordMessage" tag="span">
+          <template #email>
+            <strong>{{ email }}</strong>
+          </template>
+        </i18n-t>
       </p>
     </div>
 
@@ -96,7 +100,7 @@
       <v-text-field
         v-model="form.password"
         autocomplete="new-password"
-        label="New Password"
+        :label="$t('auth.invitation.newPassword')"
         required
         type="password"
         variant="outlined"
@@ -104,7 +108,7 @@
       <v-text-field
         v-model="form.password_confirmation"
         autocomplete="new-password"
-        label="Confirm Password"
+        :label="$t('auth.invitation.confirmPasswordLabel')"
         required
         type="password"
         variant="outlined"
@@ -118,7 +122,7 @@
         type="submit"
         variant="flat"
       >
-        Activate Account
+        {{ $t('auth.invitation.activateAccount') }}
       </v-btn>
     </v-form>
   </template>
@@ -128,6 +132,6 @@
 meta:
     layout: Auth
     public: true
-    title: Activate Your Account
-    description: Join the SecureWallet team.
+    title: auth.invitation.title
+    description: auth.invitation.description
 </route>

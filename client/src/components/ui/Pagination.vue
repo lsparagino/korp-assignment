@@ -35,15 +35,14 @@
     class="d-flex flex-column flex-sm-row align-center justify-space-between ga-4 px-4 py-4"
   >
     <div class="d-flex align-center text-caption text-grey-darken-1">
-      Showing {{ meta.from || 0 }} to {{ meta.to || 0 }} of
-      {{ meta.total }} entries
+      {{ $t('pagination.showing', { from: meta.from || 0, to: meta.to || 0, total: meta.total }) }}
     </div>
 
     <div
       class="d-flex flex-column flex-sm-row align-center ga-4 w-100 w-sm-auto justify-end"
     >
       <div class="d-flex align-center order-sm-0 order-1">
-        <span class="text-caption text-grey-darken-1 text-no-wrap me-2">Per page:</span>
+        <span class="text-caption text-grey-darken-1 text-no-wrap me-2">{{ $t('pagination.perPage') }}</span>
         <v-select
           v-model="perPageModel"
           class="page-size-selector"

@@ -1,11 +1,13 @@
 <script lang="ts" setup>
   import { computed, reactive, ref } from 'vue'
+  import { useI18n } from 'vue-i18n'
   import Heading from '@/components/ui/Heading.vue'
   import SettingsLayout from '@/components/layout/SettingsLayout.vue'
   import { deleteAccount as apiDeleteAccount, updateProfile, cancelPendingEmail as apiCancelPendingEmail } from '@/api/settings'
   import { useFormSubmit } from '@/composables/useFormSubmit'
   import { useAuthStore } from '@/stores/auth'
 
+  const { t } = useI18n()
   const authStore = useAuthStore()
   const user = authStore.user!
 
@@ -27,7 +29,7 @@
     },
     onError: (error: unknown) => {
       const e = error as { response?: { data?: { message?: string } } }
-      serverError.value = e.response?.data?.message || 'Something went wrong. Please try again.'
+      serverError.value = e.response?.data?.message || t('common.genericError')
     },
   })
 
@@ -63,8 +65,8 @@
   <SettingsLayout>
     <div class="d-flex flex-column ga-6">
       <Heading
-        description="Update your name and email address"
-        title="Profile information"
+        :description="$t('settings.profile.description')"
+        :title="$t('settings.profile.title')"
         variant="small"
       />
 
@@ -86,11 +88,11 @@
         variant="tonal"
       >
         <div class="d-flex align-center justify-space-between">
-          <span>
-            A verification link has been sent to
-            <strong>{{ authStore.user.pending_email }}</strong>.
-            Please verify to update your email.
-          </span>
+          <i18n-t keypath="settings.profile.pendingEmail" tag="span">
+            <template #email>
+              <strong>{{ authStore.user.pending_email }}</strong>
+            </template>
+          </i18n-t>
           <v-btn
             class="text-none font-weight-bold ms-4"
             :disabled="processing"
@@ -99,7 +101,7 @@
             variant="text"
             @click="cancelPendingEmail"
           >
-            Cancel
+            {{ $t('common.cancel') }}
           </v-btn>
         </div>
       </v-alert>
@@ -114,9 +116,9 @@
             :disabled="cancellingPendingEmail"
             :error-messages="errors.name"
             hide-details="auto"
-            label="Name"
+            :label="$t('common.name')"
             name="name"
-            placeholder="Full name"
+            :placeholder="$t('common.fullName')"
             required
             variant="outlined"
           />
@@ -129,9 +131,9 @@
             :disabled="cancellingPendingEmail"
             :error-messages="errors.email"
             hide-details="auto"
-            label="Email address"
+            :label="$t('common.emailAddress')"
             name="email"
-            placeholder="Email address"
+            :placeholder="$t('common.emailAddress')"
             required
             type="email"
             variant="outlined"
@@ -146,7 +148,7 @@
               type="submit"
               variant="flat"
             >
-              Save
+              {{ $t('common.save') }}
             </v-btn>
 
             <v-fade-transition>
@@ -154,7 +156,7 @@
                 v-show="recentlySuccessful"
                 class="text-body-2 text-grey-darken-1"
               >
-                Saved.
+                {{ $t('common.saved') }}
               </p>
             </v-fade-transition>
           </div>
@@ -164,8 +166,8 @@
       <v-divider class="my-6" />
 
       <Heading
-        description="Permanently delete your account and all of its data."
-        title="Delete account"
+        :description="$t('settings.profile.deleteAccountDescription')"
+        :title="$t('settings.profile.deleteAccount')"
         variant="small"
       />
 
@@ -176,7 +178,7 @@
           variant="tonal"
           @click="deleteDialog = true"
         >
-          Delete Account
+          {{ $t('settings.profile.deleteAccountButton') }}
         </v-btn>
       </div>
 
@@ -184,16 +186,12 @@
         <v-card rounded="lg">
           <v-card-item class="pa-6">
             <v-card-title class="text-h5 font-weight-bold mb-1">
-              Delete Account
+              {{ $t('settings.profile.deleteAccountDialogTitle') }}
             </v-card-title>
             <v-card-subtitle
               class="text-body-1 text-wrap opacity-100"
             >
-              Are you sure you want to delete your account? Once
-              your account is deleted, all of its resources and
-              data will be permanently deleted. Please enter your
-              password to confirm you would like to permanently
-              delete your account.
+              {{ $t('settings.profile.deleteAccountDialogMessage') }}
             </v-card-subtitle>
 
             <v-form class="mt-6" @submit.prevent="deleteAccount(deleteForm)">
@@ -204,9 +202,9 @@
                 density="comfortable"
                 :error-messages="deleteErrors.password"
                 hide-details="auto"
-                label="Password"
+                :label="$t('common.password')"
                 name="password"
-                placeholder="Password"
+                :placeholder="$t('common.password')"
                 required
                 type="password"
                 variant="outlined"
@@ -218,7 +216,7 @@
                   variant="text"
                   @click="deleteDialog = false"
                 >
-                  Cancel
+                  {{ $t('common.cancel') }}
                 </v-btn>
                 <v-btn
                   class="text-none font-weight-bold"
@@ -227,7 +225,7 @@
                   type="submit"
                   variant="flat"
                 >
-                  Delete Account
+                  {{ $t('settings.profile.deleteAccountButton') }}
                 </v-btn>
               </div>
             </v-form>

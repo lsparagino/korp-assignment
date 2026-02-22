@@ -1,9 +1,11 @@
 <script lang="ts" setup>
   import { onMounted, reactive, ref } from 'vue'
   import { useRoute, useRouter } from 'vue-router'
+  import { useI18n } from 'vue-i18n'
   import { resetPassword } from '@/api/auth'
   import { useFormSubmit } from '@/composables/useFormSubmit'
 
+  const { t } = useI18n()
   const route = useRoute()
   const router = useRouter()
 
@@ -31,7 +33,7 @@
       setTimeout(() => router.push('/auth/login'), 3000)
     },
     onError: () => {
-      status.value = 'An error occurred. Please try again.'
+      status.value = t('common.errorOccurred')
     },
   })
 </script>
@@ -45,7 +47,7 @@
           color="primary"
           density="comfortable"
           hide-details="auto"
-          label="Email"
+          :label="$t('common.email')"
           name="email"
           readonly
           type="email"
@@ -60,9 +62,9 @@
           density="comfortable"
           :error-messages="errors.password"
           hide-details="auto"
-          label="Password"
+          :label="$t('common.password')"
           name="password"
-          placeholder="Password"
+          :placeholder="$t('common.password')"
           required
           :type="showPassword ? 'text' : 'password'"
           variant="outlined"
@@ -75,9 +77,9 @@
           density="comfortable"
           :error-messages="errors.password_confirmation"
           hide-details="auto"
-          label="Confirm password"
+          :label="$t('common.confirmPassword')"
           name="password_confirmation"
-          placeholder="Confirm password"
+          :placeholder="$t('common.confirmPassword')"
           required
           :type="showPassword ? 'text' : 'password'"
           variant="outlined"
@@ -92,7 +94,7 @@
           rounded="lg"
           type="submit"
         >
-          Reset password
+          {{ $t('auth.resetPassword.submit') }}
         </v-btn>
       </div>
     </v-form>
@@ -103,6 +105,6 @@
 meta:
     layout: Auth
     public: true
-    title: Reset password
-    description: Please enter your new password below
+    title: auth.resetPassword.title
+    description: auth.resetPassword.description
 </route>

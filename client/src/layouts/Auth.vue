@@ -1,6 +1,8 @@
 <script lang="ts" setup>
   import { useRoute } from 'vue-router'
+  import { useI18n } from 'vue-i18n'
 
+  const { t } = useI18n()
   const route = useRoute()
 </script>
 
@@ -19,10 +21,10 @@
           <h1
             class="text-h5 font-weight-bold text-grey-darken-3 mb-2"
           >
-            {{ route.meta.title }}
+            {{ t(route.meta.title as string) }}
           </h1>
           <p class="text-body-2 text-grey-darken-1">
-            {{ route.meta.description }}
+            {{ t(route.meta.description as string) }}
           </p>
         </div>
 

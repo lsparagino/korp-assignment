@@ -1,10 +1,12 @@
 <script lang="ts" setup>
   import { reactive, ref } from 'vue'
   import { useRouter } from 'vue-router'
+  import { useI18n } from 'vue-i18n'
   import { login } from '@/api/auth'
   import { useAuthStore } from '@/stores/auth'
   import { useFormSubmit } from '@/composables/useFormSubmit'
 
+  const { t } = useI18n()
   const router = useRouter()
   const authStore = useAuthStore()
   const status = ref('')
@@ -32,7 +34,7 @@
       router.push('/dashboard')
     },
     onError: () => {
-      status.value = 'An error occurred during login.'
+      status.value = t('auth.login.error')
     },
   })
 </script>
@@ -48,7 +50,7 @@
           density="comfortable"
           :error-messages="errors.email"
           hide-details="auto"
-          label="Email address"
+          :label="$t('common.emailAddress')"
           name="email"
           placeholder="email@example.com"
           required
@@ -60,12 +62,12 @@
           <div class="d-flex align-center justify-space-between mb-1">
             <span
               class="text-caption font-weight-medium text-grey-darken-3"
-            >Password</span>
+            >{{ $t('common.password') }}</span>
             <router-link
               class="text-caption font-weight-bold text-decoration-none text-primary"
               to="/auth/forgot-password"
             >
-              Forgot password?
+              {{ $t('auth.login.forgotPassword') }}
             </router-link>
           </div>
           <v-text-field
@@ -76,7 +78,7 @@
             :error-messages="errors.password"
             hide-details="auto"
             name="password"
-            placeholder="Password"
+            :placeholder="$t('common.password')"
             required
             :type="showPassword ? 'text' : 'password'"
             variant="outlined"
@@ -90,7 +92,7 @@
           color="primary"
           density="comfortable"
           hide-details
-          label="Remember me"
+          :label="$t('auth.login.rememberMe')"
           name="remember"
         />
 
@@ -103,17 +105,17 @@
           rounded="lg"
           type="submit"
         >
-          Log in
+          {{ $t('auth.login.submit') }}
         </v-btn>
       </div>
     </v-form>
 
     <template #footer>
-      <span class="text-body-2 text-grey-darken-1">Don't have an account?</span>
+      <span class="text-body-2 text-grey-darken-1">{{ $t('auth.login.noAccount') }}</span>
       <router-link
         class="text-body-2 font-weight-bold text-decoration-none text-primary ms-1"
         to="/auth/register"
-      >Sign up</router-link>
+      >{{ $t('auth.login.signUp') }}</router-link>
     </template>
   </AuthCard>
 </template>
@@ -122,6 +124,6 @@
 meta:
     layout: Auth
     public: true
-    title: Log in to your account
-    description: Enter your email and password below to log in
+    title: auth.login.title
+    description: auth.login.description
 </route>

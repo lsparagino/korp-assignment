@@ -46,10 +46,10 @@
       to="/wallets/"
       variant="text"
     >
-      Back to Wallets
+      {{ $t('wallets.backToWallets') }}
     </v-btn>
     <h1 class="text-h5 font-weight-bold text-grey-darken-2">
-      Create New Wallet
+      {{ $t('wallets.createNewWallet') }}
     </h1>
   </div>
 
@@ -65,8 +65,8 @@
               density="comfortable"
               :error-messages="errors.name"
               hide-details="auto"
-              label="Wallet Name"
-              placeholder="e.g. Savings, Marketing, Operations"
+              :label="$t('wallets.walletName')"
+              :placeholder="$t('wallets.walletNamePlaceholder')"
               required
               variant="outlined"
             >
@@ -86,7 +86,7 @@
               :error-messages="errors.currency"
               hide-details="auto"
               :items="currencies"
-              label="Base Currency"
+              :label="$t('wallets.baseCurrency')"
               required
               variant="outlined"
             />
@@ -100,7 +100,7 @@
                 rounded="lg"
                 type="submit"
               >
-                Create Wallet
+                {{ $t('wallets.createWallet') }}
               </v-btn>
               <v-btn
                 class="text-none font-weight-bold px-8"
@@ -110,7 +110,7 @@
                 to="/wallets/"
                 variant="outlined"
               >
-                Cancel
+                {{ $t('common.cancel') }}
               </v-btn>
             </div>
           </div>

@@ -42,7 +42,7 @@
 </script>
 
 <template>
-  <PageHeader title="Dashboard">
+  <PageHeader :title="$t('dashboard.title')">
     <v-btn
       v-if="authStore.isAdmin"
       class="text-none font-weight-bold"
@@ -52,7 +52,7 @@
       to="/wallets/create"
       variant="flat"
     >
-      Create Wallet
+      {{ $t('wallets.createWallet') }}
     </v-btn>
   </PageHeader>
 
@@ -78,7 +78,7 @@
             <span
               class="text-caption font-weight-bold text-uppercase"
             >
-              Total {{ b.currency }} Balance
+              {{ $t('dashboard.totalBalance', { currency: b.currency }) }}
             </span>
           </div>
           <div
@@ -94,7 +94,7 @@
     <!-- Top Wallets -->
     <div class="mb-8">
       <h2 class="text-h6 font-weight-bold text-grey-darken-2 mb-4">
-        Top Performing Wallets
+        {{ $t('dashboard.topPerformingWallets') }}
       </h2>
       <div v-if="topWallets.length > 0" class="d-flex ga-4 flex-wrap">
         <v-card
@@ -133,7 +133,7 @@
             <div
               class="text-body-1 font-weight-bold text-grey-darken-3 mb-1"
             >
-              Other Wallets ({{ otherWallets.count }})
+              {{ $t('dashboard.otherWallets', { count: otherWallets.count }) }}
             </div>
             <div
               v-if="otherWallets.totalUSD !== 0"
@@ -159,14 +159,14 @@
         flat
         rounded="lg"
       >
-        No wallets found. Create one to get started.
+        {{ $t('dashboard.noWallets') }}
       </v-card>
     </div>
 
     <!-- Recent Transactions -->
     <div>
       <h2 class="text-h6 font-weight-bold text-grey-darken-2 mb-4">
-        Recent Transactions
+        {{ $t('dashboard.recentTransactions') }}
       </h2>
       <v-card
         v-if="recentTransactions.length > 0"
@@ -186,7 +186,7 @@
         flat
         rounded="lg"
       >
-        No transactions yet.
+        {{ $t('dashboard.noTransactions') }}
       </v-card>
     </div>
   </template>

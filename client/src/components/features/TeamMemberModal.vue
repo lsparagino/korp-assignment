@@ -78,7 +78,7 @@
   <v-dialog v-model="dialog" max-width="600">
     <v-card rounded="lg">
       <v-card-title class="pa-4 font-weight-bold">
-        {{ user ? 'Edit Member' : 'Add Member' }}
+        {{ user ? $t('teamMembers.editMember') : $t('teamMembers.addMember') }}
       </v-card-title>
       <v-divider />
       <v-card-text class="pa-4">
@@ -86,21 +86,21 @@
           <v-text-field
             v-model="form.name"
             :error-messages="errors.name"
-            label="Full Name"
-            placeholder="John Doe"
+            :label="$t('common.fullName')"
+            :placeholder="$t('teamMembers.fullNamePlaceholder')"
             variant="outlined"
           />
           <v-text-field
             v-model="form.email"
             :error-messages="errors.email"
-            label="Email Address"
-            placeholder="john@example.com"
+            :label="$t('common.emailAddress')"
+            :placeholder="$t('teamMembers.emailPlaceholder')"
             type="email"
             variant="outlined"
           />
 
           <div class="text-subtitle-1 font-weight-bold mb-2">
-            Wallet Access
+            {{ $t('teamMembers.walletAccess') }}
           </div>
           <div
             v-if="errors.wallets"
@@ -134,7 +134,7 @@
           variant="text"
           @click="dialog = false"
         >
-          Cancel
+          {{ $t('common.cancel') }}
         </v-btn>
         <v-btn
           color="primary"
@@ -142,7 +142,7 @@
           variant="flat"
           @click="save"
         >
-          {{ user ? 'Update Member' : 'Invite Member' }}
+          {{ user ? $t('teamMembers.updateMember') : $t('teamMembers.inviteMember') }}
         </v-btn>
       </v-card-actions>
     </v-card>

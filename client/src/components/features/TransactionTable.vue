@@ -64,38 +64,38 @@
             <th
               class="text-grey-darken-1 text-uppercase text-caption font-weight-bold text-left"
             >
-              Date
+              {{ $t('transactions.tableHeaders.date') }}
             </th>
             <th
               class="text-grey-darken-1 text-uppercase text-caption font-weight-bold text-left"
             >
-              Type
+              {{ $t('transactions.tableHeaders.type') }}
             </th>
             <th
               class="text-grey-darken-1 text-uppercase text-caption font-weight-bold text-left"
             >
-              Amount
+              {{ $t('transactions.tableHeaders.amount') }}
             </th>
             <th
               class="text-grey-darken-1 text-uppercase text-caption font-weight-bold text-left"
             >
-              From Wallet
+              {{ $t('transactions.tableHeaders.fromWallet') }}
             </th>
             <th
               class="text-grey-darken-1 text-uppercase text-caption font-weight-bold text-left"
             >
-              To Wallet
+              {{ $t('transactions.tableHeaders.toWallet') }}
             </th>
             <th
               class="text-grey-darken-1 text-uppercase text-caption font-weight-bold text-left"
             >
-              Reference
+              {{ $t('transactions.tableHeaders.reference') }}
             </th>
             <th
               class="text-grey-darken-1 text-uppercase text-caption font-weight-bold text-center"
               style="width: 60px"
             >
-              Actions
+              {{ $t('transactions.tableHeaders.actions') }}
             </th>
           </tr>
         </thead>
@@ -159,7 +159,7 @@
                       : 'text-grey-lighten-1'
                   "
                 >{{
-                  item.from_wallet?.name || 'EXTERNAL'
+                  item.from_wallet?.name || $t('transactions.external')
                 }}</span>
               </div>
             </td>
@@ -189,7 +189,7 @@
                       : 'text-grey-lighten-1'
                   "
                 >{{
-                  item.to_wallet?.name || 'EXTERNAL'
+                  item.to_wallet?.name || $t('transactions.external')
                 }}</span>
               </div>
             </td>
@@ -212,7 +212,7 @@
               class="text-grey-darken-1 py-8 text-center"
               colspan="7"
             >
-              No transactions found.
+              {{ $t('transactions.noTransactions') }}
             </td>
           </tr>
         </tbody>
@@ -234,7 +234,7 @@
   <v-dialog v-model="detailDialog" max-width="560">
     <v-card v-if="selectedTransaction" rounded="lg">
       <v-card-title class="d-flex align-center justify-space-between pa-5 border-b">
-        <span class="text-h6 font-weight-bold">Transaction Details</span>
+        <span class="text-h6 font-weight-bold">{{ $t('transactions.transactionDetails') }}</span>
         <v-btn
           density="comfortable"
           icon="mdi-close"
@@ -280,7 +280,7 @@
               <v-icon class="me-3" color="grey-darken-1" icon="mdi-calendar" />
             </template>
             <v-list-item-title class="text-caption text-grey-darken-1">
-              Date
+              {{ $t('transactions.date') }}
             </v-list-item-title>
             <div class="text-body-2 font-weight-medium text-grey-darken-3">
               {{ formatDate(selectedTransaction.created_at) }}
@@ -294,7 +294,7 @@
               <v-icon class="me-3" color="grey-darken-1" icon="mdi-currency-usd" />
             </template>
             <v-list-item-title class="text-caption text-grey-darken-1">
-              Currency
+              {{ $t('wallets.tableHeaders.currency') }}
             </v-list-item-title>
             <div class="text-body-2 font-weight-medium text-grey-darken-3">
               {{ selectedTransaction.currency }}
@@ -309,10 +309,10 @@
               <v-icon class="me-3" color="red-darken-1" icon="mdi-arrow-up-circle" />
             </template>
             <v-list-item-title class="text-caption text-grey-darken-1">
-              From Wallet
+              {{ $t('transactions.fromWallet') }}
             </v-list-item-title>
             <div class="text-body-2 font-weight-medium text-grey-darken-3">
-              {{ selectedTransaction.from_wallet?.name || 'EXTERNAL' }}
+              {{ selectedTransaction.from_wallet?.name || $t('transactions.external') }}
             </div>
             <div
               v-if="selectedTransaction.from_wallet?.address"
@@ -331,10 +331,10 @@
               <v-icon class="me-3" color="green-darken-1" icon="mdi-arrow-down-circle" />
             </template>
             <v-list-item-title class="text-caption text-grey-darken-1">
-              To Wallet
+              {{ $t('transactions.toWallet') }}
             </v-list-item-title>
             <div class="text-body-2 font-weight-medium text-grey-darken-3">
-              {{ selectedTransaction.to_wallet?.name || 'EXTERNAL' }}
+              {{ selectedTransaction.to_wallet?.name || $t('transactions.external') }}
             </div>
             <div
               v-if="selectedTransaction.to_wallet?.address"
@@ -352,7 +352,7 @@
                 <v-icon class="me-3" color="grey-darken-1" icon="mdi-tag" />
               </template>
               <v-list-item-title class="text-caption text-grey-darken-1">
-                Reference
+                {{ $t('transactions.reference') }}
               </v-list-item-title>
               <div class="text-body-2 font-weight-medium text-grey-darken-3">
                 {{ selectedTransaction.reference }}

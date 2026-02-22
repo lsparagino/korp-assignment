@@ -1,5 +1,6 @@
 <script lang="ts" setup>
   import { computed, onMounted, ref, watch } from 'vue'
+  import { useI18n } from 'vue-i18n'
 
   interface Props {
     modelValue: boolean
@@ -12,13 +13,20 @@
   }
 
   const props = withDefaults(defineProps<Props>(), {
-    title: 'Confirm Action',
-    message: 'Are you sure you want to proceed?',
-    confirmText: 'Yes, Proceed',
-    cancelText: 'Cancel',
+    title: undefined,
+    message: undefined,
+    confirmText: undefined,
+    cancelText: undefined,
     requiresPin: false,
     confirmColor: 'primary',
   })
+
+  const { t } = useI18n()
+
+  const resolvedTitle = computed(() => props.title ?? t('confirmDialog.defaultTitle'))
+  const resolvedMessage = computed(() => props.message ?? t('confirmDialog.defaultMessage'))
+  const resolvedConfirmText = computed(() => props.confirmText ?? t('confirmDialog.defaultConfirm'))
+  const resolvedCancelText = computed(() => props.cancelText ?? t('common.cancel'))
 
   const emit = defineEmits(['update:modelValue', 'confirm', 'cancel'])
 
@@ -78,12 +86,12 @@
   <v-dialog v-model="isDialogVisible" max-width="500px" persistent>
     <v-card class="pa-4" rounded="xl">
       <v-card-title class="text-h6 font-weight-bold px-4 pt-4">
-        {{ title }}
+        {{ resolvedTitle }}
       </v-card-title>
 
       <v-card-text class="px-4 py-4">
         <p class="text-body-1 text-grey-darken-2 mb-6">
-          {{ message }}
+          {{ resolvedMessage }}
         </p>
 
         <div
@@ -93,14 +101,14 @@
           <div class="mb-4 text-center">
             <span
               class="text-caption text-uppercase font-weight-bold text-grey-darken-1"
-            >Verification Required</span>
+            >{{ $t('confirmDialog.verificationRequired') }}</span>
             <div
               class="text-h4 font-weight-black text-primary my-2 tracking-widest"
             >
               {{ expectedPin }}
             </div>
             <p class="text-caption text-grey-darken-1">
-              Please enter the code above to confirm this action.
+              {{ $t('confirmDialog.verificationHint') }}
             </p>
           </div>
 
@@ -127,7 +135,7 @@
           variant="text"
           @click="handleCancel"
         >
-          {{ cancelText }}
+          {{ resolvedCancelText }}
         </v-btn>
         <v-btn
           class="text-none font-weight-bold ml-2 px-8"
@@ -137,7 +145,7 @@
           variant="elevated"
           @click="handleConfirm"
         >
-          {{ confirmText }}
+          {{ resolvedConfirmText }}
         </v-btn>
       </v-card-actions>
     </v-card>

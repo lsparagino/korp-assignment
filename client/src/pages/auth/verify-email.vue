@@ -1,9 +1,11 @@
 <script lang="ts" setup>
   import { computed, onMounted, onUnmounted, ref } from 'vue'
   import { useRoute, useRouter } from 'vue-router'
+  import { useI18n } from 'vue-i18n'
   import { sendVerificationEmail, verifyEmail } from '@/api/auth'
   import { useAuthStore } from '@/stores/auth'
 
+  const { t } = useI18n()
   const route = useRoute()
   const router = useRouter()
   const authStore = useAuthStore()
@@ -43,11 +45,11 @@
       try {
         await verifyEmail(id, hash, expires, signature)
         await authStore.fetchUser()
-        status.value = 'Email verified successfully! Redirecting...'
+        status.value = t('auth.verifyEmail.verified')
         setTimeout(() => router.push('/dashboard'), 1500)
       } catch (err: unknown) {
         const e = err as { response?: { data?: { message?: string } } }
-        error.value = e.response?.data?.message || 'Verification failed. The link may be invalid or expired.'
+        error.value = e.response?.data?.message || t('auth.verifyEmail.verificationFailed')
         isVerificationLink.value = false
       } finally {
         verifying.value = false
@@ -68,10 +70,10 @@
     error.value = ''
     try {
       await sendVerificationEmail()
-      status.value = 'A new verification link has been sent to your email address.'
+      status.value = t('auth.verifyEmail.resendLink')
       startCountdown()
     } catch {
-      error.value = 'Failed to send verification email. Please try again.'
+      error.value = t('auth.verifyEmail.resendFailed')
     } finally {
       resending.value = false
     }
@@ -113,7 +115,7 @@
         indeterminate
       />
       <div v-if="verifying" class="text-body-2 text-grey">
-        Verifying your email...
+        {{ $t('auth.verifyEmail.verifying') }}
       </div>
       <v-btn
         v-if="status && !verifying"
@@ -124,7 +126,7 @@
         rounded="lg"
         to="/dashboard"
       >
-        Continue to dashboard
+        {{ $t('auth.verifyEmail.continueToDashboard') }}
       </v-btn>
     </div>
 
@@ -143,10 +145,10 @@
           @click="resend"
         >
           <template v-if="!canResend && countdown > 0">
-            Resend verification email ({{ countdown }}s)
+            {{ $t('auth.verifyEmail.resendButtonCooldown', { seconds: countdown }) }}
           </template>
           <template v-else>
-            Resend verification email
+            {{ $t('auth.verifyEmail.resendButton') }}
           </template>
         </v-btn>
 
@@ -157,7 +159,7 @@
           variant="text"
           @click="handleLogout"
         >
-          Log out
+          {{ $t('common.logOut') }}
         </v-btn>
       </div>
     </template>
@@ -167,6 +169,6 @@
 <route lang="yaml">
 meta:
     layout: Auth
-    title: Verify email
-    description: Please verify your email address by clicking on the link we just emailed to you.
+    title: auth.verifyEmail.title
+    description: auth.verifyEmail.description
 </route>

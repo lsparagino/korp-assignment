@@ -2,6 +2,7 @@ import type { Transaction } from '@/api/transactions'
 import type { Wallet } from '@/api/wallets'
 import { computed, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { useQuery } from '@pinia/colada'
 import { useDatePicker } from '@/composables/useDatePicker'
 import { useUrlPagination } from '@/composables/useUrlPagination'
@@ -17,6 +18,7 @@ const FILTER_KEYS = [
 export function useTransactionFilters() {
     const route = useRoute()
     const router = useRouter()
+    const { t } = useI18n()
     const { page, perPage, handlePageChange, handlePerPageChange } = useUrlPagination({ defaultPerPage: 25 })
 
     const filterForm = reactive({
@@ -30,7 +32,11 @@ export function useTransactionFilters() {
         to_wallet_id: null as number | string | null,
     })
 
-    const types = ['All', 'Debit', 'Credit']
+    const types = computed(() => [
+        { title: t('transactions.typeAll'), value: 'All' },
+        { title: t('transactions.typeDebit'), value: 'Debit' },
+        { title: t('transactions.typeCredit'), value: 'Credit' },
+    ])
     const advancedPanel = ref<number[]>([])
 
     const { dateFromMenu, dateToMenu, dateFromValue, dateToValue, onDateSelected } = useDatePicker(filterForm)
@@ -38,7 +44,7 @@ export function useTransactionFilters() {
     // Wallet dropdown data
     const { data: walletsData } = useQuery(walletsListQuery, () => ({ page: 1, perPage: 500 }))
     const wallets = computed<Wallet[]>(() => walletsData.value?.data ?? [])
-    const walletOptions = computed(() => [{ id: 'external', name: 'External' }, ...wallets.value])
+    const walletOptions = computed(() => [{ id: 'external', name: t('transactions.external') }, ...wallets.value])
 
     // Sync filterForm from URL query params
     watch(

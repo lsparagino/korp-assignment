@@ -1,9 +1,13 @@
 <script lang="ts" setup>
+  import { useI18n } from 'vue-i18n'
+
+  const { t } = useI18n()
+
   const settingsNav = [
-    { title: 'Profile', to: '/settings/profile', icon: 'mdi-account' },
-    { title: 'Password', to: '/settings/password', icon: 'mdi-lock' },
+    { title: t('settings.nav.profile'), to: '/settings/profile', icon: 'mdi-account' },
+    { title: t('settings.nav.password'), to: '/settings/password', icon: 'mdi-lock' },
     {
-      title: 'Two-Factor',
+      title: t('settings.nav.twoFactor'),
       to: '/settings/two-factor',
       icon: 'mdi-shield-check',
     },

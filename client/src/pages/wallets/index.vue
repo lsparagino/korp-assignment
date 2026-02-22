@@ -1,6 +1,7 @@
 <script lang="ts" setup>
   import type { Wallet } from '@/api/wallets'
   import { computed, watch } from 'vue'
+  import { useI18n } from 'vue-i18n'
   import ConfirmDialog from '@/components/ui/ConfirmDialog.vue'
   import PageHeader from '@/components/layout/PageHeader.vue'
   import Pagination from '@/components/ui/Pagination.vue'
@@ -13,6 +14,7 @@
   import { formatCurrency, getAmountColor } from '@/utils/formatters'
   import { ref } from 'vue'
 
+  const { t } = useI18n()
   const authStore = useAuthStore()
   const walletStore = useWalletStore()
   const snackbar = ref({ show: false, text: '', color: 'error' })
@@ -29,8 +31,10 @@
   function toggleFreeze (wallet: Wallet) {
     const isFreezing = wallet.status === 'active'
     openConfirmDialog({
-      title: isFreezing ? 'Freeze Wallet' : 'Unfreeze Wallet',
-      message: `Are you sure you want to ${isFreezing ? 'freeze' : 'unfreeze'} the wallet "${wallet.name}"?`,
+      title: isFreezing ? t('wallets.freezeWallet') : t('wallets.unfreezeWallet'),
+      message: isFreezing
+        ? t('wallets.confirmFreeze', { name: wallet.name })
+        : t('wallets.confirmUnfreeze', { name: wallet.name }),
       requiresPin: false,
       onConfirm: async () => {
         try {
@@ -44,8 +48,8 @@
 
   function deleteWallet (wallet: Wallet) {
     openConfirmDialog({
-      title: 'Delete Wallet',
-      message: `Warning: You are about to permanently delete the wallet "${wallet.name}". This action cannot be undone.`,
+      title: t('wallets.deleteWallet'),
+      message: t('wallets.confirmDelete', { name: wallet.name }),
       requiresPin: true,
       onConfirm: async () => {
         try {
@@ -54,7 +58,7 @@
           if (isApiError(error, 403)) {
             snackbar.value = {
               show: true,
-              text: getErrorMessage(error, 'You are not authorized to delete this wallet.'),
+              text: getErrorMessage(error, t('wallets.deleteUnauthorized')),
               color: 'error',
             }
           } else {
@@ -67,7 +71,7 @@
 </script>
 
 <template>
-  <PageHeader title="Wallets">
+  <PageHeader :title="$t('wallets.title')">
     <v-btn
       v-if="authStore.isAdmin"
       class="text-none font-weight-bold"
@@ -77,7 +81,7 @@
       to="/wallets/create"
       variant="flat"
     >
-      Create Wallet
+      {{ $t('wallets.createWallet') }}
     </v-btn>
   </PageHeader>
 
@@ -89,33 +93,33 @@
             <th
               class="text-grey-darken-1 text-uppercase text-caption font-weight-bold text-left"
             >
-              Name
+              {{ $t('wallets.tableHeaders.name') }}
             </th>
             <th
               class="text-grey-darken-1 text-uppercase text-caption font-weight-bold text-left"
             >
-              Address
+              {{ $t('wallets.tableHeaders.address') }}
             </th>
             <th
               class="text-grey-darken-1 text-uppercase text-caption font-weight-bold text-left"
             >
-              Balance
+              {{ $t('wallets.tableHeaders.balance') }}
             </th>
             <th
               class="text-grey-darken-1 text-uppercase text-caption font-weight-bold text-left"
             >
-              Currency
+              {{ $t('wallets.tableHeaders.currency') }}
             </th>
             <th
               class="text-grey-darken-1 text-uppercase text-caption font-weight-bold text-left"
             >
-              Status
+              {{ $t('wallets.tableHeaders.status') }}
             </th>
             <th
               v-if="authStore.isAdmin"
               class="text-grey-darken-1 text-uppercase text-caption font-weight-bold text-right"
             >
-              Actions
+              {{ $t('common.actions') }}
             </th>
           </tr>
         </thead>

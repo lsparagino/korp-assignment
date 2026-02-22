@@ -1,10 +1,12 @@
 <script lang="ts" setup>
   import { computed, ref, watch } from 'vue'
   import { useRoute, useRouter } from 'vue-router'
+  import { useI18n } from 'vue-i18n'
   import { twoFactorChallenge } from '@/api/auth'
   import { useAuthStore } from '@/stores/auth'
   import { useFormSubmit } from '@/composables/useFormSubmit'
 
+  const { t } = useI18n()
   const route = useRoute()
   const router = useRouter()
   const authStore = useAuthStore()
@@ -15,17 +17,15 @@
   const authConfigContent = computed(() => {
     if (showRecoveryInput.value) {
       return {
-        title: 'Recovery Code',
-        description:
-          'Please confirm access to your account by entering one of your emergency recovery codes.',
-        buttonText: 'login using an authentication code',
+        title: t('auth.twoFactor.recoveryCode'),
+        description: t('auth.twoFactor.recoveryCodeDescription'),
+        buttonText: t('auth.twoFactor.useAuthCode'),
       }
     }
     return {
-      title: 'Authentication Code',
-      description:
-        'Enter the authentication code provided by your authenticator application.',
-      buttonText: 'login using a recovery code',
+      title: t('auth.twoFactor.authCode'),
+      description: t('auth.twoFactor.authCodeDescription'),
+      buttonText: t('auth.twoFactor.useRecoveryCode'),
     }
   })
 
@@ -96,11 +96,11 @@
               rounded="lg"
               type="submit"
             >
-              Continue
+              {{ $t('common.continue') }}
             </v-btn>
 
             <div class="text-center">
-              <span class="text-body-2 text-grey-darken-1">or you can
+              <span class="text-body-2 text-grey-darken-1">{{ $t('auth.twoFactor.orYouCan') }}
               </span>
               <button
                 class="text-body-2 font-weight-bold text-decoration-underline text-primary"
@@ -121,8 +121,8 @@
               density="comfortable"
               :error-messages="errors.recovery_code"
               hide-details="auto"
-              label="Recovery Code"
-              placeholder="Enter recovery code"
+              :label="$t('auth.twoFactor.recoveryCodeLabel')"
+              :placeholder="$t('auth.twoFactor.recoveryCodePlaceholder')"
               required
               variant="outlined"
             />
@@ -136,11 +136,11 @@
               rounded="lg"
               type="submit"
             >
-              Continue
+              {{ $t('common.continue') }}
             </v-btn>
 
             <div class="text-center">
-              <span class="text-body-2 text-grey-darken-1">or you can
+              <span class="text-body-2 text-grey-darken-1">{{ $t('auth.twoFactor.orYouCan') }}
               </span>
               <button
                 class="text-body-2 font-weight-bold text-decoration-underline text-primary"

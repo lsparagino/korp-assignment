@@ -1,57 +1,54 @@
 <script lang="ts" setup>
   import type { TeamMember } from '@/api/team-members'
   import { computed, ref, watch } from 'vue'
+  import { useI18n } from 'vue-i18n'
   import ConfirmDialog from '@/components/ui/ConfirmDialog.vue'
+  import TeamMemberModal from '@/components/features/TeamMemberModal.vue'
   import PageHeader from '@/components/layout/PageHeader.vue'
   import Pagination from '@/components/ui/Pagination.vue'
-  import TeamMemberModal from '@/components/features/TeamMemberModal.vue'
   import { useConfirmDialog } from '@/composables/useConfirmDialog'
   import { useUrlPagination } from '@/composables/useUrlPagination'
   import { useTeamMemberStore } from '@/stores/team-member'
   import { useAuthStore } from '@/stores/auth'
-  import { getRoleColors } from '@/utils/colors'
 
+  const { t } = useI18n()
   const authStore = useAuthStore()
   const teamMemberStore = useTeamMemberStore()
-  const showModal = ref(false)
-  const selectedUser = ref<TeamMember | null>(null)
   const { confirmDialog, openConfirmDialog } = useConfirmDialog()
   const { page, handlePageChange } = useUrlPagination()
 
   watch(page, val => { teamMemberStore.page = val }, { immediate: true })
 
   const members = computed(() => teamMemberStore.members)
-  const paginationData = computed(() => teamMemberStore.pagination)
   const processing = computed(() => teamMemberStore.listLoading)
 
-  function openCreateModal () {
-    selectedUser.value = null
+  const showModal = ref(false)
+  const selectedMember = ref<TeamMember | null>(null)
+
+  function openAdd () {
+    selectedMember.value = null
     showModal.value = true
   }
 
-  function openEditModal (member: TeamMember) {
-    selectedUser.value = member
+  function openEdit (m: TeamMember) {
+    selectedMember.value = m
     showModal.value = true
   }
 
-  function deleteMember (member: TeamMember) {
+  function confirmDelete (m: TeamMember) {
     openConfirmDialog({
-      title: 'Delete Member',
-      message: `Are you sure you want to permanently delete ${member.name}? This action cannot be undone.`,
+      title: t('teamMembers.deleteMember'),
+      message: t('teamMembers.confirmDelete', { name: m.name }),
       requiresPin: true,
       onConfirm: async () => {
-        try {
-          await teamMemberStore.deleteMember(member.id)
-        } catch (error) {
-          console.error('Error deleting member:', error)
-        }
+        await teamMemberStore.deleteMember(m.id)
       },
     })
   }
 </script>
 
 <template>
-  <PageHeader title="Team Members">
+  <PageHeader :title="$t('teamMembers.title')">
     <v-btn
       v-if="authStore.isAdmin"
       class="text-none font-weight-bold"
@@ -59,9 +56,9 @@
       prepend-icon="mdi-plus"
       rounded="lg"
       variant="flat"
-      @click="openCreateModal"
+      @click="openAdd"
     >
-      Add Member
+      {{ $t('teamMembers.addMember') }}
     </v-btn>
   </PageHeader>
 
@@ -70,110 +67,77 @@
       <v-table density="comfortable">
         <thead class="bg-grey-lighten-4">
           <tr>
-            <th
-              class="text-grey-darken-1 text-uppercase text-caption font-weight-bold text-left"
-            >
-              Name
+            <th class="text-grey-darken-1 text-uppercase text-caption font-weight-bold text-left">
+              {{ $t('teamMembers.tableHeaders.name') }}
             </th>
-            <th
-              class="text-grey-darken-1 text-uppercase text-caption font-weight-bold text-left"
-            >
-              Email
+            <th class="text-grey-darken-1 text-uppercase text-caption font-weight-bold text-left">
+              {{ $t('teamMembers.tableHeaders.email') }}
             </th>
-            <th
-              class="text-grey-darken-1 text-uppercase text-caption font-weight-bold text-left"
-            >
-              Role
+            <th class="text-grey-darken-1 text-uppercase text-caption font-weight-bold text-left">
+              {{ $t('teamMembers.tableHeaders.role') }}
             </th>
-            <th
-              class="text-grey-darken-1 text-uppercase text-caption font-weight-bold text-left"
-            >
-              Wallet Access
+            <th class="text-grey-darken-1 text-uppercase text-caption font-weight-bold text-left">
+              {{ $t('teamMembers.tableHeaders.walletAccess') }}
             </th>
             <th
               v-if="authStore.isAdmin"
               class="text-grey-darken-1 text-uppercase text-caption font-weight-bold text-right"
             >
-              Actions
+              {{ $t('teamMembers.tableHeaders.actions') }}
             </th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="member in members" :key="member.id">
+          <tr v-for="m in members" :key="m.id">
             <td class="font-weight-bold text-grey-darken-3">
-              {{ member.name }}
-              <v-chip
-                v-if="member.is_current"
-                class="ms-2"
-                color="grey-lighten-4"
-                size="x-small"
-                variant="flat"
-              >
-                YOU
-              </v-chip>
-              <v-chip
-                v-if="member.is_pending"
-                class="text-uppercase ms-2"
-                color="orange-lighten-5"
-                size="x-small"
-                variant="flat"
-              >
-                <span
-                  class="text-orange-darken-3 font-weight-bold"
-                >Pending Invitation</span>
-              </v-chip>
-            </td>
-            <td class="text-grey-darken-2">{{ member.email }}</td>
-            <td>
-              <v-chip
-                class="font-weight-bold"
-                :color="getRoleColors(member.role).bg"
-                size="small"
-                variant="flat"
-              >
-                <span
+              <div class="d-flex align-center ga-2">
+                {{ m.name }}
+                <v-chip
+                  v-if="m.id === authStore.user?.id"
                   class="font-weight-bold"
-                  :class="`text-${getRoleColors(member.role).text}`"
-                >{{ member.role }}</span>
-              </v-chip>
+                  color="primary"
+                  size="x-small"
+                  variant="flat"
+                >{{ $t('teamMembers.you') }}</v-chip>
+                <v-chip
+                  v-if="m.is_pending"
+                  class="font-weight-bold"
+                  color="warning"
+                  size="x-small"
+                  variant="flat"
+                >{{ $t('teamMembers.pendingInvitation') }}</v-chip>
+              </div>
             </td>
+            <td class="text-grey-darken-2">{{ m.email }}</td>
             <td>
               <v-chip
-                class="font-weight-bold"
-                color="green-lighten-5"
+                class="text-uppercase font-weight-bold"
+                :color="m.role === 'admin' ? 'primary' : 'grey-darken-1'"
                 size="small"
                 variant="flat"
-              >
-                <span
-                  class="text-green-darken-3 font-weight-bold"
-                >{{ member.wallet_access }}</span>
-              </v-chip>
+              >{{ m.role }}</v-chip>
+            </td>
+            <td>
+              <span class="text-caption text-grey-darken-2">{{ m.wallet_access }}</span>
             </td>
             <td v-if="authStore.isAdmin" class="text-right">
               <div class="d-flex ga-2 justify-end">
                 <v-btn
-                  v-if="
-                    !member.is_current &&
-                      member.role === 'Member'
-                  "
                   color="primary"
                   density="comfortable"
                   icon="mdi-pencil"
                   size="small"
                   variant="text"
-                  @click="openEditModal(member)"
+                  @click="openEdit(m)"
                 />
                 <v-btn
-                  v-if="
-                    !member.is_current &&
-                      member.role === 'Member'
-                  "
+                  v-if="m.id !== authStore.user?.id"
                   color="error"
                   density="comfortable"
                   icon="mdi-delete"
                   size="small"
                   variant="text"
-                  @click="deleteMember(member)"
+                  @click="confirmDelete(m)"
                 />
               </div>
             </td>
@@ -185,15 +149,12 @@
     <div class="border-t">
       <Pagination
         :meta="{
-          current_page: paginationData.currentPage,
-          last_page: paginationData.lastPage,
-          per_page: 10,
-          total: paginationData.total,
-          from: (paginationData.currentPage - 1) * 10 + 1,
-          to: Math.min(
-            paginationData.currentPage * 10,
-            paginationData.total,
-          ),
+          current_page: teamMemberStore.pagination.currentPage,
+          last_page: teamMemberStore.pagination.lastPage,
+          per_page: 15,
+          total: teamMemberStore.pagination.total,
+          from: null,
+          to: null,
         }"
         @update:page="handlePageChange"
       />
@@ -202,11 +163,13 @@
 
   <TeamMemberModal
     v-model="showModal"
-    :user="selectedUser"
+    :user="selectedMember"
+    @saved="showModal = false"
   />
 
   <ConfirmDialog
     v-model="confirmDialog.show"
+    confirm-color="error"
     :message="confirmDialog.message"
     :requires-pin="confirmDialog.requiresPin"
     :title="confirmDialog.title"

@@ -13,9 +13,16 @@ class TestingController
 {
     public function resetDatabase(): JsonResponse
     {
-        Artisan::call('migrate:fresh', ['--seed' => true]);
+        try {
+            Artisan::call('migrate:fresh', ['--seed' => true, '--force' => true]);
 
-        return response()->json(['message' => 'Database reset successfully']);
+            return response()->json(['message' => 'Database reset successfully']);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'message' => 'Database reset failed',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
     }
 
     public function createUser(Request $request): JsonResponse

@@ -28,8 +28,8 @@
   <SettingsLayout>
     <div class="d-flex flex-column ga-6">
       <Heading
-        description="Ensure your account is using a long, random password to stay secure"
-        title="Update password"
+        :description="$t('settings.password.description')"
+        :title="$t('settings.password.title')"
         variant="small"
       />
 
@@ -42,9 +42,9 @@
             density="comfortable"
             :error-messages="errors.current_password"
             hide-details="auto"
-            label="Current password"
+            :label="$t('settings.password.currentPassword')"
             name="current_password"
-            placeholder="Current password"
+            :placeholder="$t('settings.password.currentPassword')"
             type="password"
             variant="outlined"
           />
@@ -56,9 +56,9 @@
             density="comfortable"
             :error-messages="errors.password"
             hide-details="auto"
-            label="New password"
+            :label="$t('settings.password.newPassword')"
             name="password"
-            placeholder="New password"
+            :placeholder="$t('settings.password.newPassword')"
             type="password"
             variant="outlined"
           />
@@ -70,9 +70,9 @@
             density="comfortable"
             :error-messages="errors.password_confirmation"
             hide-details="auto"
-            label="Confirm password"
+            :label="$t('common.confirmPassword')"
             name="password_confirmation"
-            placeholder="Confirm password"
+            :placeholder="$t('common.confirmPassword')"
             type="password"
             variant="outlined"
           />
@@ -85,7 +85,7 @@
               type="submit"
               variant="flat"
             >
-              Save password
+              {{ $t('settings.password.savePassword') }}
             </v-btn>
 
             <v-fade-transition>
@@ -93,7 +93,7 @@
                 v-show="recentlySuccessful"
                 class="text-body-2 text-grey-darken-1"
               >
-                Saved.
+                {{ $t('common.saved') }}
               </p>
             </v-fade-transition>
           </div>

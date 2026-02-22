@@ -4,11 +4,13 @@
   import { Snowflake, Trash2, Wallet } from 'lucide-vue-next'
   import { reactive, ref, watch } from 'vue'
   import { useRoute, useRouter } from 'vue-router'
+  import { useI18n } from 'vue-i18n'
   import ConfirmDialog from '@/components/ui/ConfirmDialog.vue'
   import { useConfirmDialog } from '@/composables/useConfirmDialog'
   import { useWalletStore } from '@/stores/wallet'
   import { getErrorMessage, getValidationErrors, isApiError } from '@/utils/errors'
 
+  const { t } = useI18n()
   const route = useRoute()
   const router = useRouter()
   const walletStore = useWalletStore()
@@ -67,8 +69,10 @@
     if (!wallet.value) return
     const isFreezing = wallet.value.status === 'active'
     openConfirmDialog({
-      title: isFreezing ? 'Freeze Wallet' : 'Unfreeze Wallet',
-      message: `Are you sure you want to ${isFreezing ? 'freeze' : 'unfreeze'} the wallet "${wallet.value.name}"?`,
+      title: isFreezing ? t('wallets.freezeWallet') : t('wallets.unfreezeWallet'),
+      message: isFreezing
+        ? t('wallets.confirmFreeze', { name: wallet.value.name })
+        : t('wallets.confirmUnfreeze', { name: wallet.value.name }),
       requiresPin: false,
       onConfirm: async () => {
         try {
@@ -83,8 +87,8 @@
   function handleDelete () {
     if (!wallet.value) return
     openConfirmDialog({
-      title: 'Delete Wallet',
-      message: `Warning: You are about to permanently delete the wallet "${wallet.value.name}". This action cannot be undone. Only empty wallets can be deleted.`,
+      title: t('wallets.deleteWallet'),
+      message: t('wallets.confirmDeleteEdit', { name: wallet.value.name }),
       requiresPin: true,
       onConfirm: async () => {
         try {
@@ -94,7 +98,7 @@
           if (isApiError(error, 403)) {
             snackbar.value = {
               show: true,
-              text: getErrorMessage(error, 'You are not authorized to delete this wallet (it might not be empty).'),
+              text: getErrorMessage(error, t('wallets.deleteUnauthorizedEdit')),
               color: 'error',
             }
           } else {
@@ -115,9 +119,9 @@
       to="/wallets/"
       variant="text"
     >
-      Back to Wallets
+      {{ $t('wallets.backToWallets') }}
     </v-btn>
-    <h1 class="text-h5 font-weight-bold text-grey-darken-2">Edit Wallet</h1>
+    <h1 class="text-h5 font-weight-bold text-grey-darken-2">{{ $t('wallets.editWallet') }}</h1>
   </div>
 
   <v-card
@@ -148,8 +152,8 @@
               density="comfortable"
               :error-messages="errors.name"
               hide-details="auto"
-              label="Wallet Name"
-              placeholder="e.g. Savings, Marketing, Operations"
+              :label="$t('wallets.walletName')"
+              :placeholder="$t('wallets.walletNamePlaceholder')"
               required
               variant="outlined"
             >
@@ -164,7 +168,7 @@
 
             <div v-if="wallet" class="pa-4 bg-grey-lighten-4 rounded-lg border">
               <div class="text-caption text-grey-darken-1 mb-1">
-                Wallet Address
+                {{ $t('wallets.walletAddress') }}
               </div>
               <div class="d-flex align-center ga-2">
                 <v-icon
@@ -196,7 +200,7 @@
               :error-messages="errors.currency"
               hide-details="auto"
               :items="currencies"
-              label="Base Currency"
+              :label="$t('wallets.baseCurrency')"
               required
               variant="outlined"
             />
@@ -210,7 +214,7 @@
                 rounded="lg"
                 type="submit"
               >
-                Save Changes
+                {{ $t('wallets.saveChanges') }}
               </v-btn>
               <v-btn
                 class="text-none font-weight-bold px-8"
@@ -220,7 +224,7 @@
                 to="/wallets/"
                 variant="outlined"
               >
-                Cancel
+                {{ $t('common.cancel') }}
               </v-btn>
             </div>
 
@@ -230,11 +234,10 @@
               <div
                 class="text-subtitle-1 font-weight-bold text-grey-darken-3 mb-1"
               >
-                Management Actions
+                {{ $t('wallets.managementActions') }}
               </div>
               <p class="text-caption text-grey-darken-1 mb-6">
-                Manage the status or permanently delete this
-                wallet.
+                {{ $t('wallets.managementDescription') }}
               </p>
 
               <div class="d-flex flex-column flex-sm-row ga-3">
@@ -256,8 +259,8 @@
                 >
                   {{
                     wallet?.status === 'active'
-                      ? 'Freeze Wallet'
-                      : 'Unfreeze Wallet'
+                      ? $t('wallets.freezeWallet')
+                      : $t('wallets.unfreezeWallet')
                   }}
                 </v-btn>
 
@@ -270,7 +273,7 @@
                   variant="tonal"
                   @click="handleDelete"
                 >
-                  Delete Wallet
+                  {{ $t('wallets.deleteWallet') }}
                 </v-btn>
               </div>
 
@@ -284,8 +287,7 @@
                 variant="tonal"
               >
                 <div class="text-caption">
-                  Only wallets with no transaction history can
-                  be deleted.
+                  {{ $t('wallets.cannotDeleteInfo') }}
                 </div>
               </v-alert>
             </div>

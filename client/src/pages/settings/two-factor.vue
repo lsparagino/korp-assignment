@@ -80,8 +80,8 @@
   <SettingsLayout>
     <div class="d-flex flex-column ga-6">
       <Heading
-        description="Manage your two-factor authentication settings"
-        title="Two-Factor Authentication"
+        :description="$t('settings.twoFactor.description')"
+        :title="$t('settings.twoFactor.title')"
         variant="small"
       />
 
@@ -94,10 +94,9 @@
           color="error"
           size="small"
           variant="flat"
-        >Disabled</v-chip>
+        >{{ $t('settings.twoFactor.disabled') }}</v-chip>
         <p class="text-body-2 text-grey-darken-1">
-          When you enable two-factor authentication, you will be
-          prompted for a secure pin during login.
+          {{ $t('settings.twoFactor.enableDescription') }}
         </p>
         <v-btn
           class="text-none font-weight-bold"
@@ -106,7 +105,7 @@
           variant="flat"
           @click="enable2FA"
         >
-          Enable 2FA
+          {{ $t('settings.twoFactor.enable') }}
         </v-btn>
       </div>
 
@@ -119,10 +118,9 @@
           color="warning"
           size="small"
           variant="flat"
-        >Setup in Progress</v-chip>
+        >{{ $t('settings.twoFactor.setupInProgress') }}</v-chip>
         <p class="text-body-2 text-grey-darken-1">
-          Scan the QR code with your authenticator app and enter the
-          code below to confirm.
+          {{ $t('settings.twoFactor.setupDescription') }}
         </p>
 
         <div v-if="qrCode" class="w-100">
@@ -134,14 +132,14 @@
 
           <div class="d-flex flex-column ga-4 align-start mb-6">
             <p class="text-body-2 font-weight-bold">
-              Enter the 6-digit code:
+              {{ $t('settings.twoFactor.enterCode') }}
             </p>
             <v-text-field
               v-model="confirmationCode"
               class="w-100"
               color="primary"
               density="compact"
-              label="Confirmation Code"
+              :label="$t('settings.twoFactor.confirmationCode')"
               maxlength="6"
               placeholder="000000"
               style="max-width: 200px"
@@ -156,7 +154,7 @@
                 variant="flat"
                 @click="confirm2FA"
               >
-                Confirm & Enable
+                {{ $t('settings.twoFactor.confirmAndEnable') }}
               </v-btn>
               <v-btn
                 class="text-none font-weight-bold"
@@ -166,7 +164,7 @@
                   qrCode = null;
                 "
               >
-                Cancel
+                {{ $t('common.cancel') }}
               </v-btn>
             </div>
           </div>
@@ -179,10 +177,9 @@
           color="success"
           size="small"
           variant="flat"
-        >Enabled</v-chip>
+        >{{ $t('settings.twoFactor.enabled') }}</v-chip>
         <p class="text-body-2 text-grey-darken-1">
-          Two-factor authentication is enabled. You can manage your
-          recovery codes below.
+          {{ $t('settings.twoFactor.enabledDescription') }}
         </p>
 
         <div
@@ -190,7 +187,7 @@
           class="w-100 pa-4 bg-grey-lighten-4 mb-4 rounded-lg"
         >
           <p class="text-caption font-weight-bold mb-2">
-            Recovery Codes
+            {{ $t('settings.twoFactor.recoveryCodes') }}
           </p>
           <v-row dense>
             <v-col
@@ -211,7 +208,7 @@
           variant="flat"
           @click="disable2FA"
         >
-          Disable 2FA
+          {{ $t('settings.twoFactor.disable') }}
         </v-btn>
       </div>
     </div>

@@ -18,13 +18,12 @@
           <h1
             class="text-h4 text-sm-h2 font-weight-black text-grey-darken-4 mb-4 px-4"
           >
-            Secure your wealth with confidence
+            {{ $t('landing.headline') }}
           </h1>
           <p
             class="text-subtitle-1 text-sm-h5 text-grey-darken-1 mb-12 px-4"
           >
-            The ultimate platform for managing your multi-currency
-            wallets and team members securely.
+            {{ $t('landing.subheadline') }}
           </p>
           <div
             class="d-flex flex-column flex-sm-row ga-4 justify-center px-6"
@@ -38,7 +37,7 @@
                 size="x-large"
                 to="/dashboard"
               >
-                Go to Dashboard
+                {{ $t('landing.goToDashboard') }}
               </v-btn>
             </template>
             <template v-else>
@@ -50,7 +49,7 @@
                 size="x-large"
                 to="/auth/login"
               >
-                Get Started
+                {{ $t('landing.getStarted') }}
               </v-btn>
               <v-btn
                 class="text-none font-weight-bold px-8"
@@ -60,7 +59,7 @@
                 to="/auth/register"
                 variant="outlined"
               >
-                Create Account
+                {{ $t('landing.createAccount') }}
               </v-btn>
             </template>
           </div>

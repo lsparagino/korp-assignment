@@ -1,9 +1,12 @@
 <script lang="ts" setup>
   import type { VAlert } from 'vuetify/components'
   import { computed, reactive, ref } from 'vue'
+  import { useI18n } from 'vue-i18n'
   import { forgotPassword } from '@/api/auth'
   import { isApiError } from '@/utils/errors'
   import { useFormSubmit } from '@/composables/useFormSubmit'
+
+  const { t } = useI18n()
 
   const form = reactive({
     email: '',
@@ -37,10 +40,10 @@
       } catch (error: unknown) {
         if (isApiError(error, 422)) {
           alertType.value = 'warning'
-          status.value = 'Your mailbox is full'
+          status.value = t('auth.forgotPassword.mailboxFull')
         } else {
           alertType.value = 'error'
-          status.value = 'An error occurred. Please try again.'
+          status.value = t('common.errorOccurred')
         }
       } finally {
         if (alertType.value === 'success' || alertType.value === 'warning') {
@@ -61,7 +64,7 @@
           color="primary"
           density="comfortable"
           hide-details="auto"
-          label="Email address"
+          :label="$t('common.emailAddress')"
           name="email"
           placeholder="email@example.com"
           required
@@ -80,21 +83,21 @@
           type="submit"
         >
           <template v-if="!canSubmit">
-            Wait {{ cooldown }}s to resend
+            {{ $t('auth.forgotPassword.waitToResend', { seconds: cooldown }) }}
           </template>
           <template v-else>
-            Email password reset link
+            {{ $t('auth.forgotPassword.submit') }}
           </template>
         </v-btn>
       </div>
     </v-form>
 
     <template #footer>
-      <span class="text-body-2 text-grey-darken-1">Or, return to</span>
+      <span class="text-body-2 text-grey-darken-1">{{ $t('auth.forgotPassword.returnTo') }}</span>
       <router-link
         class="text-body-2 font-weight-bold text-decoration-none text-primary ms-1"
         to="/auth/login"
-      >log in</router-link>
+      >{{ $t('auth.forgotPassword.logIn') }}</router-link>
     </template>
   </AuthCard>
 </template>
@@ -103,6 +106,6 @@
 meta:
     layout: Auth
     public: true
-    title: Forgot password
-    description: Enter your email to receive a password reset link
+    title: auth.forgotPassword.title
+    description: auth.forgotPassword.description
 </route>
