@@ -1,6 +1,7 @@
 <script lang="ts" setup>
   import TransactionTable from '@/components/features/TransactionTable.vue'
   import PageHeader from '@/components/layout/PageHeader.vue'
+  import { useRefreshData } from '@/composables/useRefreshData'
   import { useTransactionFilters } from '@/composables/useTransactionFilters'
 
   const {
@@ -23,11 +24,24 @@
     handlePerPageChange,
     handleFilter,
     clearFilters,
+    invalidateQueries,
   } = useTransactionFilters()
+
+  const { refreshing, refresh } = useRefreshData(() => invalidateQueries())
 </script>
 
 <template>
-  <PageHeader :title="$t('transactions.title')" />
+  <PageHeader :title="$t('transactions.title')">
+    <v-btn
+      :aria-label="$t('common.refreshData')"
+      color="grey-darken-1"
+      density="comfortable"
+      icon="mdi-refresh"
+      :loading="refreshing"
+      variant="text"
+      @click="refresh"
+    />
+  </PageHeader>
 
   <!-- Filters -->
   <v-card border class="mb-6" flat rounded="lg">

@@ -6,6 +6,7 @@
   import ConfirmDialog from '@/components/ui/ConfirmDialog.vue'
   import Pagination from '@/components/ui/Pagination.vue'
   import { useConfirmDialog } from '@/composables/useConfirmDialog'
+  import { useRefreshData } from '@/composables/useRefreshData'
   import { useUrlPagination } from '@/composables/useUrlPagination'
   import { useAuthStore } from '@/stores/auth'
   import { useWalletStore } from '@/stores/wallet'
@@ -19,6 +20,7 @@
   const snackbar = ref({ show: false, text: '', color: 'error' })
   const { confirmDialog, openConfirmDialog } = useConfirmDialog()
   const { page, perPage, handlePageChange, handlePerPageChange } = useUrlPagination()
+  const { refreshing, refresh } = useRefreshData(() => walletStore.invalidateQueries())
 
   watch(page, val => {
     walletStore.page = val
@@ -75,17 +77,28 @@
 
 <template>
   <PageHeader :title="$t('wallets.title')">
-    <v-btn
-      v-if="authStore.isAdmin"
-      class="text-none font-weight-bold"
-      color="primary"
-      prepend-icon="mdi-plus"
-      rounded="lg"
-      to="/wallets/create"
-      variant="flat"
-    >
-      {{ $t('wallets.createWallet') }}
-    </v-btn>
+    <div class="d-flex ga-2 align-center">
+      <v-btn
+        :aria-label="$t('common.refreshData')"
+        color="grey-darken-1"
+        density="comfortable"
+        icon="mdi-refresh"
+        :loading="refreshing"
+        variant="text"
+        @click="refresh"
+      />
+      <v-btn
+        v-if="authStore.isAdmin"
+        class="text-none font-weight-bold"
+        color="primary"
+        prepend-icon="mdi-plus"
+        rounded="lg"
+        to="/wallets/create"
+        variant="flat"
+      >
+        {{ $t('wallets.createWallet') }}
+      </v-btn>
+    </div>
   </PageHeader>
 
   <v-card border flat :loading="processing" rounded="lg">

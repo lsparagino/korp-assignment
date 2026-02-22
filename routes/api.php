@@ -14,8 +14,8 @@ use App\Http\Controllers\Settings\PasswordController;
 use App\Http\Controllers\Settings\ProfileController;
 use Illuminate\Support\Facades\Route;
 
-// Public Auth Routes with strict rate limiting (5 requests / min)
-Route::middleware('throttle:5,1')->group(function () {
+// Public Auth Routes with strict rate limiting
+Route::middleware('throttle:auth')->group(function () {
     Route::post('/login', [AuthController::class, 'login'])->name('login');
     Route::post('/two-factor-challenge', [AuthController::class, 'twoFactorChallenge']);
     Route::post('/register', [AuthController::class, 'register']);

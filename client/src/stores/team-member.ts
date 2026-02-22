@@ -31,23 +31,23 @@ export const useTeamMemberStore = defineStore('team-member', () => {
     total: data.value?.meta?.total ?? 0,
   }))
 
-  function invalidateQueries () {
-    queryCache.invalidateQueries({ key: TEAM_MEMBER_QUERY_KEYS.root })
+  async function invalidateQueries() {
+    await queryCache.invalidateQueries({ key: TEAM_MEMBER_QUERY_KEYS.root })
   }
 
   const { mutateAsync: createMember } = useMutation({
     mutation: (form: TeamMemberForm) => apiCreateMember(form),
-    onSettled: invalidateQueries,
+    onSettled: async () => await invalidateQueries(),
   })
 
   const { mutateAsync: updateMember } = useMutation({
     mutation: ({ id, form }: { id: number, form: TeamMemberForm }) => apiUpdateMember(id, form),
-    onSettled: invalidateQueries,
+    onSettled: async () => await invalidateQueries(),
   })
 
   const { mutateAsync: deleteMember } = useMutation({
     mutation: (id: number) => apiDeleteMember(id),
-    onSettled: invalidateQueries,
+    onSettled: async () => await invalidateQueries(),
   })
 
   return {
@@ -58,5 +58,7 @@ export const useTeamMemberStore = defineStore('team-member', () => {
     createMember,
     updateMember,
     deleteMember,
+    invalidateQueries,
   }
 })
+

@@ -16,7 +16,8 @@
         "actions": "Actions",
         "loading": "Loading...",
         "genericError": "Something went wrong. Please try again.",
-        "errorOccurred": "An error occurred. Please try again."
+        "errorOccurred": "An error occurred. Please try again.",
+        "refreshData": "Refresh data"
     },
     "nav": {
         "dashboard": "Dashboard",

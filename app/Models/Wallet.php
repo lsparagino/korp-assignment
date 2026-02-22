@@ -42,6 +42,10 @@ class Wallet extends Model
 
     public function getBalanceAttribute(): float
     {
+        if (array_key_exists('balance_in', $this->attributes) && array_key_exists('balance_out', $this->attributes)) {
+            return (float) (($this->attributes['balance_in'] ?? 0) + ($this->attributes['balance_out'] ?? 0));
+        }
+
         return (float) ($this->toTransactions()->sum('amount') + $this->fromTransactions()->sum('amount'));
     }
 

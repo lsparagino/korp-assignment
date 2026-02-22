@@ -7,6 +7,7 @@
   import ConfirmDialog from '@/components/ui/ConfirmDialog.vue'
   import Pagination from '@/components/ui/Pagination.vue'
   import { useConfirmDialog } from '@/composables/useConfirmDialog'
+  import { useRefreshData } from '@/composables/useRefreshData'
   import { useUrlPagination } from '@/composables/useUrlPagination'
   import { useAuthStore } from '@/stores/auth'
   import { useTeamMemberStore } from '@/stores/team-member'
@@ -16,6 +17,7 @@
   const teamMemberStore = useTeamMemberStore()
   const { confirmDialog, openConfirmDialog } = useConfirmDialog()
   const { page, handlePageChange } = useUrlPagination()
+  const { refreshing, refresh } = useRefreshData(() => teamMemberStore.invalidateQueries())
 
   watch(page, val => {
     teamMemberStore.page = val
@@ -51,17 +53,28 @@
 
 <template>
   <PageHeader :title="$t('teamMembers.title')">
-    <v-btn
-      v-if="authStore.isAdmin"
-      class="text-none font-weight-bold"
-      color="primary"
-      prepend-icon="mdi-plus"
-      rounded="lg"
-      variant="flat"
-      @click="openAdd"
-    >
-      {{ $t('teamMembers.addMember') }}
-    </v-btn>
+    <div class="d-flex ga-2 align-center">
+      <v-btn
+        :aria-label="$t('common.refreshData')"
+        color="grey-darken-1"
+        density="comfortable"
+        icon="mdi-refresh"
+        :loading="refreshing"
+        variant="text"
+        @click="refresh"
+      />
+      <v-btn
+        v-if="authStore.isAdmin"
+        class="text-none font-weight-bold"
+        color="primary"
+        prepend-icon="mdi-plus"
+        rounded="lg"
+        variant="flat"
+        @click="openAdd"
+      >
+        {{ $t('teamMembers.addMember') }}
+      </v-btn>
+    </div>
   </PageHeader>
 
   <v-card border flat :loading="processing" rounded="lg">

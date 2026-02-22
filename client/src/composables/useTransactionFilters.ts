@@ -1,13 +1,13 @@
 import type { Transaction } from '@/api/transactions'
 import type { Wallet } from '@/api/wallets'
-import { useQuery } from '@pinia/colada'
+import { useQuery, useQueryCache } from '@pinia/colada'
 import { computed, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { useDatePicker } from '@/composables/useDatePicker'
 import { useUrlPagination } from '@/composables/useUrlPagination'
-import { transactionsListQuery } from '@/queries/transactions'
-import { walletsListQuery } from '@/queries/wallets'
+import { TRANSACTION_QUERY_KEYS, transactionsListQuery } from '@/queries/transactions'
+import { WALLET_QUERY_KEYS, walletsListQuery } from '@/queries/wallets'
 
 const FILTER_KEYS = [
   'date_from', 'date_to', 'type',
@@ -15,10 +15,11 @@ const FILTER_KEYS = [
   'from_wallet_id', 'to_wallet_id',
 ] as const
 
-export function useTransactionFilters () {
+export function useTransactionFilters() {
   const route = useRoute()
   const router = useRouter()
   const { t } = useI18n()
+  const queryCache = useQueryCache()
   const { page, perPage, handlePageChange, handlePerPageChange } = useUrlPagination({ defaultPerPage: 25 })
 
   const filterForm = reactive({
@@ -99,7 +100,7 @@ export function useTransactionFilters () {
     + ['date_from', 'date_to', 'type'].filter(k => route.query[k]).length,
   )
 
-  function handleFilter () {
+  function handleFilter() {
     const raw: Record<string, string | undefined> = {
       ...route.query,
       page: '1',
@@ -119,13 +120,20 @@ export function useTransactionFilters () {
     router.push({ query })
   }
 
-  function clearFilters () {
+  function clearFilters() {
     const query = { ...route.query }
     for (const key of FILTER_KEYS) {
       delete query[key]
     }
     query.page = '1'
     router.push({ query })
+  }
+
+  async function invalidateQueries() {
+    await Promise.all([
+      queryCache.invalidateQueries({ key: TRANSACTION_QUERY_KEYS.root }),
+      queryCache.invalidateQueries({ key: WALLET_QUERY_KEYS.root }),
+    ])
   }
 
   return {
@@ -148,5 +156,7 @@ export function useTransactionFilters () {
     handlePerPageChange,
     handleFilter,
     clearFilters,
+    invalidateQueries,
   }
 }
+

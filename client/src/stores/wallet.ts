@@ -8,6 +8,7 @@ import {
   toggleWalletFreeze as apiToggleFreeze,
   updateWallet as apiUpdateWallet,
 } from '@/api/wallets'
+import { DASHBOARD_QUERY_KEYS } from '@/queries/dashboard'
 import { WALLET_QUERY_KEYS, walletByIdQuery, walletsListQuery } from '@/queries/wallets'
 
 const DEFAULT_PER_PAGE = 10
@@ -33,33 +34,36 @@ export const useWalletStore = defineStore('wallet', () => {
     to: null,
   })
 
-  function invalidateQueries () {
-    queryCache.invalidateQueries({ key: WALLET_QUERY_KEYS.root })
+  async function invalidateQueries() {
+    await Promise.all([
+      queryCache.invalidateQueries({ key: WALLET_QUERY_KEYS.root }),
+      queryCache.invalidateQueries({ key: DASHBOARD_QUERY_KEYS.root }),
+    ])
   }
 
-  function useWalletById (id: string | number) {
+  function useWalletById(id: string | number) {
     return useQuery(walletByIdQuery, () => id)
   }
 
   const { mutateAsync: createWallet } = useMutation({
     mutation: (form: { name: string, currency: string }) => apiCreateWallet(form),
-    onSettled: invalidateQueries,
+    onSettled: async () => await invalidateQueries(),
   })
 
   const { mutateAsync: updateWallet } = useMutation({
     mutation: ({ id, form }: { id: string | number, form: { name: string, currency: string } }) =>
       apiUpdateWallet(id, form),
-    onSettled: invalidateQueries,
+    onSettled: async () => await invalidateQueries(),
   })
 
   const { mutateAsync: toggleFreeze } = useMutation({
     mutation: (id: number) => apiToggleFreeze(id),
-    onSettled: invalidateQueries,
+    onSettled: async () => await invalidateQueries(),
   })
 
   const { mutateAsync: deleteWallet } = useMutation({
     mutation: (id: number) => apiDeleteWallet(id),
-    onSettled: invalidateQueries,
+    onSettled: async () => await invalidateQueries(),
   })
 
   return {
@@ -73,5 +77,6 @@ export const useWalletStore = defineStore('wallet', () => {
     updateWallet,
     toggleFreeze,
     deleteWallet,
+    invalidateQueries,
   }
 })
