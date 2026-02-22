@@ -1,7 +1,7 @@
 <script lang="ts" setup>
   import { onMounted, reactive, ref } from 'vue'
-  import { useRoute, useRouter } from 'vue-router'
   import { useI18n } from 'vue-i18n'
+  import { useRoute, useRouter } from 'vue-router'
   import { resetPassword } from '@/api/auth'
   import { useFormSubmit } from '@/composables/useFormSubmit'
 
@@ -56,8 +56,8 @@
 
         <v-text-field
           v-model="form.password"
-          autofocus
           :append-inner-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
+          autofocus
           color="primary"
           density="comfortable"
           :error-messages="errors.password"

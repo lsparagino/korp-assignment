@@ -1,62 +1,62 @@
 import type { TeamMember } from '@/api/team-members'
-import { computed, ref } from 'vue'
+import { useMutation, useQuery, useQueryCache } from '@pinia/colada'
 import { defineStore } from 'pinia'
-import { useQuery, useMutation, useQueryCache } from '@pinia/colada'
+import { computed, ref } from 'vue'
 import {
-    createTeamMember as apiCreateMember,
-    deleteTeamMember as apiDeleteMember,
-    updateTeamMember as apiUpdateMember,
+  createTeamMember as apiCreateMember,
+  deleteTeamMember as apiDeleteMember,
+  updateTeamMember as apiUpdateMember,
 } from '@/api/team-members'
-import { teamMembersListQuery, TEAM_MEMBER_QUERY_KEYS } from '@/queries/team-members'
+import { TEAM_MEMBER_QUERY_KEYS, teamMembersListQuery } from '@/queries/team-members'
 
 interface TeamMemberForm {
-    name: string
-    email: string
-    wallets: number[]
+  name: string
+  email: string
+  wallets: number[]
 }
 
 export const useTeamMemberStore = defineStore('team-member', () => {
-    const queryCache = useQueryCache()
-    const page = ref(1)
+  const queryCache = useQueryCache()
+  const page = ref(1)
 
-    const { data, isPending: listLoading } = useQuery(
-        teamMembersListQuery,
-        () => page.value,
-    )
+  const { data, isPending: listLoading } = useQuery(
+    teamMembersListQuery,
+    () => page.value,
+  )
 
-    const members = computed<TeamMember[]>(() => data.value?.data ?? [])
-    const pagination = computed(() => ({
-        currentPage: data.value?.meta?.current_page ?? 1,
-        lastPage: data.value?.meta?.last_page ?? 1,
-        total: data.value?.meta?.total ?? 0,
-    }))
+  const members = computed<TeamMember[]>(() => data.value?.data ?? [])
+  const pagination = computed(() => ({
+    currentPage: data.value?.meta?.current_page ?? 1,
+    lastPage: data.value?.meta?.last_page ?? 1,
+    total: data.value?.meta?.total ?? 0,
+  }))
 
-    function invalidateQueries() {
-        queryCache.invalidateQueries({ key: TEAM_MEMBER_QUERY_KEYS.root })
-    }
+  function invalidateQueries () {
+    queryCache.invalidateQueries({ key: TEAM_MEMBER_QUERY_KEYS.root })
+  }
 
-    const { mutateAsync: createMember } = useMutation({
-        mutation: (form: TeamMemberForm) => apiCreateMember(form),
-        onSettled: invalidateQueries,
-    })
+  const { mutateAsync: createMember } = useMutation({
+    mutation: (form: TeamMemberForm) => apiCreateMember(form),
+    onSettled: invalidateQueries,
+  })
 
-    const { mutateAsync: updateMember } = useMutation({
-        mutation: ({ id, form }: { id: number, form: TeamMemberForm }) => apiUpdateMember(id, form),
-        onSettled: invalidateQueries,
-    })
+  const { mutateAsync: updateMember } = useMutation({
+    mutation: ({ id, form }: { id: number, form: TeamMemberForm }) => apiUpdateMember(id, form),
+    onSettled: invalidateQueries,
+  })
 
-    const { mutateAsync: deleteMember } = useMutation({
-        mutation: (id: number) => apiDeleteMember(id),
-        onSettled: invalidateQueries,
-    })
+  const { mutateAsync: deleteMember } = useMutation({
+    mutation: (id: number) => apiDeleteMember(id),
+    onSettled: invalidateQueries,
+  })
 
-    return {
-        page,
-        members,
-        pagination,
-        listLoading,
-        createMember,
-        updateMember,
-        deleteMember,
-    }
+  return {
+    page,
+    members,
+    pagination,
+    listLoading,
+    createMember,
+    updateMember,
+    deleteMember,
+  }
 })

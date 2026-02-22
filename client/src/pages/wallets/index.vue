@@ -1,18 +1,17 @@
 <script lang="ts" setup>
   import type { Wallet } from '@/api/wallets'
-  import { computed, watch } from 'vue'
+  import { computed, ref, watch } from 'vue'
   import { useI18n } from 'vue-i18n'
-  import ConfirmDialog from '@/components/ui/ConfirmDialog.vue'
   import PageHeader from '@/components/layout/PageHeader.vue'
+  import ConfirmDialog from '@/components/ui/ConfirmDialog.vue'
   import Pagination from '@/components/ui/Pagination.vue'
   import { useConfirmDialog } from '@/composables/useConfirmDialog'
   import { useUrlPagination } from '@/composables/useUrlPagination'
-  import { useWalletStore } from '@/stores/wallet'
   import { useAuthStore } from '@/stores/auth'
-  import { getErrorMessage, isApiError } from '@/utils/errors'
+  import { useWalletStore } from '@/stores/wallet'
   import { getCurrencyColors, getStatusColors } from '@/utils/colors'
+  import { getErrorMessage, isApiError } from '@/utils/errors'
   import { formatCurrency, getAmountColor } from '@/utils/formatters'
-  import { ref } from 'vue'
 
   const { t } = useI18n()
   const authStore = useAuthStore()
@@ -21,8 +20,12 @@
   const { confirmDialog, openConfirmDialog } = useConfirmDialog()
   const { page, perPage, handlePageChange, handlePerPageChange } = useUrlPagination()
 
-  watch(page, val => { walletStore.page = val }, { immediate: true })
-  watch(perPage, val => { walletStore.perPage = val }, { immediate: true })
+  watch(page, val => {
+    walletStore.page = val
+  }, { immediate: true })
+  watch(perPage, val => {
+    walletStore.perPage = val
+  }, { immediate: true })
 
   const wallets = computed(() => walletStore.wallets)
   const meta = computed(() => walletStore.meta)

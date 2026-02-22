@@ -56,10 +56,8 @@ router.beforeEach(
       return next('/auth/login')
     }
 
-    if (loggedIn && !authStore.isEmailVerified) {
-      if (to.path !== '/auth/verify-email') {
-        return next('/auth/verify-email')
-      }
+    if (loggedIn && !authStore.isEmailVerified && to.path !== '/auth/verify-email') {
+      return next('/auth/verify-email')
     }
 
     if (loggedIn && authStore.isEmailVerified && to.path === '/auth/verify-email') {

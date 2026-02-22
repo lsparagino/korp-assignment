@@ -1,10 +1,10 @@
 <script lang="ts" setup>
   import { computed, ref, watch } from 'vue'
-  import { useRoute, useRouter } from 'vue-router'
   import { useI18n } from 'vue-i18n'
+  import { useRoute, useRouter } from 'vue-router'
   import { twoFactorChallenge } from '@/api/auth'
-  import { useAuthStore } from '@/stores/auth'
   import { useFormSubmit } from '@/composables/useFormSubmit'
+  import { useAuthStore } from '@/stores/auth'
 
   const { t } = useI18n()
   const route = useRoute()

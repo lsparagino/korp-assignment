@@ -1,7 +1,7 @@
 <script lang="ts" setup>
   import { computed, onMounted, onUnmounted, ref } from 'vue'
-  import { useRoute, useRouter } from 'vue-router'
   import { useI18n } from 'vue-i18n'
+  import { useRoute, useRouter } from 'vue-router'
   import { sendVerificationEmail, verifyEmail } from '@/api/auth'
   import { useAuthStore } from '@/stores/auth'
 
@@ -24,7 +24,7 @@
   /** Whether the user arrived from a verification link (has query params). */
   const isVerificationLink = ref(false)
 
-  function startCountdown() {
+  function startCountdown () {
     countdown.value = RESEND_COOLDOWN
     if (timer) clearInterval(timer)
     timer = setInterval(() => {
@@ -47,8 +47,8 @@
         await authStore.fetchUser()
         status.value = t('auth.verifyEmail.verified')
         setTimeout(() => router.push('/dashboard'), 1500)
-      } catch (err: unknown) {
-        const e = err as { response?: { data?: { message?: string } } }
+      } catch (error_: unknown) {
+        const e = error_ as { response?: { data?: { message?: string } } }
         error.value = e.response?.data?.message || t('auth.verifyEmail.verificationFailed')
         isVerificationLink.value = false
       } finally {
@@ -63,7 +63,7 @@
     if (timer) clearInterval(timer)
   })
 
-  async function resend() {
+  async function resend () {
     if (!canResend.value) return
     resending.value = true
     status.value = ''
@@ -79,7 +79,7 @@
     }
   }
 
-  async function handleLogout() {
+  async function handleLogout () {
     await authStore.logout()
     router.push('/auth/login')
   }

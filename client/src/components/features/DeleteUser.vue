@@ -1,12 +1,12 @@
 <script lang="ts" setup>
   import { reactive, ref } from 'vue'
   import { useI18n } from 'vue-i18n'
-  import Heading from '@/components/ui/Heading.vue'
   import { deleteAccount } from '@/api/settings'
+  import Heading from '@/components/ui/Heading.vue'
   import { useFormSubmit } from '@/composables/useFormSubmit'
   import { useAuthStore } from '@/stores/auth'
 
-  const { t } = useI18n()
+  useI18n()
   const authStore = useAuthStore()
   const dialog = ref(false)
   const form = reactive({ password: '' })

@@ -1,6 +1,6 @@
 import type { User } from '@/api/auth'
-import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
+import { computed, ref } from 'vue'
 import { fetchUser as apiFetchUser, logout as apiLogout } from '@/api/auth'
 
 export const useAuthStore = defineStore('auth', () => {
@@ -12,28 +12,28 @@ export const useAuthStore = defineStore('auth', () => {
   const isAuthenticated = computed(() => !!token.value)
   const isEmailVerified = computed(() => !!user.value?.email_verified_at)
 
-  function setToken(value: string) {
+  function setToken (value: string) {
     token.value = value
     localStorage.setItem('access_token', value)
   }
 
-  function clearToken() {
+  function clearToken () {
     token.value = null
     user.value = null
     localStorage.removeItem('access_token')
     localStorage.removeItem('user')
   }
 
-  function setUser(value: User) {
+  function setUser (value: User) {
     user.value = value
     localStorage.setItem('user', JSON.stringify(value))
   }
 
-  function setTwoFactor(userId: number) {
+  function setTwoFactor (userId: number) {
     twoFactorUserId.value = userId
   }
 
-  async function fetchUser() {
+  async function fetchUser () {
     try {
       const response = await apiFetchUser()
       setUser(response.data)
@@ -42,7 +42,7 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  async function logout() {
+  async function logout () {
     try {
       await apiLogout()
     } finally {

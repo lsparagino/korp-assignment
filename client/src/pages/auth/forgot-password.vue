@@ -3,8 +3,8 @@
   import { computed, reactive, ref } from 'vue'
   import { useI18n } from 'vue-i18n'
   import { forgotPassword } from '@/api/auth'
-  import { isApiError } from '@/utils/errors'
   import { useFormSubmit } from '@/composables/useFormSubmit'
+  import { isApiError } from '@/utils/errors'
 
   const { t } = useI18n()
 
@@ -20,7 +20,7 @@
 
   let timerInterval: ReturnType<typeof setInterval>
 
-  function startCooldown() {
+  function startCooldown () {
     cooldown.value = 60
     timerInterval = setInterval(() => {
       if (cooldown.value > 0) {

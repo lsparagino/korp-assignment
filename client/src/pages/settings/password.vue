@@ -1,8 +1,8 @@
 <script lang="ts" setup>
   import { reactive } from 'vue'
-  import Heading from '@/components/ui/Heading.vue'
-  import SettingsLayout from '@/components/layout/SettingsLayout.vue'
   import { updatePassword } from '@/api/settings'
+  import SettingsLayout from '@/components/layout/SettingsLayout.vue'
+  import Heading from '@/components/ui/Heading.vue'
   import { useFormSubmit } from '@/composables/useFormSubmit'
 
   const form = reactive({

@@ -24,14 +24,14 @@ const defaultColorPair: ColorPair = {
   text: 'grey-darken-3',
 }
 
-export function getCurrencyColors(currency: string): ColorPair {
+export function getCurrencyColors (currency: string): ColorPair {
   return currencyColorMap[currency] || defaultColorPair
 }
 
-export function getStatusColors(status: string): ColorPair {
+export function getStatusColors (status: string): ColorPair {
   return statusColorMap[status] || defaultColorPair
 }
 
-export function getRoleColors(role: string): ColorPair {
+export function getRoleColors (role: string): ColorPair {
   return roleColorMap[role.toLowerCase()] || defaultColorPair
 }

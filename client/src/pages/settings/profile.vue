@@ -1,9 +1,9 @@
 <script lang="ts" setup>
   import { computed, reactive, ref } from 'vue'
   import { useI18n } from 'vue-i18n'
-  import Heading from '@/components/ui/Heading.vue'
+  import { cancelPendingEmail as apiCancelPendingEmail, deleteAccount as apiDeleteAccount, updateProfile } from '@/api/settings'
   import SettingsLayout from '@/components/layout/SettingsLayout.vue'
-  import { deleteAccount as apiDeleteAccount, updateProfile, cancelPendingEmail as apiCancelPendingEmail } from '@/api/settings'
+  import Heading from '@/components/ui/Heading.vue'
   import { useFormSubmit } from '@/composables/useFormSubmit'
   import { useAuthStore } from '@/stores/auth'
 
@@ -33,7 +33,7 @@
     },
   })
 
-  async function cancelPendingEmail() {
+  async function cancelPendingEmail () {
     cancellingPendingEmail.value = true
     try {
       const response = await apiCancelPendingEmail()

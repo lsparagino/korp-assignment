@@ -1,10 +1,10 @@
 <script lang="ts" setup>
   import type { TeamMember } from '@/api/team-members'
   import type { Wallet } from '@/api/wallets'
-  import { computed, ref, watch } from 'vue'
   import { useQuery } from '@pinia/colada'
-  import { useTeamMemberStore } from '@/stores/team-member'
+  import { computed, ref, watch } from 'vue'
   import { walletsListQuery } from '@/queries/wallets'
+  import { useTeamMemberStore } from '@/stores/team-member'
   import { getValidationErrors, isApiError } from '@/utils/errors'
 
   const props = defineProps<{
@@ -55,11 +55,7 @@
     processing.value = true
     errors.value = {}
     try {
-      if (props.user?.id) {
-        await teamMemberStore.updateMember({ id: props.user.id, form: form.value })
-      } else {
-        await teamMemberStore.createMember(form.value)
-      }
+      await (props.user?.id ? teamMemberStore.updateMember({ id: props.user.id, form: form.value }) : teamMemberStore.createMember(form.value))
       emit('saved')
       dialog.value = false
     } catch (error: unknown) {

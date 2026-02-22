@@ -1,10 +1,10 @@
 <script lang="ts" setup>
   import { reactive, ref } from 'vue'
-  import { useRouter } from 'vue-router'
   import { useI18n } from 'vue-i18n'
+  import { useRouter } from 'vue-router'
   import { register } from '@/api/auth'
-  import { useAuthStore } from '@/stores/auth'
   import { useFormSubmit } from '@/composables/useFormSubmit'
+  import { useAuthStore } from '@/stores/auth'
 
   const { t } = useI18n()
   const router = useRouter()

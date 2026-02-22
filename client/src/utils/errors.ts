@@ -1,29 +1,28 @@
 import type { AxiosError } from 'axios'
 
 export interface ValidationErrors {
-    [key: string]: string[]
+  [key: string]: string[]
 }
-
 
 interface ApiErrorResponse {
-    errors?: Record<string, string[]>
-    message?: string
+  errors?: Record<string, string[]>
+  message?: string
 }
 
-export function isApiError(error: unknown, status: number): boolean {
-    return (error as AxiosError)?.response?.status === status
+export function isApiError (error: unknown, status: number): boolean {
+  return (error as AxiosError)?.response?.status === status
 }
 
-export function getValidationErrors(error: unknown): Record<string, string[]> {
-    if (!isApiError(error, 422)) {
-        return {}
-    }
+export function getValidationErrors (error: unknown): Record<string, string[]> {
+  if (!isApiError(error, 422)) {
+    return {}
+  }
 
-    const data = (error as AxiosError<ApiErrorResponse>).response?.data
-    return data?.errors ?? {}
+  const data = (error as AxiosError<ApiErrorResponse>).response?.data
+  return data?.errors ?? {}
 }
 
-export function getErrorMessage(error: unknown, fallback = 'Something went wrong.'): string {
-    const data = (error as AxiosError<ApiErrorResponse>).response?.data
-    return data?.message || fallback
+export function getErrorMessage (error: unknown, fallback = 'Something went wrong.'): string {
+  const data = (error as AxiosError<ApiErrorResponse>).response?.data
+  return data?.message || fallback
 }

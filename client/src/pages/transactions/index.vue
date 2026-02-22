@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-  import PageHeader from '@/components/layout/PageHeader.vue'
   import TransactionTable from '@/components/features/TransactionTable.vue'
+  import PageHeader from '@/components/layout/PageHeader.vue'
   import { useTransactionFilters } from '@/composables/useTransactionFilters'
 
   const {

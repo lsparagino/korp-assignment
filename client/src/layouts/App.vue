@@ -2,10 +2,10 @@
   import type { FunctionalComponent } from 'vue'
   import { LayoutDashboard, Repeat, Users, Wallet } from 'lucide-vue-next'
   import { computed, ref } from 'vue'
-  import { useRoute, useRouter } from 'vue-router'
   import { useI18n } from 'vue-i18n'
-  import AppLogo from '@/components/ui/AppLogo.vue'
+  import { useRoute, useRouter } from 'vue-router'
   import CompanySelector from '@/components/features/CompanySelector.vue'
+  import AppLogo from '@/components/ui/AppLogo.vue'
   import { useAuthStore } from '@/stores/auth'
   import { useCompanyStore } from '@/stores/company'
 
@@ -57,8 +57,6 @@
       return authStore.user?.role === item.role
     })
   })
-
-
 
   async function handleLogout () {
     await authStore.logout()

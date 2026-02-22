@@ -1,7 +1,7 @@
 <script lang="ts" setup>
   import { onMounted, ref } from 'vue'
-  import { useRoute, useRouter } from 'vue-router'
   import { useI18n } from 'vue-i18n'
+  import { useRoute, useRouter } from 'vue-router'
   import { acceptInvitation, verifyInvitation } from '@/api/auth'
   import { useAuthStore } from '@/stores/auth'
 

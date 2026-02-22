@@ -2,14 +2,14 @@
   import type { TeamMember } from '@/api/team-members'
   import { computed, ref, watch } from 'vue'
   import { useI18n } from 'vue-i18n'
-  import ConfirmDialog from '@/components/ui/ConfirmDialog.vue'
   import TeamMemberModal from '@/components/features/TeamMemberModal.vue'
   import PageHeader from '@/components/layout/PageHeader.vue'
+  import ConfirmDialog from '@/components/ui/ConfirmDialog.vue'
   import Pagination from '@/components/ui/Pagination.vue'
   import { useConfirmDialog } from '@/composables/useConfirmDialog'
   import { useUrlPagination } from '@/composables/useUrlPagination'
-  import { useTeamMemberStore } from '@/stores/team-member'
   import { useAuthStore } from '@/stores/auth'
+  import { useTeamMemberStore } from '@/stores/team-member'
 
   const { t } = useI18n()
   const authStore = useAuthStore()
@@ -17,7 +17,9 @@
   const { confirmDialog, openConfirmDialog } = useConfirmDialog()
   const { page, handlePageChange } = useUrlPagination()
 
-  watch(page, val => { teamMemberStore.page = val }, { immediate: true })
+  watch(page, val => {
+    teamMemberStore.page = val
+  }, { immediate: true })
 
   const members = computed(() => teamMemberStore.members)
   const processing = computed(() => teamMemberStore.listLoading)

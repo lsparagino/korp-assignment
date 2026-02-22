@@ -3,8 +3,8 @@
   import type { ValidationErrors } from '@/utils/errors'
   import { Snowflake, Trash2, Wallet } from 'lucide-vue-next'
   import { reactive, ref, watch } from 'vue'
-  import { useRoute, useRouter } from 'vue-router'
   import { useI18n } from 'vue-i18n'
+  import { useRoute, useRouter } from 'vue-router'
   import ConfirmDialog from '@/components/ui/ConfirmDialog.vue'
   import { useConfirmDialog } from '@/composables/useConfirmDialog'
   import { useWalletStore } from '@/stores/wallet'
@@ -35,7 +35,7 @@
 
   const wallet = ref<WalletType | null>(null)
 
-  watch(queryData, (newData) => {
+  watch(queryData, newData => {
     if (newData?.wallet) {
       wallet.value = newData.wallet
       form.name = newData.wallet.name
@@ -67,16 +67,17 @@
 
   function handleToggleStatus () {
     if (!wallet.value) return
-    const isFreezing = wallet.value.status === 'active'
+    const current = wallet.value
+    const isFreezing = current.status === 'active'
     openConfirmDialog({
       title: isFreezing ? t('wallets.freezeWallet') : t('wallets.unfreezeWallet'),
       message: isFreezing
-        ? t('wallets.confirmFreeze', { name: wallet.value.name })
-        : t('wallets.confirmUnfreeze', { name: wallet.value.name }),
+        ? t('wallets.confirmFreeze', { name: current.name })
+        : t('wallets.confirmUnfreeze', { name: current.name }),
       requiresPin: false,
       onConfirm: async () => {
         try {
-          await walletStore.toggleFreeze(wallet.value?.id!)
+          await walletStore.toggleFreeze(current.id)
         } catch (error) {
           console.error('Error toggling status:', error)
         }
@@ -86,13 +87,14 @@
 
   function handleDelete () {
     if (!wallet.value) return
+    const current = wallet.value
     openConfirmDialog({
       title: t('wallets.deleteWallet'),
-      message: t('wallets.confirmDeleteEdit', { name: wallet.value.name }),
+      message: t('wallets.confirmDeleteEdit', { name: current.name }),
       requiresPin: true,
       onConfirm: async () => {
         try {
-          await walletStore.deleteWallet(wallet.value?.id!)
+          await walletStore.deleteWallet(current.id)
           router.push('/wallets/')
         } catch (error: unknown) {
           if (isApiError(error, 403)) {

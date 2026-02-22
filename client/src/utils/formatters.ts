@@ -1,13 +1,13 @@
 import { DateTime } from 'luxon'
 
-export function formatCurrency(amount: number, currency: string): string {
+export function formatCurrency (amount: number, currency: string): string {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency,
   }).format(amount)
 }
 
-export function formatDate(dateString: string): string {
+export function formatDate (dateString: string): string {
   if (!dateString) {
     return ''
   }
@@ -18,7 +18,7 @@ export function formatDate(dateString: string): string {
   return dt.toFormat('dd/MM/yy HH:mm')
 }
 
-export function getAmountColor(amount: number): string {
+export function getAmountColor (amount: number): string {
   if (amount > 0) {
     return 'text-green-darken-1'
   }

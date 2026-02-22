@@ -1,7 +1,7 @@
 <script lang="ts" setup>
-  import type { PaginationMeta } from '@/composables/useUrlPagination'
   import type { Transaction } from '@/api/transactions'
   import type { Wallet } from '@/api/wallets'
+  import type { PaginationMeta } from '@/composables/useUrlPagination'
   import { ref } from 'vue'
   import Pagination from '@/components/ui/Pagination.vue'
   import { formatCurrency, formatDate } from '@/utils/formatters'
