@@ -1,180 +1,180 @@
-import { describe, expect, it, vi, beforeEach } from 'vitest'
-import { reactive, ref, nextTick } from 'vue'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { nextTick, reactive, ref } from 'vue'
 
 // Mock vue-router
 const mockRoute = reactive({ query: {} as Record<string, string>, fullPath: '/' })
 const mockRouter = { push: vi.fn() }
 
 vi.mock('vue-router', () => ({
-    useRoute: () => mockRoute,
-    useRouter: () => mockRouter,
+  useRoute: () => mockRoute,
+  useRouter: () => mockRouter,
 }))
 
 // Mock vue-i18n
 vi.mock('vue-i18n', () => ({
-    useI18n: () => ({
-        t: (key: string) => key,
-    }),
+  useI18n: () => ({
+    t: (key: string) => key,
+  }),
 }))
 
 // Mock @pinia/colada
 const mockInvalidateQueries = vi.fn()
 vi.mock('@pinia/colada', () => ({
-    useQuery: vi.fn(() => ({
-        data: ref(null),
-        isPending: ref(false),
-    })),
-    useQueryCache: vi.fn(() => ({
-        invalidateQueries: mockInvalidateQueries,
-    })),
-    defineQueryOptions: vi.fn((fn: Function) => fn),
+  useQuery: vi.fn(() => ({
+    data: ref(null),
+    isPending: ref(false),
+  })),
+  useQueryCache: vi.fn(() => ({
+    invalidateQueries: mockInvalidateQueries,
+  })),
+  defineQueryOptions: vi.fn((fn: Function) => fn),
 }))
 
 // Mock query modules
 vi.mock('@/queries/transactions', () => ({
-    TRANSACTION_QUERY_KEYS: { root: ['transactions'] },
-    transactionsListQuery: vi.fn(),
+  TRANSACTION_QUERY_KEYS: { root: ['transactions'] },
+  transactionsListQuery: vi.fn(),
 }))
 vi.mock('@/queries/wallets', () => ({
-    WALLET_QUERY_KEYS: { root: ['wallets'] },
-    walletsListQuery: vi.fn(),
+  WALLET_QUERY_KEYS: { root: ['wallets'] },
+  walletsListQuery: vi.fn(),
 }))
 
 describe('useTransactionFilters', () => {
-    beforeEach(() => {
-        vi.clearAllMocks()
-        mockRoute.query = {}
-        mockRoute.fullPath = '/'
-        mockRouter.push.mockClear()
+  beforeEach(() => {
+    vi.clearAllMocks()
+    mockRoute.query = {}
+    mockRoute.fullPath = '/'
+    mockRouter.push.mockClear()
+  })
+
+  it('initializes filterForm with defaults', async () => {
+    const { useTransactionFilters } = await import('./useTransactionFilters')
+    const { filterForm } = useTransactionFilters()
+
+    expect(filterForm.date_from).toBe('')
+    expect(filterForm.date_to).toBe('')
+    expect(filterForm.type).toBe('All')
+    expect(filterForm.amount_min).toBe('')
+    expect(filterForm.amount_max).toBe('')
+    expect(filterForm.reference).toBe('')
+    expect(filterForm.from_wallet_id).toBeNull()
+    expect(filterForm.to_wallet_id).toBeNull()
+  })
+
+  it('syncs filterForm from route query params', async () => {
+    mockRoute.query = {
+      date_from: '2024-01-01',
+      date_to: '2024-12-31',
+      type: 'debit',
+      amount_min: '100',
+      amount_max: '500',
+    }
+    mockRoute.fullPath = '/?date_from=2024-01-01&date_to=2024-12-31&type=debit'
+
+    const { useTransactionFilters } = await import('./useTransactionFilters')
+    const { filterForm } = useTransactionFilters()
+    await nextTick()
+
+    expect(filterForm.date_from).toBe('2024-01-01')
+    expect(filterForm.date_to).toBe('2024-12-31')
+    expect(filterForm.type).toBe('Debit')
+    expect(filterForm.amount_min).toBe('100')
+    expect(filterForm.amount_max).toBe('500')
+  })
+
+  it('handleFilter pushes correct query to router', async () => {
+    const { useTransactionFilters } = await import('./useTransactionFilters')
+    const { filterForm, handleFilter } = useTransactionFilters()
+
+    filterForm.date_from = '2024-06-01'
+    filterForm.type = 'Credit'
+    filterForm.amount_min = '50'
+
+    handleFilter()
+
+    expect(mockRouter.push).toHaveBeenCalledWith({
+      query: expect.objectContaining({
+        page: '1',
+        date_from: '2024-06-01',
+        type: 'credit',
+        amount_min: '50',
+      }),
     })
+  })
 
-    it('initializes filterForm with defaults', async () => {
-        const { useTransactionFilters } = await import('./useTransactionFilters')
-        const { filterForm } = useTransactionFilters()
+  it('handleFilter omits empty/default values from query', async () => {
+    const { useTransactionFilters } = await import('./useTransactionFilters')
+    const { filterForm, handleFilter } = useTransactionFilters()
 
-        expect(filterForm.date_from).toBe('')
-        expect(filterForm.date_to).toBe('')
-        expect(filterForm.type).toBe('All')
-        expect(filterForm.amount_min).toBe('')
-        expect(filterForm.amount_max).toBe('')
-        expect(filterForm.reference).toBe('')
-        expect(filterForm.from_wallet_id).toBeNull()
-        expect(filterForm.to_wallet_id).toBeNull()
-    })
+    filterForm.type = 'All' // default — should be excluded
+    filterForm.date_from = '' // empty — should be excluded
 
-    it('syncs filterForm from route query params', async () => {
-        mockRoute.query = {
-            date_from: '2024-01-01',
-            date_to: '2024-12-31',
-            type: 'debit',
-            amount_min: '100',
-            amount_max: '500',
-        }
-        mockRoute.fullPath = '/?date_from=2024-01-01&date_to=2024-12-31&type=debit'
+    handleFilter()
 
-        const { useTransactionFilters } = await import('./useTransactionFilters')
-        const { filterForm } = useTransactionFilters()
-        await nextTick()
+    const pushCall = mockRouter.push.mock.calls[0][0] as { query: Record<string, string> }
+    expect(pushCall.query.type).toBeUndefined()
+    expect(pushCall.query.date_from).toBeUndefined()
+  })
 
-        expect(filterForm.date_from).toBe('2024-01-01')
-        expect(filterForm.date_to).toBe('2024-12-31')
-        expect(filterForm.type).toBe('Debit')
-        expect(filterForm.amount_min).toBe('100')
-        expect(filterForm.amount_max).toBe('500')
-    })
+  it('clearFilters removes all filter keys', async () => {
+    mockRoute.query = {
+      date_from: '2024-01-01',
+      type: 'debit',
+      amount_min: '100',
+      per_page: '25',
+    }
 
-    it('handleFilter pushes correct query to router', async () => {
-        const { useTransactionFilters } = await import('./useTransactionFilters')
-        const { filterForm, handleFilter } = useTransactionFilters()
+    const { useTransactionFilters } = await import('./useTransactionFilters')
+    const { clearFilters } = useTransactionFilters()
 
-        filterForm.date_from = '2024-06-01'
-        filterForm.type = 'Credit'
-        filterForm.amount_min = '50'
+    clearFilters()
 
-        handleFilter()
+    const pushCall = mockRouter.push.mock.calls[0][0] as { query: Record<string, string> }
+    expect(pushCall.query.date_from).toBeUndefined()
+    expect(pushCall.query.type).toBeUndefined()
+    expect(pushCall.query.amount_min).toBeUndefined()
+    // per_page should be preserved (not a filter key)
+    expect(pushCall.query.per_page).toBe('25')
+    expect(pushCall.query.page).toBe('1')
+  })
 
-        expect(mockRouter.push).toHaveBeenCalledWith({
-            query: expect.objectContaining({
-                page: '1',
-                date_from: '2024-06-01',
-                type: 'credit',
-                amount_min: '50',
-            }),
-        })
-    })
+  it('activeFiltersCount reflects active query filters', async () => {
+    mockRoute.query = {
+      date_from: '2024-01-01',
+      type: 'debit',
+      amount_min: '100',
+    }
 
-    it('handleFilter omits empty/default values from query', async () => {
-        const { useTransactionFilters } = await import('./useTransactionFilters')
-        const { filterForm, handleFilter } = useTransactionFilters()
+    const { useTransactionFilters } = await import('./useTransactionFilters')
+    const { activeFiltersCount } = useTransactionFilters()
 
-        filterForm.type = 'All' // default — should be excluded
-        filterForm.date_from = '' // empty — should be excluded
+    // date_from + type = 2 basic filters, amount_min = 1 advanced filter = 3 total
+    expect(activeFiltersCount.value).toBe(3)
+  })
 
-        handleFilter()
+  it('activeAdvancedFiltersCount only counts advanced filters', async () => {
+    mockRoute.query = {
+      date_from: '2024-01-01', // basic filter, not counted
+      amount_min: '100',
+      reference: 'inv-123',
+    }
 
-        const pushCall = mockRouter.push.mock.calls[0][0] as { query: Record<string, string> }
-        expect(pushCall.query.type).toBeUndefined()
-        expect(pushCall.query.date_from).toBeUndefined()
-    })
+    const { useTransactionFilters } = await import('./useTransactionFilters')
+    const { activeAdvancedFiltersCount } = useTransactionFilters()
 
-    it('clearFilters removes all filter keys', async () => {
-        mockRoute.query = {
-            date_from: '2024-01-01',
-            type: 'debit',
-            amount_min: '100',
-            per_page: '25',
-        }
+    // Only amount_min + reference = 2 advanced filters
+    expect(activeAdvancedFiltersCount.value).toBe(2)
+  })
 
-        const { useTransactionFilters } = await import('./useTransactionFilters')
-        const { clearFilters } = useTransactionFilters()
+  it('invalidateQueries calls queryCache for both transactions and wallets', async () => {
+    const { useTransactionFilters } = await import('./useTransactionFilters')
+    const { invalidateQueries } = useTransactionFilters()
 
-        clearFilters()
+    await invalidateQueries()
 
-        const pushCall = mockRouter.push.mock.calls[0][0] as { query: Record<string, string> }
-        expect(pushCall.query.date_from).toBeUndefined()
-        expect(pushCall.query.type).toBeUndefined()
-        expect(pushCall.query.amount_min).toBeUndefined()
-        // per_page should be preserved (not a filter key)
-        expect(pushCall.query.per_page).toBe('25')
-        expect(pushCall.query.page).toBe('1')
-    })
-
-    it('activeFiltersCount reflects active query filters', async () => {
-        mockRoute.query = {
-            date_from: '2024-01-01',
-            type: 'debit',
-            amount_min: '100',
-        }
-
-        const { useTransactionFilters } = await import('./useTransactionFilters')
-        const { activeFiltersCount } = useTransactionFilters()
-
-        // date_from + type = 2 basic filters, amount_min = 1 advanced filter = 3 total
-        expect(activeFiltersCount.value).toBe(3)
-    })
-
-    it('activeAdvancedFiltersCount only counts advanced filters', async () => {
-        mockRoute.query = {
-            date_from: '2024-01-01', // basic filter, not counted
-            amount_min: '100',
-            reference: 'inv-123',
-        }
-
-        const { useTransactionFilters } = await import('./useTransactionFilters')
-        const { activeAdvancedFiltersCount } = useTransactionFilters()
-
-        // Only amount_min + reference = 2 advanced filters
-        expect(activeAdvancedFiltersCount.value).toBe(2)
-    })
-
-    it('invalidateQueries calls queryCache for both transactions and wallets', async () => {
-        const { useTransactionFilters } = await import('./useTransactionFilters')
-        const { invalidateQueries } = useTransactionFilters()
-
-        await invalidateQueries()
-
-        expect(mockInvalidateQueries).toHaveBeenCalledTimes(2)
-        expect(mockInvalidateQueries).toHaveBeenCalledWith({ key: ['transactions'] })
-        expect(mockInvalidateQueries).toHaveBeenCalledWith({ key: ['wallets'] })
-    })
+    expect(mockInvalidateQueries).toHaveBeenCalledTimes(2)
+    expect(mockInvalidateQueries).toHaveBeenCalledWith({ key: ['transactions'] })
+    expect(mockInvalidateQueries).toHaveBeenCalledWith({ key: ['wallets'] })
+  })
 })

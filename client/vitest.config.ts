@@ -1,7 +1,7 @@
 import { fileURLToPath } from 'node:url'
-import { defineConfig } from 'vitest/config'
 import Vue from '@vitejs/plugin-vue'
 import Vuetify, { transformAssetUrls } from 'vite-plugin-vuetify'
+import { defineConfig } from 'vitest/config'
 
 export default defineConfig({
   plugins: [
