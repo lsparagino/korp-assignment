@@ -28,7 +28,7 @@
   <div
     class="d-flex flex-column flex-sm-row align-center justify-space-between ga-4 px-4 py-4"
   >
-    <div class="d-flex align-center text-caption text-grey-darken-1">
+    <div class="d-flex align-center text-caption text-grey-darken-1" data-testid="pagination-meta">
       {{ $t('pagination.showing', { from: meta.from || 0, to: meta.to || 0, total: meta.total }) }}
     </div>
 

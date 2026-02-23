@@ -21,9 +21,10 @@ describe('Pagination.vue', () => {
         })
 
         // Uses i18n key 'pagination.showing' -> 'Showing {from} to {to} of {total} entries'
-        expect(wrapper.text()).toContain('26')
-        expect(wrapper.text()).toContain('50')
-        expect(wrapper.text()).toContain('120')
+        const metaText = wrapper.find('[data-testid="pagination-meta"]').text()
+        expect(metaText).toContain('26')
+        expect(metaText).toContain('50')
+        expect(metaText).toContain('120')
     })
 
     it('binds current page and last page to v-pagination', () => {

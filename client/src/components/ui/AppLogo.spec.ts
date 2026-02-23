@@ -6,10 +6,10 @@ describe('AppLogo.vue', () => {
     it('renders the logo image with correct attributes', () => {
         const wrapper = mountWithPlugins(AppLogo)
 
-        const img = wrapper.find('img')
-        expect(img.exists()).toBe(true)
-        expect(img.attributes('alt')).toBe('SecureWallet')
-        expect(img.attributes('src')).toContain('sw_logo.png')
-        expect(img.classes()).toContain('logo')
+        const logo = wrapper.find('[data-testid="app-logo"]')
+        expect(logo.exists()).toBe(true)
+        expect(logo.attributes('alt')).toBe('SecureWallet')
+        expect(logo.attributes('src')).toContain('sw_logo.png')
+        expect(logo.classes()).toContain('logo')
     })
 })

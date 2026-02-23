@@ -12,6 +12,7 @@
     <v-alert
       v-if="status"
       class="mb-6"
+      data-testid="status-alert"
       density="compact"
       :type="alertType || 'success'"
       variant="tonal"

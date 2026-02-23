@@ -33,6 +33,8 @@
     "@pinia/colada-devtools": "^0.4.2",
     "@pinia/testing": "^1.0.3",
     "@playwright/test": "^1.58.2",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/vue": "^8.1.0",
     "@tsconfig/node22": "^22.0.0",
     "@types/luxon": "^3.7.1",
     "@types/node": "^22.9.0",

@@ -2,7 +2,7 @@
 
 <template>
   <div class="d-flex align-center h-100">
-    <img alt="SecureWallet" class="logo" src="/images/sw_logo.png">
+    <img alt="SecureWallet" class="logo" data-testid="app-logo" src="/images/sw_logo.png">
   </div>
 </template>
 

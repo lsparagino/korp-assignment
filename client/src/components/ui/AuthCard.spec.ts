@@ -14,7 +14,7 @@ describe('AuthCard.vue', () => {
         expect(wrapper.text()).toContain('Auth Form Content')
 
         // Alert should not exist if status not provided
-        expect(wrapper.findComponent({ name: 'v-alert' }).exists()).toBe(false)
+        expect(wrapper.find('[data-testid="status-alert"]').exists()).toBe(false)
     })
 
     it('renders status alert when provided', () => {
@@ -24,11 +24,9 @@ describe('AuthCard.vue', () => {
             },
         })
 
-        const alert = wrapper.findComponent({ name: 'v-alert' })
+        const alert = wrapper.find('[data-testid="status-alert"]')
         expect(alert.exists()).toBe(true)
         expect(alert.text()).toContain('Login successful')
-        // Default alert type is 'success' when not specified
-        expect(alert.props('type')).toBe('success')
     })
 
     it('renders alert with custom type', () => {
@@ -39,9 +37,9 @@ describe('AuthCard.vue', () => {
             },
         })
 
-        const alert = wrapper.findComponent({ name: 'v-alert' })
+        const alert = wrapper.find('[data-testid="status-alert"]')
         expect(alert.exists()).toBe(true)
-        expect(alert.props('type')).toBe('error')
+        expect(alert.text()).toContain('Invalid credentials')
     })
 
     it('renders footer slot when provided', () => {

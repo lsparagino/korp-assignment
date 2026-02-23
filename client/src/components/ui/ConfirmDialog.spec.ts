@@ -8,7 +8,6 @@ describe('ConfirmDialog.vue', () => {
 
     afterEach(() => {
         wrapper?.unmount()
-        // Clean up teleported dialog content
         document.body.innerHTML = ''
     })
 
@@ -22,23 +21,17 @@ describe('ConfirmDialog.vue', () => {
         })
     }
 
-    // VDialog teleports content to body, so we query document.body for rendered dialog content
-    function getDialogContent() {
-        return document.body.textContent || ''
-    }
-
-    function findButtonInBody(text: string) {
-        const buttons = Array.from(document.body.querySelectorAll('button'))
-        return buttons.find(btn => btn.textContent?.includes(text))
+    function findByTestId(testId: string) {
+        const el = document.body.querySelector(`[data-testid="${testId}"]`)
+        return el ? new DOMWrapper(el as HTMLElement) : null
     }
 
     it('renders with default props', async () => {
         wrapper = mountDialog()
         await wrapper.vm.$nextTick()
 
-        const content = getDialogContent()
-        expect(content).toContain('Confirm Action')
-        expect(content).toContain('Are you sure you want to proceed?')
+        expect(findByTestId('dialog-title')?.text()).toContain('Confirm Action')
+        expect(findByTestId('dialog-message')?.text()).toContain('Are you sure you want to proceed?')
     })
 
     it('renders custom title and message', async () => {
@@ -48,18 +41,17 @@ describe('ConfirmDialog.vue', () => {
         })
         await wrapper.vm.$nextTick()
 
-        const content = getDialogContent()
-        expect(content).toContain('Custom Title')
-        expect(content).toContain('Custom Message')
+        expect(findByTestId('dialog-title')?.text()).toContain('Custom Title')
+        expect(findByTestId('dialog-message')?.text()).toContain('Custom Message')
     })
 
     it('emits update:modelValue with false and cancel on cancel button click', async () => {
         wrapper = mountDialog()
         await wrapper.vm.$nextTick()
 
-        const cancelBtn = findButtonInBody('Cancel')
-        expect(cancelBtn).toBeDefined()
-        await new DOMWrapper(cancelBtn!).trigger('click')
+        const cancelBtn = findByTestId('cancel-btn')
+        expect(cancelBtn).not.toBeNull()
+        await cancelBtn!.trigger('click')
 
         expect(wrapper.emitted('update:modelValue')).toBeTruthy()
         expect(wrapper.emitted('update:modelValue')?.[0]).toEqual([false])
@@ -70,9 +62,9 @@ describe('ConfirmDialog.vue', () => {
         wrapper = mountDialog()
         await wrapper.vm.$nextTick()
 
-        const confirmBtn = findButtonInBody('Yes, Proceed')
-        expect(confirmBtn).toBeDefined()
-        await new DOMWrapper(confirmBtn!).trigger('click')
+        const confirmBtn = findByTestId('confirm-btn')
+        expect(confirmBtn).not.toBeNull()
+        await confirmBtn!.trigger('click')
 
         expect(wrapper.emitted('confirm')).toBeTruthy()
         expect(wrapper.emitted('update:modelValue')?.[0]).toEqual([false])
@@ -82,14 +74,13 @@ describe('ConfirmDialog.vue', () => {
         wrapper = mountDialog({ requiresPin: true })
         await wrapper.vm.$nextTick()
 
-        const content = getDialogContent()
-        expect(content).toContain('Verification Required')
+        expect(findByTestId('pin-section')).not.toBeNull()
 
-        const confirmBtn = findButtonInBody('Yes, Proceed')
-        expect(confirmBtn).toBeDefined()
+        const confirmBtn = findByTestId('confirm-btn')
+        expect(confirmBtn).not.toBeNull()
         expect(
-            confirmBtn?.hasAttribute('disabled')
-            || confirmBtn?.getAttribute('aria-disabled') === 'true',
+            confirmBtn?.element.hasAttribute('disabled')
+            || confirmBtn?.element.getAttribute('aria-disabled') === 'true',
         ).toBe(true)
     })
 })

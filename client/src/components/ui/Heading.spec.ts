@@ -11,12 +11,12 @@ describe('Heading.vue', () => {
             },
         })
 
-        expect(wrapper.text()).toContain('Test Title')
-        expect(wrapper.text()).toContain('Test Description')
-
-        // Default variant assertions
-        const titleEl = wrapper.find('h2')
+        const titleEl = wrapper.find('[data-testid="heading-title"]')
+        expect(titleEl.text()).toBe('Test Title')
         expect(titleEl.classes()).toContain('text-h5')
+
+        const descEl = wrapper.find('[data-testid="heading-description"]')
+        expect(descEl.text()).toBe('Test Description')
 
         const rootEl = wrapper.find('div.mb-6')
         expect(rootEl.exists()).toBe(true)
@@ -31,7 +31,7 @@ describe('Heading.vue', () => {
             },
         })
 
-        const titleEl = wrapper.find('h2')
+        const titleEl = wrapper.find('[data-testid="heading-title"]')
         expect(titleEl.classes()).toContain('text-h6')
         expect(titleEl.classes()).not.toContain('text-h5')
 

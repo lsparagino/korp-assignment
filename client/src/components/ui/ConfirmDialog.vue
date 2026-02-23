@@ -85,18 +85,19 @@
 <template>
   <v-dialog v-model="isDialogVisible" max-width="500px" persistent>
     <v-card class="pa-4" rounded="xl">
-      <v-card-title class="text-h6 font-weight-bold px-4 pt-4">
+      <v-card-title class="text-h6 font-weight-bold px-4 pt-4" data-testid="dialog-title">
         {{ resolvedTitle }}
       </v-card-title>
 
       <v-card-text class="px-4 py-4">
-        <p class="text-body-1 text-grey-darken-2 mb-6">
+        <p class="text-body-1 text-grey-darken-2 mb-6" data-testid="dialog-message">
           {{ resolvedMessage }}
         </p>
 
         <div
           v-if="requiresPin"
           class="bg-grey-lighten-4 pa-6 border-grey-lighten-1 rounded-lg border border-dashed"
+          data-testid="pin-section"
         >
           <div class="mb-4 text-center">
             <span
@@ -117,6 +118,7 @@
             autofocus
             class="centered-input"
             color="primary"
+            data-testid="pin-input"
             density="comfortable"
             hide-details
             placeholder="00000"
@@ -131,6 +133,7 @@
         <v-btn
           class="text-none font-weight-bold px-6"
           color="grey-darken-1"
+          data-testid="cancel-btn"
           rounded="lg"
           variant="text"
           @click="handleCancel"
@@ -140,6 +143,7 @@
         <v-btn
           class="text-none font-weight-bold ml-2 px-8"
           :color="confirmColor"
+          data-testid="confirm-btn"
           :disabled="!isPinValid"
           rounded="lg"
           variant="elevated"
