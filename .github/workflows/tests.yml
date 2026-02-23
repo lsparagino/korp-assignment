@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        php-version: ['8.4', '8.5']
+        php-version: ["8.4", "8.5"]
 
     steps:
       - name: Checkout code
@@ -41,5 +41,20 @@ jobs:
       - name: Generate Application Key
         run: php artisan key:generate
 
-      - name: Tests
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: client/package-lock.json
+
+      - name: Install Client Dependencies
+        run: npm ci
+        working-directory: client
+
+      - name: Vitest (Client Unit Tests)
+        run: npm run test
+        working-directory: client
+
+      - name: Pest (PHP Tests)
         run: ./vendor/bin/pest

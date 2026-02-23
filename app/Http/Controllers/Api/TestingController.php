@@ -8,6 +8,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Password;
 use Throwable;
 
 class TestingController
@@ -82,6 +83,39 @@ class TestingController
             'user' => $user,
             'token' => $token,
             'company' => $user->companies->first(),
+        ]);
+    }
+
+    public function createPasswordResetToken(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'email' => 'required|email|exists:users,email',
+        ]);
+
+        $user = User::where('email', $validated['email'])->firstOrFail();
+        $token = Password::broker()->createToken($user);
+
+        return response()->json([
+            'token' => $token,
+            'email' => $user->email,
+        ]);
+    }
+
+    public function createSecondCompany(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'email' => 'required|email|exists:users,email',
+            'company_name' => 'sometimes|string',
+        ]);
+
+        $user = User::where('email', $validated['email'])->firstOrFail();
+        $company = Company::create([
+            'name' => $validated['company_name'] ?? 'Second Corp',
+        ]);
+        $user->companies()->attach($company);
+
+        return response()->json([
+            'company' => $company,
         ]);
     }
 }

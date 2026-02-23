@@ -11,6 +11,14 @@ Set-Location ..
 if ($exitCode -ne 0) { Write-Host "ESLint failed!" -ForegroundColor Red; exit 1 }
 Write-Host "ESLint passed!" -ForegroundColor Green
 
+Write-Host "`n=== Running Vitest (Client Unit Tests) ===" -ForegroundColor Cyan
+Set-Location client
+npm run test
+$exitCode = $LASTEXITCODE
+Set-Location ..
+if ($exitCode -ne 0) { Write-Host "Vitest failed!" -ForegroundColor Red; exit 1 }
+Write-Host "Vitest passed!" -ForegroundColor Green
+
 Write-Host "`n=== Running Pest (PHP Tests) ===" -ForegroundColor Cyan
 php artisan test
 if ($LASTEXITCODE -ne 0) { Write-Host "Pest failed!" -ForegroundColor Red; exit 1 }

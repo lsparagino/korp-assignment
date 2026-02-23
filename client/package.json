@@ -31,6 +31,7 @@
   },
   "devDependencies": {
     "@pinia/colada-devtools": "^0.4.2",
+    "@pinia/testing": "^1.0.3",
     "@playwright/test": "^1.58.2",
     "@tsconfig/node22": "^22.0.0",
     "@types/luxon": "^3.7.1",
@@ -42,6 +43,7 @@
     "eslint-config-vuetify": "^4.2.0",
     "jsdom": "^28.1.0",
     "npm-run-all2": "^8.0.4",
+    "resize-observer-polyfill": "^1.5.1",
     "sass-embedded": "^1.92.1",
     "typescript": "~5.9.2",
     "unplugin-auto-import": "^20.1.0",

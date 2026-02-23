@@ -75,5 +75,7 @@ if (app()->environment('testing')) {
         Route::post('/reset-database', [App\Http\Controllers\Api\TestingController::class, 'resetDatabase']);
         Route::post('/create-user', [App\Http\Controllers\Api\TestingController::class, 'createUser']);
         Route::post('/login', [App\Http\Controllers\Api\TestingController::class, 'loginUser']);
+        Route::post('/create-password-reset-token', [App\Http\Controllers\Api\TestingController::class, 'createPasswordResetToken']);
+        Route::post('/create-second-company', [App\Http\Controllers\Api\TestingController::class, 'createSecondCompany']);
     });
 }
