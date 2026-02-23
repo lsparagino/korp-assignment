@@ -5,7 +5,7 @@ Write-Host "Pint passed!" -ForegroundColor Green
 
 Write-Host "`n=== Running ESLint (Client Linter) ===" -ForegroundColor Cyan
 Set-Location client
-pnpm lint
+npm run lint
 $exitCode = $LASTEXITCODE
 Set-Location ..
 if ($exitCode -ne 0) { Write-Host "ESLint failed!" -ForegroundColor Red; exit 1 }
@@ -18,7 +18,7 @@ Write-Host "Pest passed!" -ForegroundColor Green
 
 Write-Host "`n=== Running Playwright (E2E Tests) ===" -ForegroundColor Cyan
 Set-Location client
-pnpm e2e
+npm run e2e
 $exitCode = $LASTEXITCODE
 Set-Location ..
 if ($exitCode -ne 0) { Write-Host "Playwright failed!" -ForegroundColor Red; exit 1 }

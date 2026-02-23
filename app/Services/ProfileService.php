@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Throwable;
 
 class ProfileService
 {
@@ -16,7 +17,7 @@ class ProfileService
 
             try {
                 $user->sendEmailVerificationNotification();
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 report($e);
                 $user->update(['pending_email' => null]);
                 Log::error('Failed to send verification email during profile update', ['error' => $e->getMessage(), 'user_id' => $user->id]);

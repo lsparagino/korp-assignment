@@ -8,6 +8,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Hash;
+use Throwable;
 
 class TestingController
 {
@@ -17,7 +18,7 @@ class TestingController
             Artisan::call('migrate:fresh', ['--seed' => true, '--force' => true]);
 
             return response()->json(['message' => 'Database reset successfully']);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             return response()->json([
                 'message' => 'Database reset failed',
                 'error' => $e->getMessage(),

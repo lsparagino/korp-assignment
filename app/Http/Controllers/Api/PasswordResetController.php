@@ -22,8 +22,8 @@ class PasswordResetController extends Controller
         );
 
         return $status === Password::RESET_LINK_SENT
-            ? response()->json(['message' => trans($status)])
-            : response()->json(['message' => trans($status)], 422);
+            ? response()->json(['message' => __($status)])
+            : response()->json(['message' => __($status)], 422);
     }
 
     public function resetPassword(ResetPasswordRequest $request, ResetsUserPasswords $resets): JsonResponse
@@ -34,7 +34,7 @@ class PasswordResetController extends Controller
         );
 
         return $status === Password::PASSWORD_RESET
-            ? response()->json(['message' => trans($status)])
-            : response()->json(['message' => trans($status)], 422);
+            ? response()->json(['message' => __($status)])
+            : response()->json(['message' => __($status)], 422);
     }
 }

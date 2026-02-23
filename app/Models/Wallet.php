@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\WalletCurrency;
 use App\Enums\WalletStatus;
+use Database\Factories\WalletFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -14,7 +15,7 @@ use Illuminate\Support\Str;
 
 class Wallet extends Model
 {
-    /** @use HasFactory<\Database\Factories\WalletFactory> */
+    /** @use HasFactory<WalletFactory> */
     use HasFactory;
 
     protected $fillable = [

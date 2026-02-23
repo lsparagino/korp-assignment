@@ -1,3 +1,4 @@
+import type { PaginationParams } from '@/types/pagination'
 import { api } from '@/plugins/api'
 
 export interface Wallet {
@@ -10,17 +11,12 @@ export interface Wallet {
   can_delete: boolean
 }
 
-interface WalletParams {
-  page?: number
-  per_page?: number
-}
-
 interface WalletForm {
   name: string
   currency: string
 }
 
-export function fetchWallets (params?: WalletParams) {
+export function fetchWallets (params?: PaginationParams) {
   return api.get('/wallets', { params })
 }
 

@@ -1,3 +1,4 @@
+import type { PaginationParams } from '@/types/pagination'
 import { api } from '@/plugins/api'
 
 export interface Transaction {
@@ -13,9 +14,7 @@ export interface Transaction {
   created_at: string
 }
 
-interface TransactionParams {
-  page?: number
-  per_page?: number
+type TransactionParams = PaginationParams & {
   date_from?: string
   date_to?: string
   type?: string

@@ -32,7 +32,7 @@ class AuthService
             Log::info('Failed login attempt', ['username' => $username, 'ip' => $ip]);
 
             throw ValidationException::withMessages([
-                Fortify::username() => [trans('auth.failed')],
+                Fortify::username() => [__('auth.failed')],
             ]);
         }
 
@@ -93,16 +93,14 @@ class AuthService
 
     public function logout(User $user): void
     {
-        if ($user->currentAccessToken()) {
-            $user->currentAccessToken()->delete();
-        }
+        $user->currentAccessToken()?->delete();
     }
 
     public function confirmPassword(User $user, string $password): void
     {
         if (! Hash::check($password, $user->password)) {
             throw ValidationException::withMessages([
-                'password' => [trans('auth.password')],
+                'password' => [__('auth.password')],
             ]);
         }
     }
@@ -113,7 +111,7 @@ class AuthService
             $seconds = RateLimiter::availableIn($throttleKey);
 
             throw new HttpResponseException(response()->json([
-                'message' => trans('auth.throttle', [
+                'message' => __('auth.throttle', [
                     'seconds' => $seconds,
                     'minutes' => ceil($seconds / 60),
                 ]),
