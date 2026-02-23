@@ -35,13 +35,13 @@ test.describe('Authorization - Unauthenticated', () => {
   test('allows access to login page', async ({ page }) => {
     await page.goto('/auth/login')
 
-    await expect(page.getByRole('heading', { name: /log in/i })).toBeVisible({ timeout: 10_000 })
+    await expect(page.getByTestId('auth-heading')).toBeVisible({ timeout: 10_000 })
   })
 
   test('allows access to register page', async ({ page }) => {
     await page.goto('/auth/register')
 
-    await expect(page.getByRole('heading', { name: /create an account/i })).toBeVisible({ timeout: 10_000 })
+    await expect(page.getByTestId('auth-heading')).toBeVisible({ timeout: 10_000 })
   })
 })
 
@@ -51,23 +51,24 @@ test.describe('Authorization - Member Role', () => {
   test('cannot see create wallet button on dashboard', async ({ page }) => {
     await page.goto('/dashboard')
 
-    await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible({ timeout: 10_000 })
-    await expect(page.locator('main').getByRole('link', { name: 'Create Wallet' })).not.toBeVisible()
+    await expect(page.getByTestId('page-heading')).toBeVisible({ timeout: 10_000 })
+    await expect(page.getByTestId('create-wallet-btn')).not.toBeVisible()
   })
 
   test('cannot see admin actions on wallets page', async ({ page }) => {
     await page.goto('/wallets')
 
-    await expect(page.getByRole('heading', { name: 'Wallets' })).toBeVisible({ timeout: 15_000 })
+    await expect(page.getByTestId('page-heading')).toBeVisible({ timeout: 15_000 })
+    await expect(page.locator('table')).toBeVisible({ timeout: 15_000 })
 
-    const actionsHeader = page.locator('thead').getByText('Actions')
-    await expect(actionsHeader).not.toBeVisible()
+    // Member should not see any edit/delete icons in the table
+    await expect(page.locator('[class*="mdi-pencil"]')).not.toBeVisible()
   })
 
   test('cannot see add member button on team members page', async ({ page }) => {
     await page.goto('/team-members')
 
-    await expect(page.getByRole('heading', { name: 'Team Members' })).toBeVisible({ timeout: 10_000 })
-    await expect(page.getByRole('button', { name: 'Add Member' })).not.toBeVisible()
+    await expect(page.getByTestId('page-heading')).toBeVisible({ timeout: 10_000 })
+    await expect(page.getByTestId('add-member-btn')).not.toBeVisible()
   })
 })

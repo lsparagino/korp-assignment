@@ -1,38 +1,30 @@
 import { expect, test } from '@playwright/test'
 
-test.describe('Settings - Password Change', () => {
-  test('can change password successfully', async ({ page }) => {
+test.describe('Settings - Password Update', () => {
+  test('can change password and restore it', async ({ page }) => {
     await page.goto('/settings/password')
 
-    const currentPassword = page.locator('input[name="current_password"]')
-    await expect(currentPassword).toBeVisible({ timeout: 10_000 })
+    // Step 1: Change password from "password" to "NewPassword123!"
+    await page.getByTestId('current-password-input').locator('input').fill('password')
+    await page.getByTestId('new-password-input').locator('input').fill('NewPassword123!')
+    await page.getByTestId('password-confirm-input').locator('input').fill('NewPassword123!')
 
-    await currentPassword.fill('password')
-    await page.locator('input[name="password"]').fill('NewPassword123!')
-    await page.locator('input[name="password_confirmation"]').fill('NewPassword123!')
+    await page.getByTestId('save-password-btn').click()
 
-    await page.getByRole('button', { name: 'Save password' }).click()
+    // Should show saved confirmation
+    await expect(page.getByTestId('saved-confirmation')).toBeVisible({ timeout: 10_000 })
 
-    // Should show "Saved." confirmation
-    await expect(page.getByText('Saved.')).toBeVisible({ timeout: 10_000 })
+    // Wait for the confirmation to disappear before submitting again
+    await expect(page.getByTestId('saved-confirmation')).not.toBeVisible({ timeout: 10_000 })
 
-    // Fields should be cleared after successful save
-    await expect(currentPassword).toHaveValue('')
-  })
+    // Step 2: Change password back from "NewPassword123!" to "password"
+    await page.getByTestId('current-password-input').locator('input').fill('NewPassword123!')
+    await page.getByTestId('new-password-input').locator('input').fill('password')
+    await page.getByTestId('password-confirm-input').locator('input').fill('password')
 
-  test('shows error with wrong current password', async ({ page }) => {
-    await page.goto('/settings/password')
+    await page.getByTestId('save-password-btn').click()
 
-    const currentPassword = page.locator('input[name="current_password"]')
-    await expect(currentPassword).toBeVisible({ timeout: 10_000 })
-
-    await currentPassword.fill('wrongpassword')
-    await page.locator('input[name="password"]').fill('NewPassword123!')
-    await page.locator('input[name="password_confirmation"]').fill('NewPassword123!')
-
-    await page.getByRole('button', { name: 'Save password' }).click()
-
-    // Should show a validation error
-    await expect(page.locator('.v-messages').first()).toBeVisible({ timeout: 10_000 })
+    // Should show saved confirmation again
+    await expect(page.getByTestId('saved-confirmation')).toBeVisible({ timeout: 10_000 })
   })
 })

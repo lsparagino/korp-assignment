@@ -36,10 +36,11 @@
       class="d-flex flex-column flex-sm-row align-center ga-4 w-100 w-sm-auto justify-end"
     >
       <div class="d-flex align-center order-sm-0 order-1">
-        <span class="text-caption text-grey-darken-1 text-no-wrap me-2">{{ $t('pagination.perPage') }}</span>
+        <span class="text-caption text-grey-darken-1 text-no-wrap me-2" data-testid="per-page-label">{{ $t('pagination.perPage') }}</span>
         <v-select
           v-model="perPageModel"
           class="page-size-selector"
+          data-testid="per-page-select"
           density="compact"
           hide-details
           :items="itemsPerPageOptions"
@@ -51,6 +52,7 @@
         v-model="page"
         active-color="primary"
         class="order-0 order-sm-1"
+        data-testid="pagination-nav"
         density="compact"
         :length="meta.last_page"
         :total-visible="5"

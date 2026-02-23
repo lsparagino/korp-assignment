@@ -45,6 +45,7 @@
         <v-text-field
           v-model="form.email"
           color="primary"
+          data-testid="email-input"
           density="comfortable"
           hide-details="auto"
           :label="$t('common.email')"
@@ -59,6 +60,7 @@
           :append-inner-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
           autofocus
           color="primary"
+          data-testid="password-input"
           density="comfortable"
           :error-messages="errors.password"
           hide-details="auto"
@@ -74,6 +76,7 @@
         <v-text-field
           v-model="form.password_confirmation"
           color="primary"
+          data-testid="password-confirm-input"
           density="comfortable"
           :error-messages="errors.password_confirmation"
           hide-details="auto"
@@ -89,6 +92,7 @@
           block
           class="text-none font-weight-bold mt-4"
           color="primary"
+          data-testid="submit-btn"
           height="48"
           :loading="processing"
           rounded="lg"

@@ -52,7 +52,7 @@ export const useWalletList = defineQuery(() => {
 export const walletByIdQuery = defineQueryOptions(
   (id: string | number) => ({
     key: WALLET_QUERY_KEYS.byId(id),
-    query: async (): Promise<{ wallet: Wallet }> => {
+    query: async (): Promise<{ data: Wallet }> => {
       const response = await fetchWallet(id)
       return response.data
     },

@@ -8,11 +8,11 @@ test.describe('Register', () => {
 
     await page.goto('/auth/register')
 
-    await page.getByLabel('Name').fill('New User')
-    await page.getByLabel('Email address').fill(uniqueEmail)
-    await page.getByLabel('Password', { exact: true }).fill('Password123!')
-    await page.getByLabel('Confirm password').fill('Password123!')
-    await page.getByRole('button', { name: 'Create account' }).click()
+    await page.getByTestId('name-input').locator('input').fill('New User')
+    await page.getByTestId('email-input').locator('input').fill(uniqueEmail)
+    await page.getByTestId('password-input').locator('input').fill('Password123!')
+    await page.getByTestId('password-confirm-input').locator('input').fill('Password123!')
+    await page.getByTestId('register-btn').click()
 
     // After successful registration, should navigate away from register page
     await expect(page).not.toHaveURL(/\/auth\/register/, { timeout: 15_000 })
@@ -21,11 +21,11 @@ test.describe('Register', () => {
   test('shows error for duplicate email', async ({ page }) => {
     await page.goto('/auth/register')
 
-    await page.getByLabel('Name').fill('Admin Duplicate')
-    await page.getByLabel('Email address').fill('admin@example.com')
-    await page.getByLabel('Password', { exact: true }).fill('Password123!')
-    await page.getByLabel('Confirm password').fill('Password123!')
-    await page.getByRole('button', { name: 'Create account' }).click()
+    await page.getByTestId('name-input').locator('input').fill('Admin Duplicate')
+    await page.getByTestId('email-input').locator('input').fill('admin@example.com')
+    await page.getByTestId('password-input').locator('input').fill('Password123!')
+    await page.getByTestId('password-confirm-input').locator('input').fill('Password123!')
+    await page.getByTestId('register-btn').click()
 
     // Should show an error about duplicate email
     await expect(page.locator('.v-alert, .v-messages').first()).toBeVisible({ timeout: 10_000 })
@@ -34,7 +34,7 @@ test.describe('Register', () => {
   test('can navigate to login page', async ({ page }) => {
     await page.goto('/auth/register')
 
-    await page.getByRole('link', { name: 'Log in' }).click()
+    await page.getByTestId('login-link').click()
 
     await expect(page).toHaveURL('/auth/login')
   })

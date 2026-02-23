@@ -112,6 +112,7 @@
             v-model="form.name"
             autocomplete="name"
             color="primary"
+            data-testid="profile-name-input"
             density="comfortable"
             :disabled="cancellingPendingEmail"
             :error-messages="errors.name"
@@ -143,6 +144,7 @@
             <v-btn
               class="text-none font-weight-bold"
               color="primary"
+              data-testid="profile-save-btn"
               :disabled="!isDirty || cancellingPendingEmail"
               :loading="processing"
               type="submit"
@@ -155,6 +157,7 @@
               <p
                 v-show="recentlySuccessful"
                 class="text-body-2 text-grey-darken-1"
+                data-testid="saved-confirmation"
               >
                 {{ $t('common.saved') }}
               </p>
@@ -175,6 +178,7 @@
         <v-btn
           class="text-none font-weight-bold"
           color="error"
+          data-testid="delete-account-btn"
           variant="tonal"
           @click="deleteDialog = true"
         >
@@ -182,7 +186,7 @@
         </v-btn>
       </div>
 
-      <v-dialog v-model="deleteDialog" max-width="500">
+      <v-dialog v-model="deleteDialog" data-testid="delete-account-dialog" max-width="500">
         <v-card rounded="lg">
           <v-card-item class="pa-6">
             <v-card-title class="text-h5 font-weight-bold mb-1">

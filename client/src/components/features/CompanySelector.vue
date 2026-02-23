@@ -15,6 +15,7 @@
         :block="block"
         class="text-none font-weight-bold"
         :color="block ? 'primary' : undefined"
+        data-testid="company-selector-btn"
         :variant="block ? 'tonal' : 'text'"
         v-bind="props"
       >
@@ -22,12 +23,13 @@
         <v-icon end size="small">mdi-chevron-down</v-icon>
       </v-btn>
     </template>
-    <v-list density="compact" nav>
+    <v-list data-testid="company-list" density="compact" nav>
       <v-list-item
         v-for="company in companyStore.companies"
         :key="company.id"
         :active="companyStore.currentCompany?.id === company.id"
         color="primary"
+        data-testid="company-list-item"
         @click="companyStore.setCurrentCompany(company)"
       >
         <v-list-item-title>{{ company.name }}</v-list-item-title>

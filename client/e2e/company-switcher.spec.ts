@@ -1,32 +1,42 @@
 import { expect, test } from '@playwright/test'
-import { createSecondCompany } from './helpers/api'
+import { createSecondCompany, loginViaApi } from './helpers/api'
 
 test.describe('Company Switcher', () => {
   test('can switch between companies', async ({ page }) => {
-    // Ensure a second company exists
+    // Get the first company name dynamically via login API
+    const { company: firstCompany } = await loginViaApi('admin@example.com', 'password')
+
+    // Create a second company
     const { company: secondCompany } = await createSecondCompany('admin@example.com', `Company ${Date.now()}`)
 
+    // Navigate to dashboard and force reload to ensure the company store refetches
     await page.goto('/dashboard')
-    await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible({ timeout: 10_000 })
+    await expect(page.getByTestId('page-heading')).toBeVisible({ timeout: 10_000 })
+    await page.reload()
+    await expect(page.getByTestId('page-heading')).toBeVisible({ timeout: 10_000 })
 
-    // The company selector button should be visible in the app bar
-    const appBar = page.locator('.v-app-bar')
-    const companyButton = appBar.getByText('Acme Corp')
-    await expect(companyButton).toBeVisible({ timeout: 10_000 })
+    // There are two CompanySelector instances (desktop app bar + mobile sidebar),
+    // so we scope to the first visible one.
+    const selectorBtn = page.getByTestId('company-selector-btn').first()
+    await expect(selectorBtn).toBeVisible({ timeout: 15_000 })
 
     // Click to open the company dropdown
-    await companyButton.click()
+    await selectorBtn.click()
 
-    // Select the second company from the menu list
-    await page.locator('.v-list-item').filter({ hasText: secondCompany.name }).click()
+    // Wait for the overlay list items to appear (Vuetify teleports menu content)
+    const secondCompanyItem = page.getByTestId('company-list-item').filter({ hasText: secondCompany.name })
+    await expect(secondCompanyItem).toBeVisible({ timeout: 5000 })
+    await secondCompanyItem.click()
 
-    // The selector label should update to the second company
-    await expect(appBar.getByText(secondCompany.name)).toBeVisible({ timeout: 10_000 })
+    // Wait for the switch to complete — the selector should now show the second company
+    await expect(selectorBtn).toContainText(secondCompany.name, { timeout: 10_000 })
 
-    // Switch back to Acme Corp
-    await appBar.getByText(secondCompany.name).click()
-    await page.locator('.v-list-item').filter({ hasText: 'Acme Corp' }).click()
+    // Switch back to first company
+    await selectorBtn.click()
+    const firstCompanyItem = page.getByTestId('company-list-item').filter({ hasText: firstCompany.name })
+    await expect(firstCompanyItem).toBeVisible({ timeout: 5000 })
+    await firstCompanyItem.click()
 
-    await expect(appBar.getByText('Acme Corp')).toBeVisible({ timeout: 10_000 })
+    await expect(selectorBtn).toContainText(firstCompany.name, { timeout: 10_000 })
   })
 })

@@ -83,7 +83,7 @@
 </script>
 
 <template>
-  <v-dialog v-model="isDialogVisible" max-width="500px" persistent>
+  <v-dialog v-model="isDialogVisible" data-testid="confirm-dialog" max-width="500px" persistent>
     <v-card class="pa-4" rounded="xl">
       <v-card-title class="text-h6 font-weight-bold px-4 pt-4" data-testid="dialog-title">
         {{ resolvedTitle }}

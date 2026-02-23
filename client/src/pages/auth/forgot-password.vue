@@ -62,6 +62,7 @@
           v-model="form.email"
           autofocus
           color="primary"
+          data-testid="email-input"
           density="comfortable"
           hide-details="auto"
           :label="$t('common.emailAddress')"
@@ -76,6 +77,7 @@
           block
           class="text-none font-weight-bold"
           color="primary"
+          data-testid="submit-btn"
           :disabled="!canSubmit"
           height="48"
           :loading="processing"

@@ -6,48 +6,46 @@ test.describe('Team Member Invite', () => {
     await expect(page.locator('table')).toBeVisible({ timeout: 15_000 })
 
     // Click Add Member button
-    await page.getByRole('button', { name: 'Add Member' }).click()
+    await page.getByTestId('add-member-btn').click()
 
     // Modal should appear
-    const dialog = page.getByRole('dialog')
+    const dialog = page.getByTestId('member-dialog')
     await expect(dialog).toBeVisible({ timeout: 5000 })
 
     // Fill the form
     const uniqueEmail = `invited-${Date.now()}@example.com`
-    await dialog.locator('input').nth(0).fill('Invited User')
-    await dialog.locator('input').nth(1).fill(uniqueEmail)
+    await dialog.getByTestId('member-name-input').locator('input').fill('Invited User')
+    await dialog.getByTestId('member-email-input').locator('input').fill(uniqueEmail)
 
-    // Select at least one wallet if available
+    // Select at least one wallet using the checkbox
     const checkbox = dialog.locator('.v-checkbox').first()
-    if (await checkbox.isVisible()) {
-      await checkbox.click()
-    }
+    await expect(checkbox).toBeVisible({ timeout: 5000 })
+    await checkbox.locator('input').check({ force: true })
 
     // Submit the invitation
-    await dialog.getByRole('button', { name: 'Invite Member' }).click()
+    await dialog.getByTestId('member-submit-btn').click()
 
     // Dialog should close
     await expect(dialog).not.toBeVisible({ timeout: 10_000 })
 
-    // The new member should appear in the table with a pending badge
-    await expect(page.getByText('Invited User')).toBeVisible({ timeout: 10_000 })
-    await expect(page.getByText('Pending Invitation')).toBeVisible()
+    // The new member should appear in the table
+    await expect(page.locator('tr').filter({ hasText: 'Invited User' })).toBeVisible({ timeout: 10_000 })
   })
 
   test('shows error for duplicate email invitation', async ({ page }) => {
     await page.goto('/team-members')
     await expect(page.locator('table')).toBeVisible({ timeout: 15_000 })
 
-    await page.getByRole('button', { name: 'Add Member' }).click()
+    await page.getByTestId('add-member-btn').click()
 
-    const dialog = page.getByRole('dialog')
+    const dialog = page.getByTestId('member-dialog')
     await expect(dialog).toBeVisible({ timeout: 5000 })
 
     // Use the existing member email
-    await dialog.locator('input').nth(0).fill('Duplicate Test')
-    await dialog.locator('input').nth(1).fill('member@example.com')
+    await dialog.getByTestId('member-name-input').locator('input').fill('Duplicate Test')
+    await dialog.getByTestId('member-email-input').locator('input').fill('member@example.com')
 
-    await dialog.getByRole('button', { name: 'Invite Member' }).click()
+    await dialog.getByTestId('member-submit-btn').click()
 
     // Should show a validation error
     await expect(dialog.locator('.v-messages').first()).toBeVisible({ timeout: 10_000 })

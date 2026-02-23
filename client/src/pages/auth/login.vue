@@ -47,6 +47,7 @@
           v-model="form.email"
           autofocus
           color="primary"
+          data-testid="email-input"
           density="comfortable"
           :error-messages="errors.email"
           hide-details="auto"
@@ -65,6 +66,7 @@
             >{{ $t('common.password') }}</span>
             <router-link
               class="text-caption font-weight-bold text-decoration-none text-primary"
+              data-testid="forgot-password-link"
               to="/auth/forgot-password"
             >
               {{ $t('auth.login.forgotPassword') }}
@@ -74,6 +76,7 @@
             v-model="form.password"
             :append-inner-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
             color="primary"
+            data-testid="password-input"
             density="comfortable"
             :error-messages="errors.password"
             hide-details="auto"
@@ -100,6 +103,7 @@
           block
           class="text-none font-weight-bold mt-4"
           color="primary"
+          data-testid="login-btn"
           height="48"
           :loading="processing"
           rounded="lg"
@@ -114,6 +118,7 @@
       <span class="text-body-2 text-grey-darken-1">{{ $t('auth.login.noAccount') }}</span>
       <router-link
         class="text-body-2 font-weight-bold text-decoration-none text-primary ms-1"
+        data-testid="signup-link"
         to="/auth/register"
       >{{ $t('auth.login.signUp') }}</router-link>
     </template>

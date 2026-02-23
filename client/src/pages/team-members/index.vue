@@ -70,6 +70,7 @@
         v-if="authStore.isAdmin"
         class="text-none font-weight-bold"
         color="primary"
+        data-testid="add-member-btn"
         prepend-icon="mdi-plus"
         rounded="lg"
         variant="flat"

@@ -12,7 +12,7 @@
   <div
     class="d-flex flex-column flex-sm-row align-start align-sm-center justify-space-between ga-4 mb-8"
   >
-    <h1 class="text-h5 font-weight-bold text-grey-darken-2">
+    <h1 class="text-h5 font-weight-bold text-grey-darken-2" data-testid="page-heading">
       {{ title }}
       <span
         v-if="companyStore.currentCompany"

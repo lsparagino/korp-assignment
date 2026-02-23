@@ -39,6 +39,7 @@
             v-model="form.current_password"
             autocomplete="current-password"
             color="primary"
+            data-testid="current-password-input"
             density="comfortable"
             :error-messages="errors.current_password"
             hide-details="auto"
@@ -53,6 +54,7 @@
             v-model="form.password"
             autocomplete="new-password"
             color="primary"
+            data-testid="new-password-input"
             density="comfortable"
             :error-messages="errors.password"
             hide-details="auto"
@@ -67,6 +69,7 @@
             v-model="form.password_confirmation"
             autocomplete="new-password"
             color="primary"
+            data-testid="password-confirm-input"
             density="comfortable"
             :error-messages="errors.password_confirmation"
             hide-details="auto"
@@ -81,6 +84,7 @@
             <v-btn
               class="text-none font-weight-bold"
               color="primary"
+              data-testid="save-password-btn"
               :loading="processing"
               type="submit"
               variant="flat"
@@ -92,6 +96,7 @@
               <p
                 v-show="recentlySuccessful"
                 class="text-body-2 text-grey-darken-1"
+                data-testid="saved-confirmation"
               >
                 {{ $t('common.saved') }}
               </p>

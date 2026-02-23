@@ -78,7 +78,7 @@
 
 <template>
   <SettingsLayout>
-    <div class="d-flex flex-column ga-6">
+    <div class="d-flex flex-column ga-6" data-testid="two-factor-section">
       <Heading
         :description="$t('settings.twoFactor.description')"
         :title="$t('settings.twoFactor.title')"

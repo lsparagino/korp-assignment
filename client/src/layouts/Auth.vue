@@ -20,6 +20,7 @@
           </router-link>
           <h1
             class="text-h5 font-weight-bold text-grey-darken-3 mb-2"
+            data-testid="auth-heading"
           >
             {{ t(route.meta.title as string) }}
           </h1>

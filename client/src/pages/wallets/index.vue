@@ -93,6 +93,7 @@
         v-if="authStore.isAdmin"
         class="text-none font-weight-bold"
         color="primary"
+        data-testid="create-wallet-btn"
         prepend-icon="mdi-plus"
         rounded="lg"
         to="/wallets/create"

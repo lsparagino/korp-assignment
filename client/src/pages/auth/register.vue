@@ -52,6 +52,7 @@
           v-model="form.name"
           autofocus
           color="primary"
+          data-testid="name-input"
           density="comfortable"
           :error-messages="errors.name"
           hide-details="auto"
@@ -66,6 +67,7 @@
         <v-text-field
           v-model="form.email"
           color="primary"
+          data-testid="email-input"
           density="comfortable"
           :error-messages="errors.email"
           hide-details="auto"
@@ -80,6 +82,7 @@
         <v-text-field
           v-model="form.password"
           color="primary"
+          data-testid="password-input"
           density="comfortable"
           :error-messages="errors.password"
           hide-details="auto"
@@ -94,6 +97,7 @@
         <v-text-field
           v-model="form.password_confirmation"
           color="primary"
+          data-testid="password-confirm-input"
           density="comfortable"
           :error-messages="errors.password_confirmation"
           hide-details="auto"
@@ -109,6 +113,7 @@
           block
           class="text-none font-weight-bold mt-6"
           color="primary"
+          data-testid="register-btn"
           height="48"
           :loading="processing"
           rounded="lg"
@@ -123,6 +128,7 @@
       <span class="text-body-2 text-grey-darken-1">{{ $t('auth.register.hasAccount') }}</span>
       <router-link
         class="text-body-2 font-weight-bold text-decoration-none text-primary ms-1"
+        data-testid="login-link"
         to="/auth/login"
       >{{ $t('auth.register.logIn') }}</router-link>
     </template>

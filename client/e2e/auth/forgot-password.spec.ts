@@ -6,24 +6,23 @@ test.describe('Forgot Password', () => {
   test('can submit forgot password form', async ({ page }) => {
     await page.goto('/auth/forgot-password')
 
-    await page.locator('input[name="email"]').fill('admin@example.com')
-    await page.getByRole('button', { name: 'Email password reset link' }).click()
+    await page.getByTestId('email-input').locator('input').fill('admin@example.com')
+    await page.getByTestId('submit-btn').click()
 
     // Should show a success/info alert
-    await expect(page.locator('.v-alert').first()).toBeVisible({ timeout: 10_000 })
+    await expect(page.getByTestId('status-alert')).toBeVisible({ timeout: 10_000 })
   })
 
   test('shows cooldown after submission', async ({ page }) => {
     await page.goto('/auth/forgot-password')
 
-    await page.locator('input[name="email"]').fill('admin@example.com')
-    await page.getByRole('button', { name: 'Email password reset link' }).click()
+    await page.getByTestId('email-input').locator('input').fill('admin@example.com')
+    await page.getByTestId('submit-btn').click()
 
     // After successful submission, the alert should appear
-    await expect(page.locator('.v-alert').first()).toBeVisible({ timeout: 10_000 })
+    await expect(page.getByTestId('status-alert')).toBeVisible({ timeout: 10_000 })
 
-    // Button should be disabled during cooldown and show "Wait Xs to resend"
-    const submitBtn = page.locator('button[type="submit"]')
-    await expect(submitBtn).toBeDisabled()
+    // Button should be disabled during cooldown
+    await expect(page.getByTestId('submit-btn')).toBeDisabled()
   })
 })

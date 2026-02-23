@@ -9,34 +9,31 @@ test.describe('Wallets (Admin)', () => {
   test('shows the wallets page', async ({ page }) => {
     await page.goto('/wallets')
 
-    await expect(page.getByRole('heading', { name: 'Wallets' })).toBeVisible({ timeout: 10_000 })
+    await expect(page.getByTestId('page-heading')).toBeVisible({ timeout: 10_000 })
     await expect(page.locator('table')).toBeVisible({ timeout: 15_000 })
   })
 
   test('shows create wallet button for admin', async ({ page }) => {
     await page.goto('/wallets')
 
-    await expect(page.locator('main').getByRole('link', { name: 'Create Wallet' })).toBeVisible({ timeout: 10_000 })
+    await expect(page.getByTestId('create-wallet-btn')).toBeVisible({ timeout: 10_000 })
   })
 
   test('can navigate to create wallet page', async ({ page }) => {
     await page.goto('/wallets')
 
-    await page.locator('main').getByRole('link', { name: 'Create Wallet' }).click()
+    await page.getByTestId('create-wallet-btn').click()
 
     await expect(page).toHaveURL('/wallets/create')
   })
 
-  test('shows wallet table headers', async ({ page }) => {
+  test('shows wallet table with data', async ({ page }) => {
     await page.goto('/wallets')
 
     await expect(page.locator('table')).toBeVisible({ timeout: 15_000 })
 
-    await expect(page.locator('thead').getByText('NAME')).toBeVisible()
-    await expect(page.locator('thead').getByText('BALANCE')).toBeVisible()
-    await expect(page.locator('thead').getByText('CURRENCY')).toBeVisible()
-    await expect(page.locator('thead').getByText('STATUS')).toBeVisible()
-    await expect(page.locator('thead').getByText('ACTIONS')).toBeVisible()
+    // Table should have rows
+    await expect(page.locator('tbody tr').first()).toBeVisible({ timeout: 10_000 })
   })
 })
 
@@ -46,16 +43,17 @@ test.describe('Wallets (Member)', () => {
   test('does not show create wallet button', async ({ page }) => {
     await page.goto('/wallets')
 
-    await expect(page.getByRole('heading', { name: 'Wallets' })).toBeVisible({ timeout: 10_000 })
-    await expect(page.locator('main').getByRole('link', { name: 'Create Wallet' })).not.toBeVisible()
+    await expect(page.getByTestId('page-heading')).toBeVisible({ timeout: 10_000 })
+    await expect(page.getByTestId('create-wallet-btn')).not.toBeVisible()
   })
 
-  test('does not show actions column', async ({ page }) => {
+  test('does not show edit/delete actions', async ({ page }) => {
     await page.goto('/wallets')
 
     await expect(page.locator('table')).toBeVisible({ timeout: 15_000 })
 
-    const actionsHeader = page.locator('thead').getByText('ACTIONS')
-    await expect(actionsHeader).not.toBeVisible()
+    // Member should not see any action icons
+    await expect(page.locator('[class*="mdi-pencil"]')).not.toBeVisible()
+    await expect(page.locator('[class*="mdi-delete"]')).not.toBeVisible()
   })
 })

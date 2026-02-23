@@ -47,6 +47,7 @@
       v-if="authStore.isAdmin"
       class="text-none font-weight-bold"
       color="primary"
+      data-testid="create-wallet-btn"
       prepend-icon="mdi-plus"
       rounded="lg"
       to="/wallets/create"
@@ -92,7 +93,7 @@
     </div>
 
     <!-- Top Wallets -->
-    <div class="mb-8">
+    <div class="mb-8" data-testid="top-wallets-section">
       <h2 class="text-h6 font-weight-bold text-grey-darken-2 mb-4">
         {{ $t('dashboard.topPerformingWallets') }}
       </h2>
@@ -164,7 +165,7 @@
     </div>
 
     <!-- Recent Transactions -->
-    <div>
+    <div data-testid="recent-transactions-section">
       <h2 class="text-h6 font-weight-bold text-grey-darken-2 mb-4">
         {{ $t('dashboard.recentTransactions') }}
       </h2>

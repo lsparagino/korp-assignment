@@ -44,13 +44,20 @@
   </PageHeader>
 
   <!-- Filters -->
-  <v-card border class="mb-6" flat rounded="lg">
+  <v-card
+    border
+    class="mb-6"
+    data-testid="filter-options-card"
+    flat
+    rounded="lg"
+  >
     <v-card-title class="pa-4 bg-grey-lighten-4 d-flex align-center justify-space-between border-b">
-      <span class="text-grey-darken-1 text-uppercase text-caption font-weight-bold">{{ $t('transactions.filterOptions') }}</span>
+      <span class="text-grey-darken-1 text-uppercase text-caption font-weight-bold" data-testid="filter-options-label">{{ $t('transactions.filterOptions') }}</span>
       <v-chip
         v-if="activeFiltersCount > 0"
         class="font-weight-bold"
         color="primary"
+        data-testid="active-filters-badge"
         size="small"
         variant="flat"
       >
@@ -127,6 +134,7 @@
           <v-select
             v-model="filterForm.type"
             color="primary"
+            data-testid="type-select"
             density="comfortable"
             hide-details
             :items="types"
@@ -139,6 +147,7 @@
           <v-btn
             class="text-none font-weight-bold"
             color="primary"
+            data-testid="filter-btn"
             height="48"
             prepend-icon="mdi-filter-variant"
             rounded="lg"
@@ -150,6 +159,7 @@
           <v-btn
             class="text-none font-weight-bold"
             color="grey-darken-1"
+            data-testid="clear-btn"
             height="48"
             prepend-icon="mdi-close"
             rounded="lg"
@@ -161,7 +171,7 @@
         </v-col>
       </v-row>
 
-      <v-expansion-panels v-model="advancedPanel" class="mt-4">
+      <v-expansion-panels v-model="advancedPanel" class="mt-4" data-testid="advanced-filters">
         <v-expansion-panel elevation="0" rounded="lg">
           <v-expansion-panel-title class="text-subtitle-2 font-weight-bold text-grey-darken-2">
             {{ $t('transactions.advancedFilters') }}
@@ -185,6 +195,7 @@
                   <v-text-field
                     v-model="filterForm.amount_min"
                     color="primary"
+                    data-testid="amount-min-input"
                     density="comfortable"
                     hide-details
                     :placeholder="$t('transactions.min')"

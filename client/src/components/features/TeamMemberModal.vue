@@ -71,7 +71,7 @@
 </script>
 
 <template>
-  <v-dialog v-model="dialog" max-width="600">
+  <v-dialog v-model="dialog" data-testid="member-dialog" max-width="600">
     <v-card rounded="lg">
       <v-card-title class="pa-4 font-weight-bold">
         {{ user ? $t('teamMembers.editMember') : $t('teamMembers.addMember') }}
@@ -81,6 +81,7 @@
         <v-form @submit.prevent="save">
           <v-text-field
             v-model="form.name"
+            data-testid="member-name-input"
             :error-messages="errors.name"
             :label="$t('common.fullName')"
             :placeholder="$t('teamMembers.fullNamePlaceholder')"
@@ -88,6 +89,7 @@
           />
           <v-text-field
             v-model="form.email"
+            data-testid="member-email-input"
             :error-messages="errors.email"
             :label="$t('common.emailAddress')"
             :placeholder="$t('teamMembers.emailPlaceholder')"
@@ -134,6 +136,7 @@
         </v-btn>
         <v-btn
           color="primary"
+          data-testid="member-submit-btn"
           :loading="processing"
           variant="flat"
           @click="save"

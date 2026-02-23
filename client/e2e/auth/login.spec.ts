@@ -6,9 +6,9 @@ test.describe('Login', () => {
   test('can log in with valid credentials', async ({ page }) => {
     await page.goto('/auth/login')
 
-    await page.getByLabel('Email address').fill('admin@example.com')
-    await page.getByPlaceholder('Password').fill('password')
-    await page.getByRole('button', { name: 'Log in' }).click()
+    await page.getByTestId('email-input').locator('input').fill('admin@example.com')
+    await page.getByTestId('password-input').locator('input').fill('password')
+    await page.getByTestId('login-btn').click()
 
     // After successful login, should navigate away from login page
     await expect(page).not.toHaveURL(/\/auth\/login/, { timeout: 15_000 })
@@ -17,9 +17,9 @@ test.describe('Login', () => {
   test('shows error with invalid credentials', async ({ page }) => {
     await page.goto('/auth/login')
 
-    await page.getByLabel('Email address').fill('wrong@example.com')
-    await page.getByPlaceholder('Password').fill('wrongpassword')
-    await page.getByRole('button', { name: 'Log in' }).click()
+    await page.getByTestId('email-input').locator('input').fill('wrong@example.com')
+    await page.getByTestId('password-input').locator('input').fill('wrongpassword')
+    await page.getByTestId('login-btn').click()
 
     // Should show an error or stay on login page
     await page.waitForTimeout(3000)
@@ -29,7 +29,7 @@ test.describe('Login', () => {
   test('can navigate to register page', async ({ page }) => {
     await page.goto('/auth/login')
 
-    await page.getByRole('link', { name: 'Sign up' }).click()
+    await page.getByTestId('signup-link').click()
 
     await expect(page).toHaveURL('/auth/register')
   })
@@ -37,7 +37,7 @@ test.describe('Login', () => {
   test('can navigate to forgot password page', async ({ page }) => {
     await page.goto('/auth/login')
 
-    await page.getByRole('link', { name: 'Forgot password?' }).click()
+    await page.getByTestId('forgot-password-link').click()
 
     await expect(page).toHaveURL('/auth/forgot-password')
   })

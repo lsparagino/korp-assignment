@@ -36,10 +36,10 @@
   const wallet = ref<WalletType | null>(null)
 
   watch(queryData, newData => {
-    if (newData?.wallet) {
-      wallet.value = newData.wallet
-      form.name = newData.wallet.name
-      form.currency = newData.wallet.currency
+    if (newData?.data) {
+      wallet.value = newData.data
+      form.name = newData.data.name
+      form.currency = newData.data.currency
     }
   })
 
@@ -123,7 +123,7 @@
     >
       {{ $t('wallets.backToWallets') }}
     </v-btn>
-    <h1 class="text-h5 font-weight-bold text-grey-darken-2">{{ $t('wallets.editWallet') }}</h1>
+    <h1 class="text-h5 font-weight-bold text-grey-darken-2" data-testid="page-heading">{{ $t('wallets.editWallet') }}</h1>
   </div>
 
   <v-card
@@ -151,6 +151,7 @@
               v-model="form.name"
               autofocus
               color="primary"
+              data-testid="wallet-name-input"
               density="comfortable"
               :error-messages="errors.name"
               hide-details="auto"
@@ -198,6 +199,7 @@
             <v-select
               v-model="form.currency"
               color="primary"
+              data-testid="wallet-currency-select"
               density="comfortable"
               :error-messages="errors.currency"
               hide-details="auto"
@@ -211,6 +213,7 @@
               <v-btn
                 class="text-none font-weight-bold px-8"
                 color="primary"
+                data-testid="wallet-save-btn"
                 height="48"
                 :loading="processing"
                 rounded="lg"

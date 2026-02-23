@@ -62,6 +62,7 @@
               v-model="form.name"
               autofocus
               color="primary"
+              data-testid="wallet-name-input"
               density="comfortable"
               :error-messages="errors.name"
               hide-details="auto"
@@ -95,6 +96,7 @@
               <v-btn
                 class="text-none font-weight-bold px-8"
                 color="primary"
+                data-testid="wallet-create-btn"
                 height="48"
                 :loading="processing"
                 rounded="lg"

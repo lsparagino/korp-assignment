@@ -101,7 +101,7 @@
 
             <v-menu min-width="200px">
               <template #activator="{ props }">
-                <v-btn icon v-bind="props">
+                <v-btn data-testid="user-menu-btn" icon v-bind="props">
                   <v-avatar
                     class="bg-sidebar-bg"
                     size="large"
@@ -152,6 +152,7 @@
                       <v-list-item
                         class="px-0"
                         color="primary"
+                        data-testid="settings-link"
                         to="/settings/profile"
                       >
                         <template #prepend>
@@ -166,6 +167,7 @@
                       </v-list-item>
                       <v-list-item
                         class="px-0"
+                        data-testid="disconnect-btn"
                         @click="handleLogout"
                       >
                         <template #prepend>
@@ -195,6 +197,7 @@
         app
         class="border-e-sm overflow-hidden"
         color="sidebar-bg"
+        data-testid="sidebar"
         :permanent="$vuetify.display.mdAndUp"
         width="260"
       >
@@ -209,6 +212,7 @@
 
           <v-list
             class="list-container flex-grow-1 overflow-y-auto"
+            data-testid="nav-list"
             density="comfortable"
             nav
           >
@@ -218,6 +222,7 @@
               :active="item.active.value"
               active-color="primary"
               class="nav-item"
+              :data-testid="`nav-${item.to.replace(/\//g, '').replace(/\s+/g, '-')}`"
               :to="item.to"
               :value="item.title"
               variant="text"
@@ -241,6 +246,7 @@
               block
               class="text-none"
               color="primary"
+              data-testid="sidebar-create-wallet-btn"
               prepend-icon="mdi-plus"
               size="large"
               to="/wallets/create/"
