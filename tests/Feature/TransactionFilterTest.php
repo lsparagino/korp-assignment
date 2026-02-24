@@ -35,12 +35,12 @@ class TransactionFilterTest extends TestCase
     public function test_can_filter_transactions_by_type(): void
     {
         Transaction::factory()->count(3)->create([
-            'to_wallet_id' => $this->wallet->id,
+            'wallet_id' => $this->wallet->id,
             'type' => TransactionType::Credit,
         ]);
 
         Transaction::factory()->count(2)->create([
-            'to_wallet_id' => $this->wallet->id,
+            'wallet_id' => $this->wallet->id,
             'type' => TransactionType::Debit,
         ]);
 
@@ -68,12 +68,12 @@ class TransactionFilterTest extends TestCase
     public function test_can_filter_transactions_by_date_from(): void
     {
         Transaction::factory()->create([
-            'to_wallet_id' => $this->wallet->id,
+            'wallet_id' => $this->wallet->id,
             'created_at' => '2025-01-01 10:00:00',
         ]);
 
         Transaction::factory()->create([
-            'to_wallet_id' => $this->wallet->id,
+            'wallet_id' => $this->wallet->id,
             'created_at' => '2025-02-01 10:00:00',
         ]);
 
@@ -88,12 +88,12 @@ class TransactionFilterTest extends TestCase
     public function test_can_filter_transactions_by_date_to(): void
     {
         Transaction::factory()->create([
-            'to_wallet_id' => $this->wallet->id,
+            'wallet_id' => $this->wallet->id,
             'created_at' => '2025-01-01 10:00:00',
         ]);
 
         Transaction::factory()->create([
-            'to_wallet_id' => $this->wallet->id,
+            'wallet_id' => $this->wallet->id,
             'created_at' => '2025-02-01 10:00:00',
         ]);
 
@@ -108,17 +108,17 @@ class TransactionFilterTest extends TestCase
     public function test_can_filter_transactions_by_date_range(): void
     {
         Transaction::factory()->create([
-            'to_wallet_id' => $this->wallet->id,
+            'wallet_id' => $this->wallet->id,
             'created_at' => '2025-01-01 10:00:00',
         ]);
 
         Transaction::factory()->create([
-            'to_wallet_id' => $this->wallet->id,
+            'wallet_id' => $this->wallet->id,
             'created_at' => '2025-01-15 10:00:00',
         ]);
 
         Transaction::factory()->create([
-            'to_wallet_id' => $this->wallet->id,
+            'wallet_id' => $this->wallet->id,
             'created_at' => '2025-02-01 10:00:00',
         ]);
 
@@ -132,9 +132,9 @@ class TransactionFilterTest extends TestCase
 
     public function test_can_filter_transactions_by_amount_range(): void
     {
-        Transaction::factory()->create(['to_wallet_id' => $this->wallet->id, 'amount' => 50]);
-        Transaction::factory()->create(['to_wallet_id' => $this->wallet->id, 'amount' => 150]);
-        Transaction::factory()->create(['to_wallet_id' => $this->wallet->id, 'amount' => 250]);
+        Transaction::factory()->create(['wallet_id' => $this->wallet->id, 'amount' => 50]);
+        Transaction::factory()->create(['wallet_id' => $this->wallet->id, 'amount' => 150]);
+        Transaction::factory()->create(['wallet_id' => $this->wallet->id, 'amount' => 250]);
 
         $response = $this->actingAs($this->user, 'sanctum')
             ->getJson("/api/v0/transactions?amount_min=100&amount_max=200&company_id={$this->company->id}");
@@ -146,8 +146,8 @@ class TransactionFilterTest extends TestCase
 
     public function test_can_filter_transactions_by_reference(): void
     {
-        Transaction::factory()->create(['to_wallet_id' => $this->wallet->id, 'reference' => 'Invoice 123']);
-        Transaction::factory()->create(['to_wallet_id' => $this->wallet->id, 'reference' => 'Refund 456']);
+        Transaction::factory()->create(['wallet_id' => $this->wallet->id, 'reference' => 'Invoice 123']);
+        Transaction::factory()->create(['wallet_id' => $this->wallet->id, 'reference' => 'Refund 456']);
 
         $response = $this->actingAs($this->user, 'sanctum')
             ->getJson("/api/v0/transactions?reference=Refund&company_id={$this->company->id}");
@@ -162,24 +162,25 @@ class TransactionFilterTest extends TestCase
         $wallet1 = Wallet::factory()->create(['user_id' => $this->user->id, 'company_id' => $this->company->id]);
         $wallet2 = Wallet::factory()->create(['user_id' => $this->user->id, 'company_id' => $this->company->id]);
 
-        Transaction::factory()->create(['from_wallet_id' => $wallet1->id, 'to_wallet_id' => $wallet2->id]);
-        Transaction::factory()->create(['from_wallet_id' => $wallet2->id, 'to_wallet_id' => $wallet1->id]);
+        $groupId = \Illuminate\Support\Str::uuid()->toString();
+        Transaction::factory()->create(['group_id' => $groupId, 'wallet_id' => $wallet1->id, 'counterpart_wallet_id' => $wallet2->id, 'type' => TransactionType::Debit, 'amount' => -100, 'external' => false]);
+        Transaction::factory()->create(['group_id' => $groupId, 'wallet_id' => $wallet2->id, 'counterpart_wallet_id' => $wallet1->id, 'type' => TransactionType::Credit, 'amount' => 100, 'external' => false]);
 
-        // Filter by from_wallet_id
+        // Filter by wallet_id — should return the debit entry for wallet1 (de-duplicated)
         $response = $this->actingAs($this->user, 'sanctum')
-            ->getJson("/api/v0/transactions?from_wallet_id={$wallet1->id}&company_id={$this->company->id}");
+            ->getJson("/api/v0/transactions?wallet_id={$wallet1->id}&company_id={$this->company->id}");
 
         $response->assertStatus(200);
         $response->assertJsonCount(1, 'data');
-        $this->assertEquals($wallet1->id, $response->json('data.0.from_wallet_id'));
+        $this->assertEquals($wallet1->id, $response->json('data.0.wallet_id'));
 
-        // Filter by to_wallet_id
+        // Filter by counterpart_wallet_id — the debit entry has wallet2 as counterpart
         $response = $this->actingAs($this->user, 'sanctum')
-            ->getJson("/api/v0/transactions?to_wallet_id={$wallet1->id}&company_id={$this->company->id}");
+            ->getJson("/api/v0/transactions?counterpart_wallet_id={$wallet2->id}&company_id={$this->company->id}");
 
         $response->assertStatus(200);
         $response->assertJsonCount(1, 'data');
-        $this->assertEquals($wallet1->id, $response->json('data.0.to_wallet_id'));
+        $this->assertEquals($wallet2->id, $response->json('data.0.counterpart_wallet_id'));
     }
 
     public function test_guests_are_denied_access_to_transactions(): void
@@ -192,7 +193,7 @@ class TransactionFilterTest extends TestCase
     public function test_transactions_are_paginated(): void
     {
         Transaction::factory()->count(15)->create([
-            'to_wallet_id' => $this->wallet->id,
+            'wallet_id' => $this->wallet->id,
         ]);
 
         $response = $this->actingAs($this->user, 'sanctum')
@@ -201,5 +202,23 @@ class TransactionFilterTest extends TestCase
         $response->assertStatus(200)
             ->assertJsonCount(5, 'data')
             ->assertJsonPath('meta.total', 15);
+    }
+
+    public function test_internal_transfers_are_deduplicated(): void
+    {
+        $wallet1 = Wallet::factory()->create(['user_id' => $this->user->id, 'company_id' => $this->company->id]);
+        $wallet2 = Wallet::factory()->create(['user_id' => $this->user->id, 'company_id' => $this->company->id]);
+
+        $groupId = \Illuminate\Support\Str::uuid()->toString();
+        Transaction::factory()->create(['group_id' => $groupId, 'wallet_id' => $wallet1->id, 'counterpart_wallet_id' => $wallet2->id, 'type' => TransactionType::Debit, 'amount' => -100, 'external' => false]);
+        Transaction::factory()->create(['group_id' => $groupId, 'wallet_id' => $wallet2->id, 'counterpart_wallet_id' => $wallet1->id, 'type' => TransactionType::Credit, 'amount' => 100, 'external' => false]);
+
+        // User owns both wallets — should see only 1 row (the debit entry)
+        $response = $this->actingAs($this->user, 'sanctum')
+            ->getJson("/api/v0/transactions?company_id={$this->company->id}");
+
+        $response->assertStatus(200);
+        $response->assertJsonCount(1, 'data');
+        $this->assertEquals('debit', $response->json('data.0.type'));
     }
 }

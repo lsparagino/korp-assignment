@@ -10,8 +10,8 @@ interface TransactionsQueryParams {
   amountMin?: string
   amountMax?: string
   reference?: string
-  fromWalletId?: number | string | null
-  toWalletId?: number | string | null
+  walletId?: number | string | null
+  counterpartWalletId?: number | string | null
 }
 
 export const TRANSACTION_QUERY_KEYS = {
@@ -32,8 +32,8 @@ export const transactionsListQuery = defineQueryOptions(
         amount_min: params.amountMin,
         amount_max: params.amountMax,
         reference: params.reference,
-        from_wallet_id: params.fromWalletId as number | null,
-        to_wallet_id: params.toWalletId as number | null,
+        wallet_id: params.walletId as number | null,
+        counterpart_wallet_id: params.counterpartWalletId as number | null,
       })
       return response.data
     },

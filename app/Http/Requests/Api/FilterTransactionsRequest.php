@@ -20,8 +20,8 @@ class FilterTransactionsRequest extends FormRequest
             'amount_min' => ['nullable', 'numeric', 'min:0'],
             'amount_max' => ['nullable', 'numeric', 'gte:amount_min'],
             'reference' => ['nullable', 'string', 'max:255'],
-            'from_wallet_id' => ['nullable', 'string'],
-            'to_wallet_id' => ['nullable', 'string'],
+            'wallet_id' => ['nullable', 'string'],
+            'counterpart_wallet_id' => ['nullable', 'string'],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:500'],
         ];
     }

@@ -40,12 +40,59 @@
     return props.wallets.some(w => w.id === walletId)
   }
 
+  function isTransfer (item: Transaction) {
+    return !item.external
+      && item.wallet_id !== null
+      && item.counterpart_wallet_id !== null
+      && isAssigned(item.wallet_id)
+      && isAssigned(item.counterpart_wallet_id)
+  }
+
+  /**
+   * Map the double-entry fields to intuitive from/to display.
+   * - Debit: money leaves wallet → wallet is "from", counterpart is "to"
+   * - Credit: money enters wallet → counterpart is "from", wallet is "to"
+   */
+  function getFromWallet (item: Transaction) {
+    return item.type.toLowerCase() === 'debit' ? item.wallet : item.counterpart_wallet
+  }
+
+  function getToWallet (item: Transaction) {
+    return item.type.toLowerCase() === 'debit' ? item.counterpart_wallet : item.wallet
+  }
+
+  function getFromWalletId (item: Transaction) {
+    return item.type.toLowerCase() === 'debit' ? item.wallet_id : item.counterpart_wallet_id
+  }
+
+  function getToWalletId (item: Transaction) {
+    return item.type.toLowerCase() === 'debit' ? item.counterpart_wallet_id : item.wallet_id
+  }
+
   function getTransactionColor (item: Transaction) {
-    if (item.to_wallet_id === null) return 'text-red-darken-1'
-    if (item.from_wallet_id === null) return 'text-green-darken-1'
+    if (isTransfer(item)) return 'text-blue-darken-1'
     return item.type.toLowerCase() === 'debit'
       ? 'text-red-darken-1'
       : 'text-green-darken-1'
+  }
+
+  function getTransactionLabel (item: Transaction) {
+    if (isTransfer(item)) return 'transfer'
+    return item.type
+  }
+
+  function getChipColor (item: Transaction) {
+    if (isTransfer(item)) return 'blue-lighten-4'
+    return item.type.toLowerCase() === 'debit'
+      ? 'red-lighten-4'
+      : 'green-lighten-4'
+  }
+
+  function getChipTextColor (item: Transaction) {
+    if (isTransfer(item)) return 'text-blue-darken-3'
+    return item.type.toLowerCase() === 'debit'
+      ? 'text-red-darken-3'
+      : 'text-green-darken-3'
   }
 </script>
 
@@ -105,22 +152,12 @@
         <td class="text-grey-darken-3 font-weight-bold">
           <v-chip
             class="text-uppercase font-weight-bold"
-            :color="
-              item.type.toLowerCase() === 'debit'
-                ? 'red-lighten-4'
-                : 'green-lighten-4'
-            "
+            :color="getChipColor(item)"
             size="x-small"
             variant="flat"
           >
-            <span
-              :class="
-                item.type.toLowerCase() === 'debit'
-                  ? 'text-red-darken-3'
-                  : 'text-green-darken-3'
-              "
-            >
-              {{ item.type }}
+            <span :class="getChipTextColor(item)">
+              {{ getTransactionLabel(item) }}
             </span>
           </v-chip>
         </td>
@@ -134,7 +171,7 @@
             <v-avatar
               class="me-2"
               :color="
-                isAssigned(item.from_wallet_id)
+                isAssigned(getFromWalletId(item))
                   ? 'primary'
                   : 'grey-lighten-2'
               "
@@ -150,12 +187,12 @@
             <span
               class="text-caption font-weight-medium"
               :class="
-                isAssigned(item.from_wallet_id)
+                isAssigned(getFromWalletId(item))
                   ? 'text-grey-darken-2'
                   : 'text-grey-lighten-1'
               "
             >{{
-              item.from_wallet?.name || $t('transactions.external')
+              getFromWallet(item)?.name || $t('transactions.external')
             }}</span>
           </div>
         </td>
@@ -164,7 +201,7 @@
             <v-avatar
               class="me-2"
               :color="
-                isAssigned(item.to_wallet_id)
+                isAssigned(getToWalletId(item))
                   ? 'primary'
                   : 'grey-lighten-2'
               "
@@ -180,12 +217,12 @@
             <span
               class="text-caption font-weight-medium"
               :class="
-                isAssigned(item.to_wallet_id)
+                isAssigned(getToWalletId(item))
                   ? 'text-grey-darken-2'
                   : 'text-grey-lighten-1'
               "
             >{{
-              item.to_wallet?.name || $t('transactions.external')
+              getToWallet(item)?.name || $t('transactions.external')
             }}</span>
           </div>
         </td>
@@ -236,21 +273,11 @@
         <div class="d-flex align-center justify-space-between mb-6">
           <v-chip
             class="text-uppercase font-weight-bold"
-            :color="
-              selectedTransaction.type.toLowerCase() === 'debit'
-                ? 'red-lighten-4'
-                : 'green-lighten-4'
-            "
+            :color="getChipColor(selectedTransaction)"
             variant="flat"
           >
-            <span
-              :class="
-                selectedTransaction.type.toLowerCase() === 'debit'
-                  ? 'text-red-darken-3'
-                  : 'text-green-darken-3'
-              "
-            >
-              {{ selectedTransaction.type }}
+            <span :class="getChipTextColor(selectedTransaction)">
+              {{ getTransactionLabel(selectedTransaction) }}
             </span>
           </v-chip>
           <span
@@ -300,14 +327,14 @@
               {{ $t('transactions.fromWallet') }}
             </v-list-item-title>
             <div class="text-body-2 font-weight-medium text-grey-darken-3">
-              {{ selectedTransaction.from_wallet?.name || $t('transactions.external') }}
+              {{ getFromWallet(selectedTransaction)?.name || $t('transactions.external') }}
             </div>
             <div
-              v-if="selectedTransaction.from_wallet?.address"
+              v-if="getFromWallet(selectedTransaction)?.address"
               class="text-caption text-grey-darken-2 font-weight-regular mt-1"
               style="font-family: monospace"
             >
-              {{ selectedTransaction.from_wallet.address }}
+              {{ getFromWallet(selectedTransaction)?.address }}
             </div>
           </v-list-item>
 
@@ -322,14 +349,14 @@
               {{ $t('transactions.toWallet') }}
             </v-list-item-title>
             <div class="text-body-2 font-weight-medium text-grey-darken-3">
-              {{ selectedTransaction.to_wallet?.name || $t('transactions.external') }}
+              {{ getToWallet(selectedTransaction)?.name || $t('transactions.external') }}
             </div>
             <div
-              v-if="selectedTransaction.to_wallet?.address"
+              v-if="getToWallet(selectedTransaction)?.address"
               class="text-caption text-grey-darken-2 font-weight-regular mt-1"
               style="font-family: monospace"
             >
-              {{ selectedTransaction.to_wallet.address }}
+              {{ getToWallet(selectedTransaction)?.address }}
             </div>
           </v-list-item>
 

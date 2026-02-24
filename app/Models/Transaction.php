@@ -16,38 +16,55 @@ class Transaction extends Model
     use HasFactory;
 
     protected $fillable = [
-        'from_wallet_id',
-        'to_wallet_id',
+        'group_id',
+        'wallet_id',
+        'counterpart_wallet_id',
         'type',
         'amount',
-        'reference',
         'external',
+        'reference',
     ];
 
-    public function fromWallet(): BelongsTo
+    public function wallet(): BelongsTo
     {
-        return $this->belongsTo(Wallet::class, 'from_wallet_id');
+        return $this->belongsTo(Wallet::class, 'wallet_id');
     }
 
-    public function toWallet(): BelongsTo
+    public function counterpartWallet(): BelongsTo
     {
-        return $this->belongsTo(Wallet::class, 'to_wallet_id');
+        return $this->belongsTo(Wallet::class, 'counterpart_wallet_id');
     }
 
     public function scopeForWallets(Builder $query, Collection $walletIds): Builder
     {
-        return $query->where(function ($q) use ($walletIds) {
-            $q->whereIn('from_wallet_id', $walletIds)
-                ->orWhereIn('to_wallet_id', $walletIds);
-        });
+        return $query->whereIn('wallet_id', $walletIds);
     }
 
     public function scopeRecentForWallets(Builder $query, Collection $walletIds, int $limit = 10): Builder
     {
         return $query->forWallets($walletIds)
-            ->with(['fromWallet', 'toWallet'])
+            ->with(['wallet', 'counterpartWallet'])
             ->latest()
             ->limit($limit);
+    }
+
+    /**
+     * De-duplicate internal transfers where the user owns both wallets.
+     * Only keep the debit entry for transfers between the user's own wallets.
+     */
+    public function scopeDeduplicatedForWallets(Builder $query, Collection $walletIds): Builder
+    {
+        return $query->forWallets($walletIds)
+            ->where(function (Builder $q) use ($walletIds) {
+                // Keep all entries where the counterpart is NOT one of the user's wallets
+                $q->whereNull('counterpart_wallet_id')
+                    ->orWhereNotIn('counterpart_wallet_id', $walletIds)
+                    // For internal transfers between user's own wallets, keep only the debit entry
+                    ->orWhere(function (Builder $inner) use ($walletIds) {
+                        $inner->whereIn('counterpart_wallet_id', $walletIds)
+                            ->where('type', TransactionType::Debit);
+                    });
+            });
     }
 
     protected function casts(): array

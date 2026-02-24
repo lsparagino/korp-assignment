@@ -58,8 +58,8 @@ describe('useTransactionFilters', () => {
     expect(filterForm.amount_min).toBe('')
     expect(filterForm.amount_max).toBe('')
     expect(filterForm.reference).toBe('')
-    expect(filterForm.from_wallet_id).toBeNull()
-    expect(filterForm.to_wallet_id).toBeNull()
+    expect(filterForm.wallet_id).toBeNull()
+    expect(filterForm.counterpart_wallet_id).toBeNull()
   })
 
   it('syncs filterForm from route query params', async () => {

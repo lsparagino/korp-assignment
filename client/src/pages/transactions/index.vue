@@ -230,7 +230,7 @@
 
               <v-col cols="12" sm="6">
                 <v-select
-                  v-model="filterForm.from_wallet_id"
+                  v-model="filterForm.wallet_id"
                   clearable
                   color="primary"
                   density="comfortable"
@@ -246,7 +246,7 @@
 
               <v-col cols="12" sm="6">
                 <v-select
-                  v-model="filterForm.to_wallet_id"
+                  v-model="filterForm.counterpart_wallet_id"
                   clearable
                   color="primary"
                   density="comfortable"

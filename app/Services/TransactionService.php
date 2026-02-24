@@ -10,7 +10,10 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 class TransactionService
 {
     /**
-     * Get filtered and paginated transactions for the given wallet IDs.
+     * Get filtered and paginated transactions for the given user.
+     *
+     * Returns de-duplicated results: when the user owns both wallets
+     * in an internal transfer, only the debit entry is returned.
      *
      * @param  array<string, mixed>  $filters
      */
@@ -18,7 +21,7 @@ class TransactionService
     {
         $walletIds = Wallet::scopedToUser($user, $companyId)->pluck('id');
 
-        $query = Transaction::forWallets($walletIds);
+        $query = Transaction::deduplicatedForWallets($walletIds);
 
         if (! empty($filters['type'])) {
             $query->where('type', $filters['type']);
@@ -44,19 +47,19 @@ class TransactionService
             $query->where('reference', 'LIKE', '%'.$filters['reference'].'%');
         }
 
-        if (($filters['from_wallet_id'] ?? null) === 'external') {
-            $query->whereNull('from_wallet_id');
-        } elseif (! empty($filters['from_wallet_id'])) {
-            $query->where('from_wallet_id', $filters['from_wallet_id']);
+        if (($filters['wallet_id'] ?? null) === 'external') {
+            $query->whereNull('counterpart_wallet_id');
+        } elseif (! empty($filters['wallet_id'])) {
+            $query->where('wallet_id', $filters['wallet_id']);
         }
 
-        if (($filters['to_wallet_id'] ?? null) === 'external') {
-            $query->whereNull('to_wallet_id');
-        } elseif (! empty($filters['to_wallet_id'])) {
-            $query->where('to_wallet_id', $filters['to_wallet_id']);
+        if (($filters['counterpart_wallet_id'] ?? null) === 'external') {
+            $query->whereNull('counterpart_wallet_id');
+        } elseif (! empty($filters['counterpart_wallet_id'])) {
+            $query->where('counterpart_wallet_id', $filters['counterpart_wallet_id']);
         }
 
-        return $query->with(['fromWallet', 'toWallet'])
+        return $query->with(['wallet', 'counterpartWallet'])
             ->latest()
             ->paginate($perPage);
     }

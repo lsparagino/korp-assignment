@@ -6,6 +6,7 @@ use App\Enums\TransactionType;
 use App\Models\Transaction;
 use App\Models\Wallet;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Str;
 
 /**
  * @extends Factory<Transaction>
@@ -22,22 +23,17 @@ class TransactionFactory extends Factory
         $date = $this->faker->dateTimeBetween('-1 year', 'now');
 
         return [
+            'group_id' => Str::uuid()->toString(),
+            'wallet_id' => Wallet::factory(),
+            'counterpart_wallet_id' => null,
             'type' => $this->faker->randomElement([TransactionType::Credit, TransactionType::Debit]),
             'amount' => function (array $attributes) {
-                // Ensure magnitude is positive, then apply sign based on type
                 $magnitude = abs($this->faker->randomFloat(2, 1, 1000));
 
                 return $attributes['type'] === TransactionType::Debit ? -$magnitude : $magnitude;
             },
+            'external' => true,
             'reference' => $this->faker->sentence(4),
-            'from_wallet_id' => Wallet::factory(),
-            'to_wallet_id' => function (array $attributes) {
-                $fromWallet = Wallet::find($attributes['from_wallet_id']);
-
-                return Wallet::factory()->create([
-                    'currency' => $fromWallet?->currency ?? 'USD',
-                ])->id;
-            },
             'created_at' => $date,
             'updated_at' => $date,
         ];

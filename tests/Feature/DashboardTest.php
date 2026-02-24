@@ -39,11 +39,11 @@ test('top wallets are sorted by balance descending', function () {
     $walletC = Wallet::factory()->create(['user_id' => $user->id, 'company_id' => $company->id, 'currency' => 'USD', 'name' => 'Mid Wallet']);
 
     // Credit wallet A with 100
-    Transaction::factory()->create(['to_wallet_id' => $walletA->id, 'from_wallet_id' => null, 'amount' => 100, 'type' => TransactionType::Credit]);
+    Transaction::factory()->create(['wallet_id' => $walletA->id, 'amount' => 100, 'type' => TransactionType::Credit, 'external' => true]);
     // Credit wallet B with 500
-    Transaction::factory()->create(['to_wallet_id' => $walletB->id, 'from_wallet_id' => null, 'amount' => 500, 'type' => TransactionType::Credit]);
+    Transaction::factory()->create(['wallet_id' => $walletB->id, 'amount' => 500, 'type' => TransactionType::Credit, 'external' => true]);
     // Credit wallet C with 250
-    Transaction::factory()->create(['to_wallet_id' => $walletC->id, 'from_wallet_id' => null, 'amount' => 250, 'type' => TransactionType::Credit]);
+    Transaction::factory()->create(['wallet_id' => $walletC->id, 'amount' => 250, 'type' => TransactionType::Credit, 'external' => true]);
 
     $this->actingAs($user, 'sanctum');
 
@@ -64,8 +64,8 @@ test('wallet balance uses eager-loaded values when available', function () {
 
     $wallet = Wallet::factory()->create(['user_id' => $user->id, 'company_id' => $company->id, 'currency' => 'USD']);
 
-    Transaction::factory()->create(['to_wallet_id' => $wallet->id, 'from_wallet_id' => null, 'amount' => 300, 'type' => TransactionType::Credit]);
-    Transaction::factory()->create(['from_wallet_id' => $wallet->id, 'to_wallet_id' => null, 'amount' => -50, 'type' => TransactionType::Debit]);
+    Transaction::factory()->create(['wallet_id' => $wallet->id, 'amount' => 300, 'type' => TransactionType::Credit, 'external' => true]);
+    Transaction::factory()->create(['wallet_id' => $wallet->id, 'amount' => -50, 'type' => TransactionType::Debit, 'external' => true]);
 
     // Without eager loading (accessor queries DB directly)
     $accessorBalance = $wallet->fresh()->balance;

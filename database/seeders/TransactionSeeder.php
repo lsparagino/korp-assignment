@@ -6,6 +6,7 @@ use App\Enums\TransactionType;
 use App\Models\Transaction;
 use App\Models\Wallet;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Str;
 
 class TransactionSeeder extends Seeder
 {
@@ -27,7 +28,7 @@ class TransactionSeeder extends Seeder
 
         // Track the running balance for every wallet so we never go negative.
         $balances = $wallets->pluck('id')->mapWithKeys(fn ($id) => [$id => 0])->all();
-        // Track how many transactions each wallet has participated in (as sender).
+        // Track how many logical transactions each wallet has originated.
         $txCounts = $wallets->pluck('id')->mapWithKeys(fn ($id) => [$id => 0])->all();
 
         foreach ($wallets as $wallet) {
@@ -35,15 +36,9 @@ class TransactionSeeder extends Seeder
                 continue;
             }
 
-            // --- 1. Seed an inbound external credit first to fund the wallet ---
+            // --- 1. External inbound credit to fund the wallet ---
             $creditAmount = collect(self::AMOUNTS)->random();
-            $this->createTransaction(
-                type: TransactionType::Credit,
-                amount: $creditAmount,
-                fromWalletId: null,
-                toWalletId: $wallet->id,
-                external: true,
-            );
+            $this->createExternalCredit($wallet->id, $creditAmount);
             $balances[$wallet->id] += $creditAmount;
             $txCounts[$wallet->id]++;
 
@@ -64,16 +59,10 @@ class TransactionSeeder extends Seeder
                 }
             }
 
-            // --- 3. Another inbound credit ---
+            // --- 3. Another external inbound credit ---
             if ($txCounts[$wallet->id] < self::MAX_TRANSACTIONS_PER_WALLET) {
                 $creditAmount = collect(self::AMOUNTS)->random();
-                $this->createTransaction(
-                    type: TransactionType::Credit,
-                    amount: $creditAmount,
-                    fromWalletId: null,
-                    toWalletId: $wallet->id,
-                    external: true,
-                );
+                $this->createExternalCredit($wallet->id, $creditAmount);
                 $balances[$wallet->id] += $creditAmount;
                 $txCounts[$wallet->id]++;
             }
@@ -83,13 +72,7 @@ class TransactionSeeder extends Seeder
                 $debitAmount = $this->pickSafeAmount($balances[$wallet->id]);
 
                 if ($debitAmount !== null) {
-                    $this->createTransaction(
-                        type: TransactionType::Debit,
-                        amount: $debitAmount,
-                        fromWalletId: $wallet->id,
-                        toWalletId: null,
-                        external: true,
-                    );
+                    $this->createExternalDebit($wallet->id, $debitAmount);
                     $balances[$wallet->id] -= $debitAmount;
                     $txCounts[$wallet->id]++;
                 }
@@ -113,7 +96,6 @@ class TransactionSeeder extends Seeder
 
     /**
      * Pick a random human-friendly amount that won't cause the balance to go negative.
-     * Returns null if no amount is safe.
      */
     private function pickSafeAmount(float $balance): ?float
     {
@@ -123,56 +105,62 @@ class TransactionSeeder extends Seeder
     }
 
     /**
-     * Create a single transaction record.
+     * Create an external inbound credit (deposit).
      */
-    private function createTransaction(
-        TransactionType $type,
-        float $amount,
-        ?int $fromWalletId,
-        ?int $toWalletId,
-        bool $external,
-    ): void {
+    private function createExternalCredit(int $walletId, float $amount): void
+    {
         Transaction::factory()->create([
-            'type' => $type,
-            'amount' => $type === TransactionType::Debit ? -$amount : $amount,
-            'from_wallet_id' => $fromWalletId,
-            'to_wallet_id' => $toWalletId,
-            'external' => $external,
+            'wallet_id' => $walletId,
+            'counterpart_wallet_id' => null,
+            'type' => TransactionType::Credit,
+            'amount' => $amount,
+            'external' => true,
         ]);
     }
 
     /**
-     * Create a pair of transactions for an internal transfer.
-     *
-     * The wallet balance is computed as:
-     *   sum(toTransactions.amount) + sum(fromTransactions.amount)
-     *
-     * So the sender needs a negative-amount debit in fromTransactions,
-     * and the receiver needs a positive-amount credit in toTransactions.
+     * Create an external outbound debit (withdrawal).
+     */
+    private function createExternalDebit(int $walletId, float $amount): void
+    {
+        Transaction::factory()->create([
+            'wallet_id' => $walletId,
+            'counterpart_wallet_id' => null,
+            'type' => TransactionType::Debit,
+            'amount' => -$amount,
+            'external' => true,
+        ]);
+    }
+
+    /**
+     * Create a paired internal transfer (two entries with the same group_id).
      */
     private function createInternalTransfer(int $fromWalletId, int $toWalletId, float $amount): void
     {
+        $groupId = Str::uuid()->toString();
         $date = fake()->dateTimeBetween('-1 year', 'now');
         $reference = fake()->sentence(4);
 
-        // Debit from sender (only from_wallet_id so it only affects sender's balance)
+        // Debit entry for the sender
         Transaction::factory()->create([
+            'group_id' => $groupId,
+            'wallet_id' => $fromWalletId,
+            'counterpart_wallet_id' => $toWalletId,
             'type' => TransactionType::Debit,
             'amount' => -$amount,
-            'from_wallet_id' => $fromWalletId,
-            'to_wallet_id' => null,
             'external' => false,
             'reference' => $reference,
             'created_at' => $date,
             'updated_at' => $date,
         ]);
 
-        // Credit to receiver (only to_wallet_id so it only affects receiver's balance)
+        // Credit entry for the receiver
         Transaction::factory()->create([
+            'group_id' => $groupId,
+            'wallet_id' => $toWalletId,
+            'counterpart_wallet_id' => $fromWalletId,
             'type' => TransactionType::Credit,
             'amount' => $amount,
-            'from_wallet_id' => null,
-            'to_wallet_id' => $toWalletId,
             'external' => false,
             'reference' => $reference,
             'created_at' => $date,

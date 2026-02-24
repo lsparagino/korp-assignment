@@ -34,7 +34,8 @@
   )
   const topWallets = computed<Wallet[]>(() => data.value?.top_wallets ?? [])
   const otherWallets = computed(() => data.value?.others ?? { count: 0, totalUSD: 0, totalEUR: 0 })
-  const recentTransactions = computed<Transaction[]>(() => data.value?.transactions ?? [])
+  const recentTransactions = computed<Transaction[]>(() => data.value?.transactions?.data ?? data.value?.transactions ?? [])
+  const wallets = computed<Wallet[]>(() => (data.value?.wallets ?? []).map((w: any) => ({ id: w.id, name: w.name })))
 
   function getCurrencyIcon (currency: string): string {
     return currency === 'EUR' ? 'mdi-currency-eur' : 'mdi-currency-usd'
@@ -173,6 +174,7 @@
         v-if="recentTransactions.length > 0"
         :is-admin="authStore.isAdmin"
         :items="recentTransactions"
+        :wallets="wallets"
       />
       <v-card
         v-else

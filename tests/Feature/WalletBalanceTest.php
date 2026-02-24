@@ -6,6 +6,7 @@ use App\Models\Company;
 use App\Models\Transaction;
 use App\Models\User;
 use App\Models\Wallet;
+use Illuminate\Support\Str;
 
 beforeEach(function () {
     $this->company = Company::factory()->create();
@@ -30,10 +31,9 @@ test('single credit increases balance', function () {
     ]);
 
     Transaction::factory()->create([
-        'to_wallet_id' => $wallet->id,
-        'from_wallet_id' => null,
-        'amount' => 100,
+        'wallet_id' => $wallet->id,
         'type' => TransactionType::Credit,
+        'amount' => 100,
         'external' => true,
     ]);
 
@@ -46,21 +46,19 @@ test('single debit decreases balance', function () {
         'company_id' => $this->company->id,
     ]);
 
-    // Fund the wallet first
+    // Fund the wallet
     Transaction::factory()->create([
-        'to_wallet_id' => $wallet->id,
-        'from_wallet_id' => null,
-        'amount' => 200,
+        'wallet_id' => $wallet->id,
         'type' => TransactionType::Credit,
+        'amount' => 200,
         'external' => true,
     ]);
 
     // Debit
     Transaction::factory()->create([
-        'from_wallet_id' => $wallet->id,
-        'to_wallet_id' => null,
-        'amount' => -50,
+        'wallet_id' => $wallet->id,
         'type' => TransactionType::Debit,
+        'amount' => -50,
         'external' => true,
     ]);
 
@@ -74,37 +72,10 @@ test('multiple credits and debits produce correct balance', function () {
     ]);
 
     // +100, +1000, -10, -100.50 = 989.50
-    Transaction::factory()->create([
-        'to_wallet_id' => $wallet->id,
-        'from_wallet_id' => null,
-        'amount' => 100,
-        'type' => TransactionType::Credit,
-        'external' => true,
-    ]);
-
-    Transaction::factory()->create([
-        'to_wallet_id' => $wallet->id,
-        'from_wallet_id' => null,
-        'amount' => 1000,
-        'type' => TransactionType::Credit,
-        'external' => true,
-    ]);
-
-    Transaction::factory()->create([
-        'from_wallet_id' => $wallet->id,
-        'to_wallet_id' => null,
-        'amount' => -10,
-        'type' => TransactionType::Debit,
-        'external' => true,
-    ]);
-
-    Transaction::factory()->create([
-        'from_wallet_id' => $wallet->id,
-        'to_wallet_id' => null,
-        'amount' => -100.50,
-        'type' => TransactionType::Debit,
-        'external' => true,
-    ]);
+    Transaction::factory()->create(['wallet_id' => $wallet->id, 'amount' => 100, 'type' => TransactionType::Credit, 'external' => true]);
+    Transaction::factory()->create(['wallet_id' => $wallet->id, 'amount' => 1000, 'type' => TransactionType::Credit, 'external' => true]);
+    Transaction::factory()->create(['wallet_id' => $wallet->id, 'amount' => -10, 'type' => TransactionType::Debit, 'external' => true]);
+    Transaction::factory()->create(['wallet_id' => $wallet->id, 'amount' => -100.50, 'type' => TransactionType::Debit, 'external' => true]);
 
     expect($wallet->fresh()->balance)->toBe(989.50);
 });
@@ -124,28 +95,30 @@ test('internal transfer correctly affects both wallets', function () {
 
     // Fund the sender
     Transaction::factory()->create([
-        'to_wallet_id' => $sender->id,
-        'from_wallet_id' => null,
+        'wallet_id' => $sender->id,
         'amount' => 1000,
         'type' => TransactionType::Credit,
         'external' => true,
     ]);
 
-    // Internal transfer: debit from sender (only from_wallet_id)
+    // Internal transfer: two entries with same group_id
+    $groupId = Str::uuid()->toString();
+
     Transaction::factory()->create([
-        'from_wallet_id' => $sender->id,
-        'to_wallet_id' => null,
-        'amount' => -100,
+        'group_id' => $groupId,
+        'wallet_id' => $sender->id,
+        'counterpart_wallet_id' => $receiver->id,
         'type' => TransactionType::Debit,
+        'amount' => -100,
         'external' => false,
     ]);
 
-    // Internal transfer: credit to receiver (only to_wallet_id)
     Transaction::factory()->create([
-        'from_wallet_id' => null,
-        'to_wallet_id' => $receiver->id,
-        'amount' => 100,
+        'group_id' => $groupId,
+        'wallet_id' => $receiver->id,
+        'counterpart_wallet_id' => $sender->id,
         'type' => TransactionType::Credit,
+        'amount' => 100,
         'external' => false,
     ]);
 
@@ -159,21 +132,8 @@ test('eager-loaded balance matches accessor balance', function () {
         'company_id' => $this->company->id,
     ]);
 
-    Transaction::factory()->create([
-        'to_wallet_id' => $wallet->id,
-        'from_wallet_id' => null,
-        'amount' => 1000,
-        'type' => TransactionType::Credit,
-        'external' => true,
-    ]);
-
-    Transaction::factory()->create([
-        'from_wallet_id' => $wallet->id,
-        'to_wallet_id' => null,
-        'amount' => -100.50,
-        'type' => TransactionType::Debit,
-        'external' => true,
-    ]);
+    Transaction::factory()->create(['wallet_id' => $wallet->id, 'amount' => 1000, 'type' => TransactionType::Credit, 'external' => true]);
+    Transaction::factory()->create(['wallet_id' => $wallet->id, 'amount' => -100.50, 'type' => TransactionType::Debit, 'external' => true]);
 
     $accessorBalance = $wallet->fresh()->balance;
     $eagerBalance = Wallet::withBalance()->find($wallet->id)->balance;
@@ -189,8 +149,7 @@ test('wallet API returns correct formatted balance', function () {
     ]);
 
     Transaction::factory()->create([
-        'to_wallet_id' => $wallet->id,
-        'from_wallet_id' => null,
+        'wallet_id' => $wallet->id,
         'amount' => 100.50,
         'type' => TransactionType::Credit,
         'external' => true,
@@ -209,21 +168,8 @@ test('balance remains zero when credits equal debits', function () {
         'company_id' => $this->company->id,
     ]);
 
-    Transaction::factory()->create([
-        'to_wallet_id' => $wallet->id,
-        'from_wallet_id' => null,
-        'amount' => 100,
-        'type' => TransactionType::Credit,
-        'external' => true,
-    ]);
-
-    Transaction::factory()->create([
-        'from_wallet_id' => $wallet->id,
-        'to_wallet_id' => null,
-        'amount' => -100,
-        'type' => TransactionType::Debit,
-        'external' => true,
-    ]);
+    Transaction::factory()->create(['wallet_id' => $wallet->id, 'amount' => 100, 'type' => TransactionType::Credit, 'external' => true]);
+    Transaction::factory()->create(['wallet_id' => $wallet->id, 'amount' => -100, 'type' => TransactionType::Debit, 'external' => true]);
 
     expect($wallet->fresh()->balance)->toBe(0.0);
 });
@@ -235,33 +181,12 @@ test('balance handles decimal precision correctly', function () {
     ]);
 
     // 10.50 + 100.50 - 10.50 = 100.50
-    Transaction::factory()->create([
-        'to_wallet_id' => $wallet->id,
-        'from_wallet_id' => null,
-        'amount' => 10.50,
-        'type' => TransactionType::Credit,
-        'external' => true,
-    ]);
-
-    Transaction::factory()->create([
-        'to_wallet_id' => $wallet->id,
-        'from_wallet_id' => null,
-        'amount' => 100.50,
-        'type' => TransactionType::Credit,
-        'external' => true,
-    ]);
-
-    Transaction::factory()->create([
-        'from_wallet_id' => $wallet->id,
-        'to_wallet_id' => null,
-        'amount' => -10.50,
-        'type' => TransactionType::Debit,
-        'external' => true,
-    ]);
+    Transaction::factory()->create(['wallet_id' => $wallet->id, 'amount' => 10.50, 'type' => TransactionType::Credit, 'external' => true]);
+    Transaction::factory()->create(['wallet_id' => $wallet->id, 'amount' => 100.50, 'type' => TransactionType::Credit, 'external' => true]);
+    Transaction::factory()->create(['wallet_id' => $wallet->id, 'amount' => -10.50, 'type' => TransactionType::Debit, 'external' => true]);
 
     expect($wallet->fresh()->balance)->toBe(100.50);
 
-    // Eager loaded should match
     $eagerBalance = Wallet::withBalance()->find($wallet->id)->balance;
     expect($eagerBalance)->toBe(100.50);
 });

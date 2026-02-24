@@ -19,7 +19,7 @@ class WalletService
         }
 
         $wallets = Wallet::scopedToUser($user, $companyId)
-            ->withExists(['fromTransactions', 'toTransactions'])
+            ->withExists('transactions')
             ->withBalance()
             ->latest()
             ->paginate($perPage);
