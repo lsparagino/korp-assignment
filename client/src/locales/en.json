@@ -17,7 +17,8 @@
         "loading": "Loading...",
         "genericError": "Something went wrong. Please try again.",
         "errorOccurred": "An error occurred. Please try again.",
-        "refreshData": "Refresh data"
+        "refreshData": "Refresh data",
+        "goBack": "Go Back"
     },
     "nav": {
         "dashboard": "Dashboard",
@@ -150,6 +151,7 @@
             "name": "Name",
             "address": "Address",
             "balance": "Balance",
+            "availableBalance": "Available",
             "currency": "Currency",
             "status": "Status"
         }
@@ -165,12 +167,20 @@
         "typeAll": "All",
         "typeDebit": "Debit",
         "typeCredit": "Credit",
+        "typeTransfer": "Transfer",
+        "status": "Status",
+        "statusAll": "All",
+        "statusCompleted": "Completed",
+        "statusPending": "Pending Approval",
+        "statusRejected": "Rejected",
         "advancedFilters": "Advanced Filters",
         "amountRange": "Amount Range",
         "min": "Min",
         "max": "Max",
         "reference": "Reference",
         "referencePlaceholder": "Contains...",
+        "notes": "Notes",
+        "rejectReason": "Reject Reason",
         "fromWallet": "From Wallet",
         "toWallet": "To Wallet",
         "selectSource": "Select source wallet",
@@ -185,6 +195,7 @@
         "tableHeaders": {
             "date": "Date",
             "type": "Type",
+            "status": "Status",
             "amount": "Amount",
             "fromWallet": "From Wallet",
             "toWallet": "To Wallet",
@@ -274,5 +285,37 @@
     "pagination": {
         "showing": "Showing {from} to {to} of {total} entries",
         "perPage": "Per page:"
+    },
+    "transfers": {
+        "title": "Initiate Transfer",
+        "confirmTitle": "Confirm Transfer",
+        "transferType": "Transfer Type",
+        "external": "External Transfer",
+        "internal": "Internal Transfer",
+        "fromWallet": "From Wallet",
+        "toExternal": "To Destination (External)",
+        "toWallet": "To Wallet",
+        "recipientName": "Recipient Name",
+        "recipientNamePlaceholder": "e.g., Acme Corp Vendor",
+        "externalAddress": "External Address",
+        "externalAddressPlaceholder": "e.g., bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh",
+        "amount": "Amount",
+        "reference": "Reference",
+        "referencePlaceholder": "Payment description...",
+        "notes": "Notes for Manager",
+        "notesPlaceholder": "Explain why this transfer is needed...",
+        "thresholdWarning": "Transfers exceeding {amount} require Manager approval. Funds will be held in a pending state until reviewed.",
+        "thresholdAutoApproved": "This transfer exceeds {amount}, but will be auto-approved due to your role.",
+        "submit": "Review Transfer",
+        "initiateTransfer": "Initiate Transfer",
+        "errors": {
+            "forbidden": "You are not authorized to perform this transfer. The wallet may be frozen.",
+            "generic": "An unexpected error occurred. Please try again."
+        }
+    },
+    "validation": {
+        "required": "This field is required",
+        "positiveAmount": "Amount must be greater than zero",
+        "insufficientFunds": "Insufficient available funds"
     }
 }

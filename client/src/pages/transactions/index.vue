@@ -1,12 +1,15 @@
 <script lang="ts" setup>
   import TransactionTable from '@/components/features/TransactionTable.vue'
+  import TransferDialog from '@/components/features/TransferDialog.vue'
   import PageHeader from '@/components/layout/PageHeader.vue'
   import { useRefreshData } from '@/composables/useRefreshData'
   import { useTransactionFilters } from '@/composables/useTransactionFilters'
+  import { ref } from 'vue'
 
   const {
     filterForm,
     types,
+    statuses,
     dateFromMenu,
     dateToMenu,
     dateFromValue,
@@ -28,10 +31,28 @@
   } = useTransactionFilters()
 
   const { refreshing, refresh } = useRefreshData(() => invalidateQueries())
+
+  const transferDialog = ref(false)
+
+  function onTransferSaved () {
+    invalidateQueries()
+  }
 </script>
 
 <template>
   <PageHeader :title="$t('transactions.title')">
+    <div class="d-flex ga-2 align-center">
+      <v-btn
+      class="text-none font-weight-bold me-2"
+      color="primary"
+      data-testid="initiate-transfer-btn"
+      prepend-icon="mdi-swap-horizontal"
+      rounded="lg"
+      variant="flat"
+      @click="transferDialog = true"
+    >
+      {{ $t('transfers.initiateTransfer') }}
+    </v-btn>
     <v-btn
       :aria-label="$t('common.refreshData')"
       color="grey-darken-1"
@@ -41,7 +62,14 @@
       variant="text"
       @click="refresh"
     />
+    </div>
+    
   </PageHeader>
+
+  <TransferDialog
+    v-model="transferDialog"
+    @saved="onTransferSaved"
+  />
 
   <!-- Filters -->
   <v-card
@@ -143,31 +171,17 @@
           />
         </v-col>
 
-        <v-col class="d-flex ga-2" cols="12" md="3" sm="6">
-          <v-btn
-            class="text-none font-weight-bold"
+        <v-col cols="12" md="3" sm="6">
+          <v-select
+            v-model="filterForm.status"
             color="primary"
-            data-testid="filter-btn"
-            height="48"
-            prepend-icon="mdi-filter-variant"
-            rounded="lg"
-            variant="flat"
-            @click="handleFilter"
-          >
-            {{ $t('transactions.filter') }}
-          </v-btn>
-          <v-btn
-            class="text-none font-weight-bold"
-            color="grey-darken-1"
-            data-testid="clear-btn"
-            height="48"
-            prepend-icon="mdi-close"
-            rounded="lg"
+            data-testid="status-select"
+            density="comfortable"
+            hide-details
+            :items="statuses"
+            :label="$t('transactions.status')"
             variant="outlined"
-            @click="clearFilters"
-          >
-            {{ $t('transactions.clear') }}
-          </v-btn>
+          />
         </v-col>
       </v-row>
 
@@ -263,6 +277,34 @@
           </v-expansion-panel-text>
         </v-expansion-panel>
       </v-expansion-panels>
+
+      <v-row >
+        <v-col class="d-flex ga-2 mt-4 justify-end align-center">
+          <v-btn
+            v-if="activeFiltersCount > 0"
+            class="text-none font-weight-bold"
+            color="grey-darken-1"
+            data-testid="clear-btn"
+            prepend-icon="mdi-close"
+            rounded="lg"
+            variant="outlined"
+            @click="clearFilters"
+          >
+            {{ $t('transactions.clear') }}
+          </v-btn>
+          <v-btn
+            class="text-none font-weight-bold"
+            color="primary"
+            data-testid="filter-btn"
+            prepend-icon="mdi-filter-variant"
+            rounded="lg"
+            variant="flat"
+            @click="handleFilter"
+          >
+            {{ $t('transactions.filter') }}
+          </v-btn>
+        </v-col>
+      </v-row>
     </v-card-text>
   </v-card>
 

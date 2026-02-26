@@ -114,6 +114,7 @@
       <th>{{ $t('wallets.tableHeaders.name') }}</th>
       <th>{{ $t('wallets.tableHeaders.address') }}</th>
       <th>{{ $t('wallets.tableHeaders.balance') }}</th>
+      <th>{{ $t('wallets.tableHeaders.availableBalance') }}</th>
       <th>{{ $t('wallets.tableHeaders.currency') }}</th>
       <th>{{ $t('wallets.tableHeaders.status') }}</th>
       <th v-if="authStore.isAdmin" class="text-right">
@@ -134,9 +135,13 @@
         </td>
         <td
           class="font-weight-bold"
-          :class="getAmountColor(w.balance)"
         >
           {{ formatCurrency(w.balance, w.currency) }}
+        </td>
+        <td
+          class="font-weight-bold"
+        >
+          {{ formatCurrency(w.available_balance, w.currency) }}
         </td>
         <td>
           <v-chip

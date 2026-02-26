@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\TransactionStatus;
 use App\Enums\TransactionType;
 use App\Models\Transaction;
 use App\Models\User;
@@ -220,5 +221,70 @@ class TransactionFilterTest extends TestCase
         $response->assertStatus(200);
         $response->assertJsonCount(1, 'data');
         $this->assertEquals('debit', $response->json('data.0.type'));
+    }
+
+    public function test_can_filter_transactions_by_status_completed(): void
+    {
+        Transaction::factory()->create([
+            'wallet_id' => $this->wallet->id,
+            'status' => TransactionStatus::Completed,
+        ]);
+
+        Transaction::factory()->create([
+            'wallet_id' => $this->wallet->id,
+            'status' => TransactionStatus::PendingApproval,
+        ]);
+
+        Transaction::factory()->create([
+            'wallet_id' => $this->wallet->id,
+            'status' => TransactionStatus::Rejected,
+        ]);
+
+        $response = $this->actingAs($this->user, 'sanctum')
+            ->getJson("/api/v0/transactions?status=completed&company_id={$this->company->id}");
+
+        $response->assertStatus(200);
+        $response->assertJsonCount(1, 'data');
+        $this->assertEquals('completed', $response->json('data.0.status'));
+    }
+
+    public function test_can_filter_transactions_by_status_pending_approval(): void
+    {
+        Transaction::factory()->create([
+            'wallet_id' => $this->wallet->id,
+            'status' => TransactionStatus::Completed,
+        ]);
+
+        Transaction::factory()->create([
+            'wallet_id' => $this->wallet->id,
+            'status' => TransactionStatus::PendingApproval,
+        ]);
+
+        $response = $this->actingAs($this->user, 'sanctum')
+            ->getJson("/api/v0/transactions?status=pending_approval&company_id={$this->company->id}");
+
+        $response->assertStatus(200);
+        $response->assertJsonCount(1, 'data');
+        $this->assertEquals('pending_approval', $response->json('data.0.status'));
+    }
+
+    public function test_can_filter_transactions_by_status_rejected(): void
+    {
+        Transaction::factory()->create([
+            'wallet_id' => $this->wallet->id,
+            'status' => TransactionStatus::Completed,
+        ]);
+
+        Transaction::factory()->create([
+            'wallet_id' => $this->wallet->id,
+            'status' => TransactionStatus::Rejected,
+        ]);
+
+        $response = $this->actingAs($this->user, 'sanctum')
+            ->getJson("/api/v0/transactions?status=rejected&company_id={$this->company->id}");
+
+        $response->assertStatus(200);
+        $response->assertJsonCount(1, 'data');
+        $this->assertEquals('rejected', $response->json('data.0.status'));
     }
 }

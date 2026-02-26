@@ -32,6 +32,7 @@ class Transaction extends Model
         'reject_reason',
         'external_address',
         'external_name',
+        'notes',
     ];
 
     public function wallet(): BelongsTo

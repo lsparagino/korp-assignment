@@ -7,6 +7,7 @@ interface TransactionsQueryParams {
   dateFrom?: string
   dateTo?: string
   type?: string
+  status?: string
   amountMin?: string
   amountMax?: string
   reference?: string
@@ -29,6 +30,7 @@ export const transactionsListQuery = defineQueryOptions(
         date_from: params.dateFrom,
         date_to: params.dateTo,
         type: params.type === 'All' ? undefined : params.type,
+        status: params.status,
         amount_min: params.amountMin,
         amount_max: params.amountMax,
         reference: params.reference,

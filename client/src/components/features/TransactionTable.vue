@@ -4,7 +4,8 @@
   import type { PaginationMeta } from '@/composables/useUrlPagination'
   import { ref } from 'vue'
   import DataTable from '@/components/ui/DataTable.vue'
-  import { getTransactionTypeColors } from '@/utils/colors'
+  import TransactionDetailModal from '@/components/features/TransactionDetailModal.vue'
+  import { getTransactionTypeColors, getTransactionStatusColors } from '@/utils/colors'
   import { formatCurrency, formatDate } from '@/utils/formatters'
 
   interface Props {
@@ -91,6 +92,22 @@
   function getDisplayAmount (item: Transaction) {
     return isTransfer(item) ? Math.abs(Number(item.amount)) : Number(item.amount)
   }
+
+  function getStatusLabel (status: string) {
+    return status === 'pending_approval' ? 'pending' : status
+  }
+
+  function getExternalLabel (item: Transaction) {
+    return item.external_name || item.external_address || 'External'
+  }
+
+  function getFromLabel (item: Transaction) {
+    return getFromWallet(item)?.name || getExternalLabel(item)
+  }
+
+  function getToLabel (item: Transaction) {
+    return getToWallet(item)?.name || getExternalLabel(item)
+  }
 </script>
 
 <template>
@@ -103,6 +120,7 @@
     <template #columns>
       <th>{{ $t('transactions.tableHeaders.date') }}</th>
       <th>{{ $t('transactions.tableHeaders.type') }}</th>
+      <th>{{ $t('transactions.tableHeaders.status') }}</th>
       <th>{{ $t('transactions.tableHeaders.amount') }}</th>
       <th>{{ $t('transactions.tableHeaders.fromWallet') }}</th>
       <th>{{ $t('transactions.tableHeaders.toWallet') }}</th>
@@ -124,10 +142,22 @@
             class="text-uppercase font-weight-bold"
             :color="getChipColor(item)"
             size="x-small"
-            variant="flat"
+            variant="text"
           >
             <span :class="getChipTextColor(item)">
               {{ getTransactionLabel(item) }}
+            </span>
+          </v-chip>
+        </td>
+        <td>
+          <v-chip
+            class="text-uppercase font-weight-bold"
+            :color="getTransactionStatusColors(item.status).bg"
+            size="x-small"
+            variant="text"
+          >
+            <span :class="`text-${getTransactionStatusColors(item.status).text}`">
+              {{ getStatusLabel(item.status) }}
             </span>
           </v-chip>
         </td>
@@ -161,9 +191,7 @@
                   ? 'text-grey-darken-2'
                   : 'text-grey-lighten-1'
               "
-            >{{
-              getFromWallet(item)?.name || $t('transactions.external')
-            }}</span>
+            >{{ getFromLabel(item) }}</span>
           </div>
         </td>
         <td>
@@ -191,9 +219,7 @@
                   ? 'text-grey-darken-2'
                   : 'text-grey-lighten-1'
               "
-            >{{
-              getToWallet(item)?.name || $t('transactions.external')
-            }}</span>
+            >{{ getToLabel(item) }}</span>
           </div>
         </td>
         <td class="text-grey-darken-2 text-caption">
@@ -213,7 +239,7 @@
       <tr v-if="!loading && items.length === 0">
         <td
           class="text-grey-darken-1 py-8 text-center"
-          colspan="7"
+          colspan="8"
         >
           {{ $t('transactions.noTransactions') }}
         </td>
@@ -225,127 +251,9 @@
     </template>
   </DataTable>
 
-  <!-- Transaction Detail Modal -->
-  <v-dialog v-model="detailDialog" max-width="560">
-    <v-card v-if="selectedTransaction" rounded="lg">
-      <v-card-title class="d-flex align-center justify-space-between pa-5 border-b">
-        <span class="text-h6 font-weight-bold">{{ $t('transactions.transactionDetails') }}</span>
-        <v-btn
-          density="comfortable"
-          icon="mdi-close"
-          variant="text"
-          @click="detailDialog = false"
-        />
-      </v-card-title>
-
-      <v-card-text class="pa-5">
-        <!-- Type & Amount Header -->
-        <div class="d-flex align-center justify-space-between mb-6">
-          <v-chip
-            class="text-uppercase font-weight-bold"
-            :color="getChipColor(selectedTransaction)"
-            variant="flat"
-          >
-            <span :class="getChipTextColor(selectedTransaction)">
-              {{ getTransactionLabel(selectedTransaction) }}
-            </span>
-          </v-chip>
-          <span
-            class="text-h5 font-weight-black"
-            :class="getTransactionColor(selectedTransaction)"
-          >
-            {{ formatCurrency(getDisplayAmount(selectedTransaction), selectedTransaction.currency) }}
-          </span>
-        </div>
-
-        <!-- Detail Rows -->
-        <v-list class="pa-0" lines="two">
-          <v-list-item class="px-0">
-            <template #prepend>
-              <v-icon class="me-3" color="grey-darken-1" icon="mdi-calendar" />
-            </template>
-            <v-list-item-title class="text-caption text-grey-darken-1">
-              {{ $t('transactions.date') }}
-            </v-list-item-title>
-            <div class="text-body-2 font-weight-medium text-grey-darken-3">
-              {{ formatDate(selectedTransaction.created_at) }}
-            </div>
-          </v-list-item>
-
-          <v-divider />
-
-          <v-list-item class="px-0">
-            <template #prepend>
-              <v-icon class="me-3" color="grey-darken-1" icon="mdi-currency-usd" />
-            </template>
-            <v-list-item-title class="text-caption text-grey-darken-1">
-              {{ $t('wallets.tableHeaders.currency') }}
-            </v-list-item-title>
-            <div class="text-body-2 font-weight-medium text-grey-darken-3">
-              {{ selectedTransaction.currency }}
-            </div>
-          </v-list-item>
-
-          <v-divider />
-
-          <!-- From Wallet -->
-          <v-list-item class="px-0">
-            <template #prepend>
-              <v-icon class="me-3" color="red-darken-1" icon="mdi-arrow-up-circle" />
-            </template>
-            <v-list-item-title class="text-caption text-grey-darken-1">
-              {{ $t('transactions.fromWallet') }}
-            </v-list-item-title>
-            <div class="text-body-2 font-weight-medium text-grey-darken-3">
-              {{ getFromWallet(selectedTransaction)?.name || $t('transactions.external') }}
-            </div>
-            <div
-              v-if="getFromWallet(selectedTransaction)?.address"
-              class="text-caption text-grey-darken-2 font-weight-regular mt-1"
-              style="font-family: monospace"
-            >
-              {{ getFromWallet(selectedTransaction)?.address }}
-            </div>
-          </v-list-item>
-
-          <v-divider />
-
-          <!-- To Wallet -->
-          <v-list-item class="px-0">
-            <template #prepend>
-              <v-icon class="me-3" color="green-darken-1" icon="mdi-arrow-down-circle" />
-            </template>
-            <v-list-item-title class="text-caption text-grey-darken-1">
-              {{ $t('transactions.toWallet') }}
-            </v-list-item-title>
-            <div class="text-body-2 font-weight-medium text-grey-darken-3">
-              {{ getToWallet(selectedTransaction)?.name || $t('transactions.external') }}
-            </div>
-            <div
-              v-if="getToWallet(selectedTransaction)?.address"
-              class="text-caption text-grey-darken-2 font-weight-regular mt-1"
-              style="font-family: monospace"
-            >
-              {{ getToWallet(selectedTransaction)?.address }}
-            </div>
-          </v-list-item>
-
-          <template v-if="selectedTransaction.reference">
-            <v-divider />
-            <v-list-item class="px-0">
-              <template #prepend>
-                <v-icon class="me-3" color="grey-darken-1" icon="mdi-tag" />
-              </template>
-              <v-list-item-title class="text-caption text-grey-darken-1">
-                {{ $t('transactions.reference') }}
-              </v-list-item-title>
-              <div class="text-body-2 font-weight-medium text-grey-darken-3">
-                {{ selectedTransaction.reference }}
-              </div>
-            </v-list-item>
-          </template>
-        </v-list>
-      </v-card-text>
-    </v-card>
-  </v-dialog>
+  <TransactionDetailModal
+    v-model="detailDialog"
+    :is-transfer="selectedTransaction ? isTransfer(selectedTransaction) : false"
+    :transaction="selectedTransaction"
+  />
 </template>

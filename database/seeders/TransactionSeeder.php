@@ -36,10 +36,10 @@ class TransactionSeeder extends Seeder
                 continue;
             }
 
-            // --- 1. External inbound credit to fund the wallet ---
-            $creditAmount = collect(self::AMOUNTS)->random();
-            $this->createExternalCredit($wallet->id, $creditAmount);
-            $balances[$wallet->id] += $creditAmount;
+            // --- 1. External inbound credit to fund the wallet with 20,000 ---
+            $initialBalance = 20000;
+            $this->createExternalCredit($wallet->id, $initialBalance);
+            $balances[$wallet->id] += $initialBalance;
             $txCounts[$wallet->id]++;
 
             // --- 2. Internal transfer to a matching-currency wallet ---

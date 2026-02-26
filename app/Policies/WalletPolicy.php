@@ -2,6 +2,7 @@
 
 namespace App\Policies;
 
+use App\Enums\WalletStatus;
 use App\Models\User;
 use App\Models\Wallet;
 
@@ -48,5 +49,10 @@ class WalletPolicy
     public function forceDelete(User $user, Wallet $wallet): bool
     {
         return $user->isAdmin();
+    }
+
+    public function transfer(User $user, Wallet $wallet): bool
+    {
+        return $wallet->status !== WalletStatus::Frozen && $this->view($user, $wallet);
     }
 }

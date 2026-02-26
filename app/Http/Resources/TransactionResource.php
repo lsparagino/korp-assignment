@@ -28,6 +28,7 @@ class TransactionResource extends JsonResource
             'initiator_user_id' => $this->initiator_user_id,
             'reviewer_user_id' => $this->reviewer_user_id,
             'reject_reason' => $this->reject_reason,
+            'notes' => $this->notes,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

@@ -6,6 +6,7 @@
   import { useRoute, useRouter } from 'vue-router'
   import CompanySelector from '@/components/features/CompanySelector.vue'
   import AppLogo from '@/components/ui/AppLogo.vue'
+  import UserAvatar from '@/components/ui/UserAvatar.vue'
   import { useAuthStore } from '@/stores/auth'
   import { useCompanyStore } from '@/stores/company'
 
@@ -102,49 +103,13 @@
             <v-menu min-width="200px">
               <template #activator="{ props }">
                 <v-btn data-testid="user-menu-btn" icon v-bind="props">
-                  <v-avatar
-                    class="bg-sidebar-bg"
-                    size="large"
-                  >
-                    <v-icon icon="mdi-account" />
-                  </v-avatar>
+                  <UserAvatar size="36" />
                 </v-btn>
               </template>
               <v-card>
                 <v-card-text>
                   <div class="pa-2">
-                    <div class="d-flex align-center ga-4">
-                      <v-avatar
-                        class="bg-sidebar-bg border-grey-lighten-2"
-                        size="36"
-                      >
-                        <v-icon icon="mdi-account" />
-                      </v-avatar>
-                      <div v-if="authStore.user">
-                        <h3
-                          class="text-subtitle-1 font-weight-bold"
-                        >
-                          {{ authStore.user.name }}
-                        </h3>
-                        <p
-                          class="text-caption text-grey-darken-1"
-                        >
-                          {{ authStore.user.email }}
-                        </p>
-                        <v-chip
-                          class="text-uppercase font-weight-bold mt-1"
-                          :color="
-                            authStore.isAdmin
-                              ? 'primary'
-                              : 'grey-darken-1'
-                          "
-                          size="x-small"
-                          variant="flat"
-                        >
-                          {{ authStore.user.role }}
-                        </v-chip>
-                      </div>
-                    </div>
+                    <UserAvatar show-info />
 
                     <v-divider class="my-3" />
 

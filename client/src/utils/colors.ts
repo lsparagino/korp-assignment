@@ -31,8 +31,18 @@ const transactionTypeColorMap: Record<string, ColorPair> = {
     transfer: { bg: 'grey-lighten-3', text: 'grey-darken-3' },
 };
 
+const transactionStatusColorMap: Record<string, ColorPair> = {
+    pending_approval: { bg: 'amber-lighten-4', text: 'amber-darken-4' },
+    completed: { bg: 'green-lighten-4', text: 'green-darken-3' },
+    rejected: { bg: 'red-lighten-4', text: 'red-darken-3' },
+};
+
 export function getTransactionTypeColors(type: string): ColorPair {
     return transactionTypeColorMap[type.toLowerCase()] || defaultColorPair;
+}
+
+export function getTransactionStatusColors(status: string): ColorPair {
+    return transactionStatusColorMap[status.toLowerCase()] || defaultColorPair;
 }
 
 export function getCurrencyColors(currency: string): ColorPair {

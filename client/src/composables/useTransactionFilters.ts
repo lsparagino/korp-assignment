@@ -10,7 +10,7 @@ import { TRANSACTION_QUERY_KEYS, transactionsListQuery } from '@/queries/transac
 import { WALLET_QUERY_KEYS, walletsListQuery } from '@/queries/wallets'
 
 const FILTER_KEYS = [
-  'date_from', 'date_to', 'type',
+  'date_from', 'date_to', 'type', 'status',
   'amount_min', 'amount_max', 'reference',
   'wallet_id', 'counterpart_wallet_id',
 ] as const
@@ -26,6 +26,7 @@ export function useTransactionFilters() {
     date_from: '',
     date_to: '',
     type: 'All',
+    status: 'All',
     amount_min: '',
     amount_max: '',
     reference: '',
@@ -37,6 +38,14 @@ export function useTransactionFilters() {
     { title: t('transactions.typeAll'), value: 'All' },
     { title: t('transactions.typeDebit'), value: 'Debit' },
     { title: t('transactions.typeCredit'), value: 'Credit' },
+    { title: t('transactions.typeTransfer'), value: 'Transfer' },
+  ])
+
+  const statuses = computed(() => [
+    { title: t('transactions.statusAll'), value: 'All' },
+    { title: t('transactions.statusCompleted'), value: 'completed' },
+    { title: t('transactions.statusPending'), value: 'pending_approval' },
+    { title: t('transactions.statusRejected'), value: 'rejected' },
   ])
   const advancedPanel = ref<number[]>([])
 
@@ -55,6 +64,7 @@ export function useTransactionFilters() {
       filterForm.date_to = (route.query.date_to as string) || ''
       const queryType = (route.query.type as string) || 'All'
       filterForm.type = queryType.charAt(0).toUpperCase() + queryType.slice(1).toLowerCase()
+      filterForm.status = (route.query.status as string) || 'All'
       filterForm.amount_min = (route.query.amount_min as string) || ''
       filterForm.amount_max = (route.query.amount_max as string) || ''
       filterForm.wallet_id = route.query.wallet_id
@@ -76,6 +86,7 @@ export function useTransactionFilters() {
       dateFrom: (route.query.date_from as string) || undefined,
       dateTo: (route.query.date_to as string) || undefined,
       type: (route.query.type as string) || undefined,
+      status: (route.query.status as string) || undefined,
       amountMin: (route.query.amount_min as string) || undefined,
       amountMax: (route.query.amount_max as string) || undefined,
       reference: (route.query.reference as string) || undefined,
@@ -97,7 +108,7 @@ export function useTransactionFilters() {
 
   const activeFiltersCount = computed(() =>
     activeAdvancedFiltersCount.value
-    + ['date_from', 'date_to', 'type'].filter(k => route.query[k]).length,
+    + ['date_from', 'date_to', 'type', 'status'].filter(k => route.query[k]).length,
   )
 
   function handleFilter() {
@@ -107,6 +118,7 @@ export function useTransactionFilters() {
       date_from: filterForm.date_from || undefined,
       date_to: filterForm.date_to || undefined,
       type: filterForm.type === 'All' ? undefined : filterForm.type.toLowerCase(),
+      status: filterForm.status === 'All' ? undefined : filterForm.status,
       amount_min: filterForm.amount_min || undefined,
       amount_max: filterForm.amount_max || undefined,
       reference: filterForm.reference || undefined,
@@ -139,6 +151,7 @@ export function useTransactionFilters() {
   return {
     filterForm,
     types,
+    statuses,
     dateFromMenu,
     dateToMenu,
     dateFromValue,

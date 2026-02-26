@@ -31,6 +31,13 @@ class DatabaseSeeder extends Seeder
         ]);
         $member->companies()->attach($company);
 
+        $manager = User::factory()->create([
+            'name' => 'Manager User',
+            'email' => 'manager@example.com',
+            'role' => 'manager',
+        ]);
+        $manager->companies()->attach($company);
+
         $this->call([
             WalletSeeder::class,
             TransactionSeeder::class,
