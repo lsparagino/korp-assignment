@@ -16,6 +16,7 @@ const statusColorMap: Record<string, ColorPair> = {
 
 const roleColorMap: Record<string, ColorPair> = {
   admin: { bg: 'grey-lighten-2', text: 'grey-darken-3' },
+  manager: { bg: 'blue-lighten-4', text: 'blue-darken-3' },
   member: { bg: 'blue-lighten-4', text: 'blue-darken-3' },
 }
 
@@ -24,14 +25,24 @@ const defaultColorPair: ColorPair = {
   text: 'grey-darken-3',
 }
 
-export function getCurrencyColors (currency: string): ColorPair {
+export function getCurrencyColors(currency: string): ColorPair {
   return currencyColorMap[currency] || defaultColorPair
 }
 
-export function getStatusColors (status: string): ColorPair {
+export function getStatusColors(status: string): ColorPair {
   return statusColorMap[status] || defaultColorPair
 }
 
-export function getRoleColors (role: string): ColorPair {
+export function getRoleColors(role: string): ColorPair {
   return roleColorMap[role.toLowerCase()] || defaultColorPair
+}
+
+const transactionTypeColorMap: Record<string, ColorPair> = {
+  debit: { bg: 'red-lighten-4', text: 'red-darken-3' },
+  credit: { bg: 'green-lighten-4', text: 'green-darken-3' },
+  transfer: { bg: 'blue-lighten-4', text: 'blue-darken-3' },
+}
+
+export function getTransactionTypeColors(type: string): ColorPair {
+  return transactionTypeColorMap[type.toLowerCase()] || defaultColorPair
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { getCurrencyColors, getRoleColors, getStatusColors } from './colors'
+import { getCurrencyColors, getRoleColors, getStatusColors, getTransactionTypeColors } from './colors'
 
 describe('getCurrencyColors', () => {
   it('returns a color pair for USD', () => {
@@ -50,6 +50,32 @@ describe('getRoleColors', () => {
 
   it('returns a default for unknown roles', () => {
     const result = getRoleColors('unknown')
+    expect(result).toHaveProperty('bg')
+    expect(result).toHaveProperty('text')
+  })
+})
+
+describe('getTransactionTypeColors', () => {
+  it('returns red tones for debit', () => {
+    const result = getTransactionTypeColors('debit')
+    expect(result.bg).toContain('red')
+    expect(result.text).toContain('red')
+  })
+
+  it('returns green tones for credit', () => {
+    const result = getTransactionTypeColors('credit')
+    expect(result.bg).toContain('green')
+    expect(result.text).toContain('green')
+  })
+
+  it('returns blue tones for transfer', () => {
+    const result = getTransactionTypeColors('transfer')
+    expect(result.bg).toContain('blue')
+    expect(result.text).toContain('blue')
+  })
+
+  it('returns a default for unknown types', () => {
+    const result = getTransactionTypeColors('unknown')
     expect(result).toHaveProperty('bg')
     expect(result).toHaveProperty('text')
   })

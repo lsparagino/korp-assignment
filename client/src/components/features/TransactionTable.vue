@@ -4,6 +4,7 @@
   import type { PaginationMeta } from '@/composables/useUrlPagination'
   import { ref } from 'vue'
   import DataTable from '@/components/ui/DataTable.vue'
+  import { getTransactionTypeColors } from '@/utils/colors'
   import { formatCurrency, formatDate } from '@/utils/formatters'
 
   interface Props {
@@ -69,30 +70,22 @@
     return item.type.toLowerCase() === 'debit' ? item.counterpart_wallet_id : item.wallet_id
   }
 
-  function getTransactionColor (item: Transaction) {
-    if (isTransfer(item)) return 'text-blue-darken-1'
-    return item.type.toLowerCase() === 'debit'
-      ? 'text-red-darken-1'
-      : 'text-green-darken-1'
-  }
-
   function getTransactionLabel (item: Transaction) {
     if (isTransfer(item)) return 'transfer'
     return item.type
   }
 
+  function getTransactionColor (item: Transaction) {
+    const label = getTransactionLabel(item)
+    return `text-${getTransactionTypeColors(label).text}`
+  }
+
   function getChipColor (item: Transaction) {
-    if (isTransfer(item)) return 'blue-lighten-4'
-    return item.type.toLowerCase() === 'debit'
-      ? 'red-lighten-4'
-      : 'green-lighten-4'
+    return getTransactionTypeColors(getTransactionLabel(item)).bg
   }
 
   function getChipTextColor (item: Transaction) {
-    if (isTransfer(item)) return 'text-blue-darken-3'
-    return item.type.toLowerCase() === 'debit'
-      ? 'text-red-darken-3'
-      : 'text-green-darken-3'
+    return `text-${getTransactionTypeColors(getTransactionLabel(item)).text}`
   }
 </script>
 
