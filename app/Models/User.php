@@ -44,6 +44,16 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->role === UserRole::Admin;
     }
 
+    public function isManager(): bool
+    {
+        return $this->role === UserRole::Manager;
+    }
+
+    public function canViewAllWallets(): bool
+    {
+        return $this->isAdmin() || $this->isManager();
+    }
+
     public function sendEmailVerificationNotification(): void
     {
         $this->notify(new VerifyEmailNotification);

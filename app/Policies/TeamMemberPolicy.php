@@ -19,11 +19,16 @@ class TeamMemberPolicy
 
     public function update(User $user, User $teamMember): bool
     {
-        return $user->isAdmin() && $teamMember->role === UserRole::Member;
+        return $user->isAdmin() && $teamMember->role !== UserRole::Admin;
     }
 
     public function delete(User $user, User $teamMember): bool
     {
-        return $user->isAdmin() && $teamMember->role === UserRole::Member;
+        return $user->isAdmin() && $teamMember->role !== UserRole::Admin;
+    }
+
+    public function promote(User $user): bool
+    {
+        return $user->isAdmin();
     }
 }

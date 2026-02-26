@@ -56,6 +56,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
         // Team Routes
         Route::apiResource('team-members', TeamMemberController::class)->parameters(['team-members' => 'teamMember']);
+        Route::patch('/team-members/{teamMember}/promote', [TeamMemberController::class, 'promote']);
 
         // Wallet Routes
         Route::apiResource('wallets', WalletController::class);

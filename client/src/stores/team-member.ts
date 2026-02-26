@@ -3,6 +3,7 @@ import { defineStore } from 'pinia'
 import {
   createTeamMember as apiCreateMember,
   deleteTeamMember as apiDeleteMember,
+  promoteTeamMember as apiPromoteMember,
   updateTeamMember as apiUpdateMember,
 } from '@/api/team-members'
 import { TEAM_MEMBER_QUERY_KEYS } from '@/queries/team-members'
@@ -16,7 +17,7 @@ interface TeamMemberForm {
 export const useTeamMemberStore = defineStore('team-member', () => {
   const queryCache = useQueryCache()
 
-  async function invalidateQueries () {
+  async function invalidateQueries() {
     await queryCache.invalidateQueries({ key: TEAM_MEMBER_QUERY_KEYS.root })
   }
 
@@ -35,10 +36,16 @@ export const useTeamMemberStore = defineStore('team-member', () => {
     onSettled: async () => await invalidateQueries(),
   })
 
+  const { mutateAsync: promoteMember } = useMutation({
+    mutation: ({ id, role }: { id: number, role: string }) => apiPromoteMember(id, { role }),
+    onSettled: async () => await invalidateQueries(),
+  })
+
   return {
     createMember,
     updateMember,
     deleteMember,
+    promoteMember,
     invalidateQueries,
   }
 })

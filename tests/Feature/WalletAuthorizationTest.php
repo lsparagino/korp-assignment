@@ -64,3 +64,42 @@ test('admins can view any wallet in company, members only assigned', function ()
     $wallet->members()->attach($member);
     expect(Gate::forUser($member)->allows('view', $wallet))->toBeTrue();
 });
+
+test('managers can view any wallet in company', function () {
+    $manager = User::factory()->create(['role' => UserRole::Manager]);
+    $admin = User::factory()->create(['role' => UserRole::Admin]);
+
+    $this->company->users()->attach([$manager->id, $admin->id]);
+
+    $wallet = Wallet::factory()->create([
+        'user_id' => $admin->id,
+        'company_id' => $this->company->id,
+    ]);
+
+    expect(Gate::forUser($manager)->allows('view', $wallet))->toBeTrue();
+});
+
+test('managers cannot create wallets', function () {
+    $manager = User::factory()->create(['role' => UserRole::Manager]);
+    $manager->companies()->attach($this->company);
+
+    expect(Gate::forUser($manager)->allows('create', Wallet::class))->toBeFalse();
+});
+
+test('managers cannot update wallets', function () {
+    $manager = User::factory()->create(['role' => UserRole::Manager]);
+    $manager->companies()->attach($this->company);
+
+    $wallet = Wallet::factory()->create(['company_id' => $this->company->id]);
+
+    expect(Gate::forUser($manager)->allows('update', $wallet))->toBeFalse();
+});
+
+test('managers cannot delete wallets', function () {
+    $manager = User::factory()->create(['role' => UserRole::Manager]);
+    $manager->companies()->attach($this->company);
+
+    $wallet = Wallet::factory()->create(['company_id' => $this->company->id]);
+
+    expect(Gate::forUser($manager)->allows('delete', $wallet))->toBeFalse();
+});

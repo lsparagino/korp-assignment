@@ -71,6 +71,13 @@ class TeamMemberService
         return $member;
     }
 
+    public function promote(User $member, UserRole $role): void
+    {
+        $member->update(['role' => $role]);
+
+        Log::info('Team member role updated', ['user_id' => $member->id, 'role' => $role->value]);
+    }
+
     public function delete(User $member): void
     {
         $member->delete();

@@ -52,6 +52,22 @@
       },
     })
   }
+
+  function confirmPromote (m: TeamMember) {
+    const isManager = m.role === 'Manager'
+    const newRole = isManager ? 'member' : 'manager'
+
+    openConfirmDialog({
+      title: isManager ? t('teamMembers.demoteToMember') : t('teamMembers.promoteToManager'),
+      message: isManager
+        ? t('teamMembers.confirmDemote', { name: m.name })
+        : t('teamMembers.confirmPromote', { name: m.name }),
+      requiresPin: false,
+      onConfirm: async () => {
+        await teamMemberStore.promoteMember({ id: m.id, role: newRole })
+      },
+    })
+  }
 </script>
 
 <template>
@@ -132,7 +148,7 @@
         <td>
           <v-chip
             class="text-uppercase font-weight-bold"
-            :color="m.role === 'admin' ? 'primary' : 'grey-darken-1'"
+            :color="m.role === 'Admin' ? 'primary' : m.role === 'Manager' ? 'info' : 'grey-darken-1'"
             size="small"
             variant="flat"
           >{{ m.role }}</v-chip>
@@ -142,6 +158,17 @@
         </td>
         <td v-if="authStore.isAdmin" class="text-right">
           <div class="d-flex ga-2 justify-end">
+            <v-btn
+              v-if="m.role !== 'Admin' && m.id !== authStore.user?.id"
+              :color="m.role === 'Manager' ? 'grey-darken-1' : 'info'"
+              :data-testid="`promote-btn-${m.id}`"
+              density="comfortable"
+              :icon="m.role === 'Manager' ? 'mdi-arrow-down' : 'mdi-arrow-up'"
+              size="small"
+              :title="m.role === 'Manager' ? $t('teamMembers.demoteToMember') : $t('teamMembers.promoteToManager')"
+              variant="text"
+              @click="confirmPromote(m)"
+            />
             <v-btn
               color="primary"
               density="comfortable"

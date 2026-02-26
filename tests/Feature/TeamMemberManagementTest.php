@@ -111,3 +111,109 @@ test('members cannot invite team members', function () {
 
     Mail::assertNotSent(\App\Mail\TeamMemberInvitation::class);
 });
+
+test('admins can promote a member to manager', function () {
+    $member = User::factory()->create(['role' => UserRole::Member]);
+    $member->companies()->attach($this->company);
+
+    $response = $this->actingAs($this->admin, 'sanctum')
+        ->patchJson("/api/v0/team-members/{$member->id}/promote", [
+            'role' => 'manager',
+            'company_id' => $this->company->id,
+        ]);
+
+    $response->assertStatus(200)
+        ->assertJsonPath('message', 'Member role updated successfully');
+
+    expect($member->fresh()->role)->toBe(UserRole::Manager);
+});
+
+test('admins can demote a manager to member', function () {
+    $manager = User::factory()->create(['role' => UserRole::Manager]);
+    $manager->companies()->attach($this->company);
+
+    $response = $this->actingAs($this->admin, 'sanctum')
+        ->patchJson("/api/v0/team-members/{$manager->id}/promote", [
+            'role' => 'member',
+            'company_id' => $this->company->id,
+        ]);
+
+    $response->assertStatus(200);
+
+    expect($manager->fresh()->role)->toBe(UserRole::Member);
+});
+
+test('non-admins cannot promote team members', function () {
+    $member = User::factory()->create(['role' => UserRole::Member]);
+    $member->companies()->attach($this->company);
+
+    $otherMember = User::factory()->create(['role' => UserRole::Member]);
+    $otherMember->companies()->attach($this->company);
+
+    $response = $this->actingAs($member, 'sanctum')
+        ->patchJson("/api/v0/team-members/{$otherMember->id}/promote", [
+            'role' => 'manager',
+            'company_id' => $this->company->id,
+        ]);
+
+    $response->assertStatus(403);
+});
+
+test('managers cannot promote team members', function () {
+    $manager = User::factory()->create(['role' => UserRole::Manager]);
+    $manager->companies()->attach($this->company);
+
+    $member = User::factory()->create(['role' => UserRole::Member]);
+    $member->companies()->attach($this->company);
+
+    $response = $this->actingAs($manager, 'sanctum')
+        ->patchJson("/api/v0/team-members/{$member->id}/promote", [
+            'role' => 'manager',
+            'company_id' => $this->company->id,
+        ]);
+
+    $response->assertStatus(403);
+});
+
+test('admins cannot promote to admin role', function () {
+    $member = User::factory()->create(['role' => UserRole::Member]);
+    $member->companies()->attach($this->company);
+
+    $response = $this->actingAs($this->admin, 'sanctum')
+        ->patchJson("/api/v0/team-members/{$member->id}/promote", [
+            'role' => 'admin',
+            'company_id' => $this->company->id,
+        ]);
+
+    $response->assertStatus(422);
+});
+
+test('managers cannot invite team members', function () {
+    Mail::fake();
+
+    $manager = User::factory()->create(['role' => UserRole::Manager]);
+    $manager->companies()->attach($this->company);
+
+    $response = $this->actingAs($manager, 'sanctum')->postJson('/api/v0/team-members', [
+        'name' => 'New Member',
+        'email' => 'new@example.com',
+        'wallets' => [],
+        'company_id' => $this->company->id,
+    ]);
+
+    $response->assertStatus(403);
+
+    Mail::assertNotSent(\App\Mail\TeamMemberInvitation::class);
+});
+
+test('admins can delete managers', function () {
+    $manager = User::factory()->create(['role' => UserRole::Manager]);
+    $manager->companies()->attach($this->company);
+
+    $response = $this->actingAs($this->admin, 'sanctum')
+        ->deleteJson("/api/v0/team-members/{$manager->id}?company_id={$this->company->id}");
+
+    $response->assertNoContent();
+
+    $this->assertDatabaseMissing('users', ['id' => $manager->id]);
+});

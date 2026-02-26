@@ -6,6 +6,7 @@ vi.mock('@/api/team-members', () => ({
   createTeamMember: vi.fn(),
   updateTeamMember: vi.fn(),
   deleteTeamMember: vi.fn(),
+  promoteTeamMember: vi.fn(),
   fetchTeamMembers: vi.fn(),
 }))
 
@@ -35,6 +36,7 @@ describe('useTeamMemberStore', () => {
     expect(store.createMember).toBeDefined()
     expect(store.updateMember).toBeDefined()
     expect(store.deleteMember).toBeDefined()
+    expect(store.promoteMember).toBeDefined()
     expect(store.invalidateQueries).toBeDefined()
   })
 
@@ -83,5 +85,17 @@ describe('useTeamMemberStore', () => {
     await store.invalidateQueries()
 
     expect(mockInvalidateQueries).toHaveBeenCalled()
+  })
+
+  it('calls promoteTeamMember API via mutation', async () => {
+    const { promoteTeamMember: apiPromote } = await import('@/api/team-members')
+    vi.mocked(apiPromote).mockResolvedValue({ data: {} } as any)
+
+    const { useTeamMemberStore } = await import('./team-member')
+    const store = useTeamMemberStore()
+
+    await store.promoteMember({ id: 3, role: 'manager' })
+
+    expect(apiPromote).toHaveBeenCalledWith(3, { role: 'manager' })
   })
 })

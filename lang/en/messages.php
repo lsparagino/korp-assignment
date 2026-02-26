@@ -28,6 +28,7 @@ return [
     // Team Members
     'member_invited' => 'Member invited successfully',
     'member_updated' => 'Member updated successfully',
+    'member_promoted' => 'Member role updated successfully',
     'full_access' => 'Full Access',
     'wallets' => 'Wallets',
 

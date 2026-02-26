@@ -85,7 +85,7 @@ class Wallet extends Model
             $query->where('company_id', $companyId);
         }
 
-        if ($user->isAdmin()) {
+        if ($user->canViewAllWallets()) {
             return $query;
         }
 

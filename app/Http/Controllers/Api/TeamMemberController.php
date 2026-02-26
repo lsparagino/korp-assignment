@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Enums\UserRole;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\PromoteTeamMemberRequest;
 use App\Http\Requests\StoreTeamMemberRequest;
 use App\Http\Requests\UpdateTeamMemberRequest;
 use App\Http\Resources\TeamMemberResource;
@@ -74,5 +76,16 @@ class TeamMemberController extends Controller
         $this->teamMemberService->delete($teamMember);
 
         return response()->noContent();
+    }
+
+    public function promote(PromoteTeamMemberRequest $request, User $teamMember): JsonResponse
+    {
+        $this->authorize('promote', User::class);
+
+        $role = UserRole::from($request->role);
+
+        $this->teamMemberService->promote($teamMember, $role);
+
+        return response()->json(['message' => __('messages.member_promoted')]);
     }
 }

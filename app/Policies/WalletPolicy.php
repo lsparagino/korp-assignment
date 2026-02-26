@@ -18,7 +18,7 @@ class WalletPolicy
             return false;
         }
 
-        if ($user->isAdmin()) {
+        if ($user->canViewAllWallets()) {
             return true;
         }
 

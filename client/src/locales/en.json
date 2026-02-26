@@ -205,6 +205,10 @@
         "inviteMember": "Invite Member",
         "fullNamePlaceholder": "John Doe",
         "emailPlaceholder": "john{'@'}example.com",
+        "promoteToManager": "Promote to Manager",
+        "demoteToMember": "Demote to Member",
+        "confirmPromote": "Are you sure you want to promote {name} to Manager? They will be able to view all wallets.",
+        "confirmDemote": "Are you sure you want to demote {name} to Member? They will lose access to wallets they are not assigned to.",
         "tableHeaders": {
             "name": "Name",
             "email": "Email",
