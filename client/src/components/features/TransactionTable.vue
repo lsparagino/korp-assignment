@@ -15,6 +15,7 @@
     showPagination?: boolean
     meta?: PaginationMeta
     title?: string
+    refreshing?: boolean
     isAdmin?: boolean
   }
 
@@ -23,10 +24,11 @@
     wallets: () => [],
     showPagination: false,
     title: 'Transactions',
+    refreshing: false,
     isAdmin: false,
   })
 
-  defineEmits(['update:page', 'update:per-page'])
+  defineEmits(['update:page', 'update:per-page', 'refresh'])
 
   const detailDialog = ref(false)
   const selectedTransaction = ref<Transaction | null>(null)
@@ -114,6 +116,9 @@
   <DataTable
     :loading="loading"
     :meta="showPagination ? meta : undefined"
+    :refreshing="refreshing"
+    :title="title"
+    @refresh="$emit('refresh')"
     @update:page="$emit('update:page', $event)"
     @update:per-page="$emit('update:per-page', $event)"
   >

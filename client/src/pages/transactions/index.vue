@@ -53,17 +53,7 @@
       >
         {{ $t('transfers.initiateTransfer') }}
       </v-btn>
-      <v-btn
-        :aria-label="$t('common.refreshData')"
-        color="grey-darken-1"
-        density="comfortable"
-        icon="mdi-refresh"
-        :loading="refreshing"
-        variant="text"
-        @click="refresh"
-      />
     </div>
-
   </PageHeader>
 
   <TransferDialog
@@ -313,9 +303,11 @@
     :items="transactions"
     :loading="processing"
     :meta="meta"
+    :refreshing="refreshing"
     show-pagination
     :title="$t('transactions.transactionsList')"
     :wallets="wallets"
+    @refresh="refresh"
     @update:page="handlePageChange"
     @update:per-page="handlePerPageChange"
   />

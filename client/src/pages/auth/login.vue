@@ -1,15 +1,12 @@
 <script lang="ts" setup>
   import { reactive, ref } from 'vue'
-  import { useI18n } from 'vue-i18n'
   import { useRouter } from 'vue-router'
   import { login } from '@/api/auth'
   import { useFormSubmit } from '@/composables/useFormSubmit'
   import { useAuthStore } from '@/stores/auth'
 
-  const { t } = useI18n()
   const router = useRouter()
   const authStore = useAuthStore()
-  const status = ref('')
 
   const form = reactive({
     email: '',
@@ -19,7 +16,7 @@
 
   const showPassword = ref(false)
 
-  const { processing, errors, submit } = useFormSubmit({
+  const { processing, errors, serverError, submit } = useFormSubmit({
     submitFn: async (data: typeof form) => {
       const response = await login(data)
 
@@ -33,14 +30,11 @@
       authStore.setUser(response.data.user)
       router.push('/dashboard')
     },
-    onError: () => {
-      status.value = t('auth.login.error')
-    },
   })
 </script>
 
 <template>
-  <AuthCard :error="status">
+  <AuthCard :error="serverError">
     <v-form @submit.prevent="submit(form)">
       <div class="d-flex flex-column ga-4">
         <v-text-field

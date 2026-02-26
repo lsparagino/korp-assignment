@@ -7,6 +7,7 @@
   import { useAuthStore } from '@/stores/auth'
 
   const { t } = useI18n()
+
   const route = useRoute()
   const router = useRouter()
   const authStore = useAuthStore()
@@ -36,7 +37,7 @@
     recoveryCode.value = ''
   }
 
-  const { processing, errors, submit } = useFormSubmit({
+  const { processing, errors, serverError, submit } = useFormSubmit({
     submitFn: async () => {
       const payload = showRecoveryInput.value
         ? {
@@ -64,7 +65,7 @@
 </script>
 
 <template>
-  <AuthCard>
+  <AuthCard :error="serverError">
     <v-form @submit.prevent="submit({})">
       <div class="d-flex flex-column ga-6">
         <template v-if="!showRecoveryInput">

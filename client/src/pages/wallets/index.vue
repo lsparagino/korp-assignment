@@ -35,23 +35,7 @@
     await refetch()
   })
 
-  function toggleFreeze (wallet: Wallet) {
-    const isFreezing = wallet.status === 'active'
-    openConfirmDialog({
-      title: isFreezing ? t('wallets.freezeWallet') : t('wallets.unfreezeWallet'),
-      message: isFreezing
-        ? t('wallets.confirmFreeze', { name: wallet.name })
-        : t('wallets.confirmUnfreeze', { name: wallet.name }),
-      requiresPin: false,
-      onConfirm: async () => {
-        try {
-          await walletStore.toggleFreeze(wallet.id)
-        } catch (error) {
-          console.error('Error toggling wallet status:', error)
-        }
-      },
-    })
-  }
+
 
   function deleteWallet (wallet: Wallet) {
     openConfirmDialog({
@@ -81,15 +65,6 @@
   <PageHeader :title="$t('wallets.title')">
     <div class="d-flex ga-2 align-center">
       <v-btn
-        :aria-label="$t('common.refreshData')"
-        color="grey-darken-1"
-        density="comfortable"
-        icon="mdi-refresh"
-        :loading="refreshing"
-        variant="text"
-        @click="refresh"
-      />
-      <v-btn
         v-if="authStore.isAdmin"
         class="text-none font-weight-bold"
         color="primary"
@@ -107,6 +82,9 @@
   <DataTable
     :loading="processing"
     :meta="meta"
+    :refreshing="refreshing"
+    :title="$t('wallets.title')"
+    @refresh="refresh"
     @update:page="handlePageChange"
     @update:per-page="handlePerPageChange"
   >
@@ -138,10 +116,15 @@
         >
           {{ formatCurrency(w.balance, w.currency) }}
         </td>
-        <td
-          class="font-weight-bold"
-        >
+        <td class="font-weight-bold">
           {{ formatCurrency(w.available_balance, w.currency) }}
+          <v-icon
+            v-if="w.available_balance !== w.balance"
+            class="ms-1"
+            color="amber-darken-2"
+            icon="mdi-alert"
+            size="14"
+          />
         </td>
         <td>
           <v-chip
@@ -179,22 +162,7 @@
               :to="`/wallets/${w.id}/edit`"
               variant="text"
             />
-            <v-btn
-              :color="
-                w.status === 'active'
-                  ? 'warning'
-                  : 'success'
-              "
-              density="comfortable"
-              :icon="
-                w.status === 'active'
-                  ? 'mdi-snowflake'
-                  : 'mdi-fire'
-              "
-              size="small"
-              variant="text"
-              @click="toggleFreeze(w)"
-            />
+
             <v-btn
               v-if="w.can_delete"
               color="error"

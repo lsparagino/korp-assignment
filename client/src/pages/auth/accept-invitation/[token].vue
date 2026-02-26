@@ -3,6 +3,7 @@
   import { useI18n } from 'vue-i18n'
   import { useRoute, useRouter } from 'vue-router'
   import { acceptInvitation, verifyInvitation } from '@/api/auth'
+  import { useFormSubmit } from '@/composables/useFormSubmit'
   import { useAuthStore } from '@/stores/auth'
 
   const { t } = useI18n()
@@ -19,8 +20,6 @@
     password: '',
     password_confirmation: '',
   })
-  const processing = ref(false)
-  const error = ref('')
 
   onMounted(async () => {
     try {
@@ -33,21 +32,14 @@
     }
   })
 
-  async function submit () {
-    processing.value = true
-    error.value = ''
-    try {
-      const response = await acceptInvitation(token, form.value)
+  const { processing, serverError, submit } = useFormSubmit({
+    submitFn: async (data: typeof form.value) => {
+      const response = await acceptInvitation(token, data)
       auth.setToken(response.data.access_token)
       auth.setUser(response.data.user)
       router.push('/dashboard')
-    } catch (error_: unknown) {
-      const err = error_ as { response?: { data?: { message?: string } } }
-      error.value = err.response?.data?.message || t('common.genericError')
-    } finally {
-      processing.value = false
-    }
-  }
+    },
+  })
 </script>
 
 <template>
@@ -87,16 +79,16 @@
     </div>
 
     <v-alert
-      v-if="error"
+      v-if="serverError"
       class="mb-4"
       density="compact"
       type="error"
       variant="tonal"
     >
-      {{ error }}
+      {{ serverError }}
     </v-alert>
 
-    <v-form @submit.prevent="submit">
+    <v-form @submit.prevent="submit(form)">
       <v-text-field
         v-model="form.password"
         autocomplete="new-password"

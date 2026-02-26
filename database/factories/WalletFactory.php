@@ -25,7 +25,7 @@ class WalletFactory extends Factory
             'user_id' => User::factory(),
             'name' => $this->faker->randomElement(['Savings', 'Offshore', 'Business', 'Person A', 'Person B']),
             'currency' => $this->faker->randomElement(WalletCurrency::cases()),
-            'status' => $this->faker->randomElement(WalletStatus::cases()),
+            'status' => WalletStatus::Active,
             'address' => 'bc1q'.Str::lower(Str::random(36)),
         ];
     }

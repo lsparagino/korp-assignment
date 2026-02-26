@@ -55,9 +55,9 @@ src/
 
 Frequently used commands:
 
-- `pnpm run build`: bundles the project for production
-- `pnpm run test`: runs all tests
-- `pnpm vitest run <test-files>`: runs one or multiple specific test files
+- `npm run build`: bundles the project for production
+- `npm run test`: runs all tests
+- `npm vitest run <test-files>`: runs one or multiple specific test files
   - add `--coverage` to check missing test coverage
 
 ## Development Workflow

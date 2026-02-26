@@ -3,12 +3,15 @@
   import { useI18n } from 'vue-i18n'
   import { useRoute, useRouter } from 'vue-router'
   import { sendVerificationEmail, verifyEmail } from '@/api/auth'
+  import { useAppNotification } from '@/composables/useAppNotification'
   import { useAuthStore } from '@/stores/auth'
+  import { getErrorMessage } from '@/utils/errors'
 
   const { t } = useI18n()
   const route = useRoute()
   const router = useRouter()
   const authStore = useAuthStore()
+  const { notifyError } = useAppNotification()
 
   const verifying = ref(false)
   const resending = ref(false)
@@ -47,9 +50,8 @@
         await authStore.fetchUser()
         status.value = t('auth.verifyEmail.verified')
         setTimeout(() => router.push('/dashboard'), 1500)
-      } catch (error_: unknown) {
-        const e = error_ as { response?: { data?: { message?: string } } }
-        error.value = e.response?.data?.message || t('auth.verifyEmail.verificationFailed')
+      } catch (err: unknown) {
+        error.value = getErrorMessage(err, t('auth.verifyEmail.verificationFailed'))
         isVerificationLink.value = false
       } finally {
         verifying.value = false
@@ -72,8 +74,8 @@
       await sendVerificationEmail()
       status.value = t('auth.verifyEmail.resendLink')
       startCountdown()
-    } catch {
-      error.value = t('auth.verifyEmail.resendFailed')
+    } catch (err: unknown) {
+      notifyError(err, t('auth.verifyEmail.resendFailed'))
     } finally {
       resending.value = false
     }
@@ -86,27 +88,7 @@
 </script>
 
 <template>
-  <AuthCard>
-    <v-alert
-      v-if="status"
-      class="mb-6"
-      density="compact"
-      type="success"
-      variant="tonal"
-    >
-      {{ status }}
-    </v-alert>
-
-    <v-alert
-      v-if="error"
-      class="mb-6"
-      density="compact"
-      type="error"
-      variant="tonal"
-    >
-      {{ error }}
-    </v-alert>
-
+  <AuthCard :error="error" :status="status">
     <!-- Loader-only view when verifying via email link -->
     <div v-if="isVerificationLink" class="d-flex flex-column align-center ga-4 py-4">
       <v-progress-circular

@@ -12,6 +12,7 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     AppLogo: typeof import('./components/ui/AppLogo.vue')['default']
+    AppNotification: typeof import('./components/ui/AppNotification.vue')['default']
     AuthCard: typeof import('./components/ui/AuthCard.vue')['default']
     CompanySelector: typeof import('./components/features/CompanySelector.vue')['default']
     ConfirmDialog: typeof import('./components/ui/ConfirmDialog.vue')['default']

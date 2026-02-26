@@ -75,15 +75,6 @@
   <PageHeader :title="$t('teamMembers.title')">
     <div class="d-flex ga-2 align-center">
       <v-btn
-        :aria-label="$t('common.refreshData')"
-        color="grey-darken-1"
-        density="comfortable"
-        icon="mdi-refresh"
-        :loading="refreshing"
-        variant="text"
-        @click="refresh"
-      />
-      <v-btn
         v-if="authStore.isAdmin"
         class="text-none font-weight-bold"
         color="primary"
@@ -101,6 +92,9 @@
   <DataTable
     :loading="processing"
     :meta="meta"
+    :refreshing="refreshing"
+    :title="$t('teamMembers.title')"
+    @refresh="refresh"
     @update:page="handlePageChange"
   >
     <template #columns>
@@ -187,7 +181,7 @@
   <TeamMemberModal
     v-model="showModal"
     :user="selectedMember"
-    @saved="showModal = false"
+    @saved="showModal = false; refetch()"
   />
 
   <ConfirmDialog

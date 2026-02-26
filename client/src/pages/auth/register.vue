@@ -1,16 +1,12 @@
 <script lang="ts" setup>
-  import { reactive, ref } from 'vue'
-  import { useI18n } from 'vue-i18n'
+  import { reactive } from 'vue'
   import { useRouter } from 'vue-router'
   import { register } from '@/api/auth'
   import { useFormSubmit } from '@/composables/useFormSubmit'
   import { useAuthStore } from '@/stores/auth'
 
-  const { t } = useI18n()
   const router = useRouter()
   const authStore = useAuthStore()
-
-  const serverError = ref('')
 
   const form = reactive({
     name: '',
@@ -19,33 +15,18 @@
     password_confirmation: '',
   })
 
-  const { processing, errors, submit } = useFormSubmit({
+  const { processing, errors, serverError, submit } = useFormSubmit({
     submitFn: async (data: typeof form) => {
-      serverError.value = ''
       const response = await register(data)
       authStore.setToken(response.data.access_token)
       authStore.setUser(response.data.user)
     },
     onSuccess: () => router.push('/auth/verify-email'),
-    onError: (error: unknown) => {
-      const e = error as { response?: { data?: { message?: string } } }
-      serverError.value = e.response?.data?.message || t('common.genericError')
-    },
   })
 </script>
 
 <template>
-  <AuthCard>
-    <v-alert
-      v-if="serverError"
-      class="mb-6"
-      density="compact"
-      type="error"
-      variant="tonal"
-    >
-      {{ serverError }}
-    </v-alert>
-
+  <AuthCard :error="serverError">
     <v-form @submit.prevent="submit(form)">
       <div class="d-flex flex-column ga-4">
         <v-text-field

@@ -10,14 +10,14 @@
     password: '',
   })
 
-  const { processing, errors, submit } = useFormSubmit({
+  const { processing, errors, serverError, submit } = useFormSubmit({
     submitFn: (data: typeof form) => confirmPassword(data),
     onSuccess: () => router.back(),
   })
 </script>
 
 <template>
-  <AuthCard>
+  <AuthCard :error="serverError">
     <v-form @submit.prevent="submit(form)">
       <div class="d-flex flex-column ga-6">
         <v-text-field

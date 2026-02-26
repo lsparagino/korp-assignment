@@ -1,11 +1,9 @@
 <script lang="ts" setup>
-  import { onMounted, reactive, ref } from 'vue'
-  import { useI18n } from 'vue-i18n'
-  import { useRoute, useRouter } from 'vue-router'
+  import { reactive, ref } from 'vue'
+  import { useRouter } from 'vue-router'
   import { resetPassword } from '@/api/auth'
   import { useFormSubmit } from '@/composables/useFormSubmit'
 
-  const { t } = useI18n()
   const route = useRoute()
   const router = useRouter()
 
@@ -17,14 +15,13 @@
   })
 
   const showPassword = ref(false)
-  const status = ref('')
 
   onMounted(() => {
     form.token = (route.query.token as string) || ''
     form.email = (route.query.email as string) || ''
   })
 
-  const { processing, errors, submit } = useFormSubmit({
+  const { processing, errors, serverError, submit } = useFormSubmit({
     submitFn: async (data: typeof form) => {
       const response = await resetPassword(data)
       status.value = response.data.message
@@ -32,14 +29,13 @@
     onSuccess: () => {
       setTimeout(() => router.push('/auth/login'), 3000)
     },
-    onError: () => {
-      status.value = t('common.errorOccurred')
-    },
   })
+
+  const status = ref('')
 </script>
 
 <template>
-  <AuthCard :status="status">
+  <AuthCard :error="serverError" :status="status">
     <v-form @submit.prevent="submit(form)">
       <div class="d-flex flex-column ga-6">
         <v-text-field

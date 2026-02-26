@@ -4,7 +4,6 @@
   import { useI18n } from 'vue-i18n'
   import { forgotPassword } from '@/api/auth'
   import { useFormSubmit } from '@/composables/useFormSubmit'
-  import { isApiError } from '@/utils/errors'
 
   const { t } = useI18n()
 
@@ -31,31 +30,18 @@
     }, 1000)
   }
 
-  const { processing, submit } = useFormSubmit({
+  const { processing, serverError, submit } = useFormSubmit({
     submitFn: async (data: typeof form) => {
-      try {
-        const response = await forgotPassword(data)
-        status.value = response.data.message
-        alertType.value = 'success'
-      } catch (error: unknown) {
-        if (isApiError(error, 422)) {
-          alertType.value = 'warning'
-          status.value = t('auth.forgotPassword.mailboxFull')
-        } else {
-          alertType.value = 'error'
-          status.value = t('common.errorOccurred')
-        }
-      } finally {
-        if (alertType.value === 'success' || alertType.value === 'warning') {
-          startCooldown()
-        }
-      }
+      const response = await forgotPassword(data)
+      status.value = response.data.message
+      alertType.value = 'success'
+      startCooldown()
     },
   })
 </script>
 
 <template>
-  <AuthCard :alert-type="alertType" :status="status">
+  <AuthCard :alert-type="alertType" :error="serverError" :status="status">
     <v-form @submit.prevent="submit(form)">
       <div class="d-flex flex-column ga-6">
         <v-text-field
