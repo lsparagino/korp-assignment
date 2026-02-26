@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\PasswordResetController;
 use App\Http\Controllers\Api\TeamMemberController;
 use App\Http\Controllers\Api\TransactionController;
+use App\Http\Controllers\Api\TransferController;
 use App\Http\Controllers\Api\TwoFactorController;
 use App\Http\Controllers\Api\VerificationController;
 use App\Http\Controllers\Api\WalletController;
@@ -53,6 +54,10 @@ Route::middleware('auth:sanctum')->group(function () {
         // Data Routes
         Route::get('/dashboard', [DashboardController::class, 'dashboard'])->name('dashboard');
         Route::apiResource('transactions', TransactionController::class)->only(['index']);
+
+        // Transfer Routes
+        Route::post('/transfers', [TransferController::class, 'store']);
+        Route::post('/transfers/{groupId}/review', [TransferController::class, 'review']);
 
         // Team Routes
         Route::apiResource('team-members', TeamMemberController::class)->parameters(['team-members' => 'teamMember']);

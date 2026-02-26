@@ -27,6 +27,10 @@ class TransactionService
             $query->where('type', $filters['type']);
         }
 
+        if (! empty($filters['status'])) {
+            $query->where('status', $filters['status']);
+        }
+
         if (! empty($filters['date_from'])) {
             $query->where('created_at', '>=', $filters['date_from']);
         }

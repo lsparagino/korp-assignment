@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\TransactionStatus;
 use App\Enums\TransactionType;
 use Database\Factories\TransactionFactory;
 use Illuminate\Database\Eloquent\Builder;
@@ -23,6 +24,14 @@ class Transaction extends Model
         'amount',
         'external',
         'reference',
+        'status',
+        'currency',
+        'exchange_rate',
+        'initiator_user_id',
+        'reviewer_user_id',
+        'reject_reason',
+        'external_address',
+        'external_name',
     ];
 
     public function wallet(): BelongsTo
@@ -33,6 +42,16 @@ class Transaction extends Model
     public function counterpartWallet(): BelongsTo
     {
         return $this->belongsTo(Wallet::class, 'counterpart_wallet_id');
+    }
+
+    public function initiator(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'initiator_user_id');
+    }
+
+    public function reviewer(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'reviewer_user_id');
     }
 
     public function scopeForWallets(Builder $query, Collection $walletIds): Builder
@@ -71,7 +90,9 @@ class Transaction extends Model
     {
         return [
             'type' => TransactionType::class,
+            'status' => TransactionStatus::class,
             'amount' => 'decimal:2',
+            'exchange_rate' => 'decimal:6',
             'external' => 'boolean',
         ];
     }

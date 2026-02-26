@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\TransactionStatus;
 use App\Enums\WalletCurrency;
 use App\Enums\WalletStatus;
 use Database\Factories\WalletFactory;
@@ -25,6 +26,7 @@ class Wallet extends Model
         'status',
         'company_id',
         'address',
+        'locked_balance',
     ];
 
     protected static function booted(): void
@@ -52,12 +54,22 @@ class Wallet extends Model
             return (float) ($this->attributes['balance'] ?? 0);
         }
 
-        return (float) $this->transactions()->sum('amount');
+        return (float) $this->transactions()
+            ->where('status', TransactionStatus::Completed)
+            ->sum('amount');
+    }
+
+    public function getAvailableBalanceAttribute(): float
+    {
+        return $this->balance - (float) ($this->locked_balance ?? 0);
     }
 
     public function scopeWithBalance(Builder $query): Builder
     {
-        return $query->withSum('transactions as balance', 'amount');
+        return $query->withSum(
+            ['transactions as balance' => fn ($q) => $q->where('status', TransactionStatus::Completed)],
+            'amount'
+        );
     }
 
     public function hasTransactions(): bool
@@ -109,6 +121,7 @@ class Wallet extends Model
         return [
             'currency' => WalletCurrency::class,
             'status' => WalletStatus::class,
+            'locked_balance' => 'decimal:2',
         ];
     }
 }

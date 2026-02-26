@@ -34,6 +34,9 @@ class TransactionFactory extends Factory
             },
             'external' => true,
             'reference' => $this->faker->sentence(4),
+            'status' => 'completed',
+            'currency' => 'USD',
+            'exchange_rate' => 1.0,
             'created_at' => $date,
             'updated_at' => $date,
         ];

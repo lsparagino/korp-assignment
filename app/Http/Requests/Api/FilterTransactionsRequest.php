@@ -15,6 +15,7 @@ class FilterTransactionsRequest extends FormRequest
     {
         return [
             'type' => ['nullable', 'string'],
+            'status' => ['nullable', 'string'],
             'date_from' => ['nullable', 'date'],
             'date_to' => ['nullable', 'date', 'after_or_equal:date_from'],
             'amount_min' => ['nullable', 'numeric', 'min:0'],
