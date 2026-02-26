@@ -1,6 +1,6 @@
 <script lang="ts" setup>
   import type { Transaction } from '@/api/transactions'
-  import { getTransactionTypeColors, getTransactionStatusColors } from '@/utils/colors'
+  import { getTransactionStatusColors, getTransactionTypeColors } from '@/utils/colors'
   import { formatCurrency, formatDate } from '@/utils/formatters'
 
   const props = defineProps<{
@@ -42,7 +42,7 @@
 </script>
 
 <template>
-  <v-dialog :model-value="modelValue" max-width="560" @update:model-value="emit('update:modelValue', $event)">
+  <v-dialog max-width="560" :model-value="modelValue" @update:model-value="emit('update:modelValue', $event)">
     <v-card v-if="transaction" rounded="lg">
       <v-card-title class="d-flex align-center justify-space-between pa-5 border-b">
         <span class="text-h6 font-weight-bold">{{ $t('transactions.transactionDetails') }}</span>

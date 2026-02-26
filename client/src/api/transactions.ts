@@ -12,8 +12,8 @@ export interface Transaction {
   reference: string | null
   wallet_id: number | null
   counterpart_wallet_id: number | null
-  wallet: { id: number; name: string; address: string } | null
-  counterpart_wallet: { id: number; name: string; address: string } | null
+  wallet: { id: number, name: string, address: string } | null
+  counterpart_wallet: { id: number, name: string, address: string } | null
   external: boolean
   external_address: string | null
   external_name: string | null
@@ -47,10 +47,10 @@ export interface TransferForm {
   notes?: string
 }
 
-export function fetchTransactions(params: TransactionParams) {
+export function fetchTransactions (params: TransactionParams) {
   return api.get('/transactions', { params })
 }
 
-export function initiateTransfer(form: TransferForm) {
+export function initiateTransfer (form: TransferForm) {
   return api.post('/transfers', form)
 }

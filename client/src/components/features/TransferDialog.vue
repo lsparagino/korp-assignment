@@ -1,14 +1,15 @@
 <script lang="ts" setup>
-  import type { Wallet } from '@/api/wallets'
   import type { TransferForm } from '@/api/transactions'
+  import type { Wallet } from '@/api/wallets'
   import { useQuery, useQueryCache } from '@pinia/colada'
   import { computed, ref, watch } from 'vue'
-  import { WALLET_QUERY_KEYS, walletsListQuery } from '@/queries/wallets'
+  import { useI18n } from 'vue-i18n'
   import { initiateTransfer } from '@/api/transactions'
+  import { useFormValidation } from '@/composables/useFormValidation'
+  import { WALLET_QUERY_KEYS, walletsListQuery } from '@/queries/wallets'
+  import { useAuthStore } from '@/stores/auth'
   import { getValidationErrors, isApiError } from '@/utils/errors'
   import { formatCurrency } from '@/utils/formatters'
-  import { useI18n } from 'vue-i18n'
-  import { useAuthStore } from '@/stores/auth'
 
   const { t } = useI18n()
   const authStore = useAuthStore()
@@ -25,8 +26,7 @@
 
   const dialog = ref(false)
   const processing = ref(false)
-  const formRef = ref<InstanceType<typeof import('vuetify/components').VForm> | null>(null)
-  const formValid = ref(false)
+  const { formRef, formValid, validate, resetValidation } = useFormValidation()
   const transferType = ref<'external' | 'internal'>('internal')
   const errors = ref<Record<string, string[]>>({})
   const apiError = ref('')
@@ -87,7 +87,7 @@
       })),
   )
 
-  const APPROVAL_THRESHOLD = 10000
+  const APPROVAL_THRESHOLD = 10_000
 
   const exceedsThreshold = computed(() =>
     form.value.amount > APPROVAL_THRESHOLD,
@@ -96,7 +96,7 @@
   // --- Validation rules ---
   const requiredRule = (v: unknown) => !!v || t('validation.required')
   const positiveAmountRule = (v: number) => v > 0 || t('validation.positiveAmount')
-  const insufficientFundsRule = (v: number) => {
+  function insufficientFundsRule (v: number) {
     if (!selectedWallet.value) return true
     return v <= Number(selectedWallet.value.available_balance) || t('validation.insufficientFunds')
   }
@@ -131,7 +131,7 @@
   // When sender wallet changes, clear receiver if same wallet or currency mismatch
   watch(
     () => form.value.sender_wallet_id,
-    (newSenderId) => {
+    newSenderId => {
       const receiverId = form.value.receiver_wallet_id
       if (!receiverId) return
 
@@ -163,13 +163,13 @@
       reference: '',
       notes: '',
     }
-    formRef.value?.resetValidation()
+    resetValidation()
   }
 
   const queryCache = useQueryCache()
 
   async function reviewTransfer () {
-    const { valid } = await formRef.value!.validate()
+    const valid = await validate()
     if (!valid) return
     step.value = 'recap'
   }
@@ -277,7 +277,13 @@
                   <div class="d-flex align-center justify-space-between w-100">
                     <span :class="{ 'text-grey': item.raw.disabled }">
                       {{ item.raw.name }}
-                      <v-chip v-if="item.raw.disabled" class="ml-2" color="error" density="compact" size="x-small">🔒 Frozen</v-chip>
+                      <v-chip
+                        v-if="item.raw.disabled"
+                        class="ml-2"
+                        color="error"
+                        density="compact"
+                        size="x-small"
+                      >🔒 Frozen</v-chip>
                     </span>
                     <span v-if="!item.raw.disabled" class="text-grey text-body-2">
                       {{ formatCurrency(Number(item.raw.available_balance), item.raw.currency) }}
@@ -344,7 +350,13 @@
                     <div class="d-flex align-center justify-space-between w-100">
                       <span :class="{ 'text-grey': item.raw.disabled }">
                         {{ item.raw.name }}
-                        <v-chip v-if="item.raw.disabled" class="ml-2" color="error" density="compact" size="x-small">🔒 Frozen</v-chip>
+                        <v-chip
+                          v-if="item.raw.disabled"
+                          class="ml-2"
+                          color="error"
+                          density="compact"
+                          size="x-small"
+                        >🔒 Frozen</v-chip>
                       </span>
                       <span v-if="!item.raw.disabled" class="text-grey text-body-2">
                         {{ formatCurrency(Number(item.raw.available_balance), item.raw.currency) }}

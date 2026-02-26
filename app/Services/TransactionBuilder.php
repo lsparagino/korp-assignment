@@ -11,10 +11,15 @@ use App\Models\Wallet;
 class TransactionBuilder
 {
     private string $groupId;
+
     private string $currency;
+
     private TransactionStatus $status;
+
     private User $initiator;
+
     private ?string $reference;
+
     private ?string $notes;
 
     public function __construct(

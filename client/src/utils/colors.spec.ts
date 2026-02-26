@@ -1,13 +1,13 @@
 import { describe, expect, it } from 'vitest'
 import { getCurrencyColors, getRoleColors, getStatusColors, getTransactionTypeColors } from './colors'
 
-function expectColorPair(result: { bg: string, text: string }) {
+function expectColorPair (result: { bg: string, text: string }) {
   expect(result.bg).toBeTruthy()
   expect(result.text).toBeTruthy()
 }
 
 describe('getCurrencyColors', () => {
-  it.each(['USD', 'EUR', 'GBP'])('returns a color pair for %s', (currency) => {
+  it.each(['USD', 'EUR', 'GBP'])('returns a color pair for %s', currency => {
     expectColorPair(getCurrencyColors(currency))
   })
 
@@ -17,7 +17,7 @@ describe('getCurrencyColors', () => {
 })
 
 describe('getStatusColors', () => {
-  it.each(['active', 'frozen'])('returns a color pair for %s', (status) => {
+  it.each(['active', 'frozen'])('returns a color pair for %s', status => {
     expectColorPair(getStatusColors(status))
   })
 
@@ -27,7 +27,7 @@ describe('getStatusColors', () => {
 })
 
 describe('getRoleColors', () => {
-  it.each(['admin', 'manager', 'member'])('returns a color pair for %s', (role) => {
+  it.each(['admin', 'manager', 'member'])('returns a color pair for %s', role => {
     expectColorPair(getRoleColors(role))
   })
 
@@ -41,7 +41,7 @@ describe('getRoleColors', () => {
 })
 
 describe('getTransactionTypeColors', () => {
-  it.each(['debit', 'credit', 'transfer'])('returns a color pair for %s', (type) => {
+  it.each(['debit', 'credit', 'transfer'])('returns a color pair for %s', type => {
     expectColorPair(getTransactionTypeColors(type))
   })
 

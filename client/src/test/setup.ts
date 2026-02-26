@@ -7,10 +7,14 @@ import * as components from 'vuetify/components'
 import * as directives from 'vuetify/directives'
 import en from '@/locales/en.json'
 
-vi.mock('vue-router', () => ({
-  useRoute: vi.fn(() => ({ query: {} })),
-  useRouter: vi.fn(() => ({ push: vi.fn(), replace: vi.fn() })),
-}))
+vi.mock('vue-router', async importOriginal => {
+  const actual = await importOriginal()
+  return {
+    ...(actual as Record<string, unknown>),
+    useRoute: vi.fn(() => ({ query: {} })),
+    useRouter: vi.fn(() => ({ push: vi.fn(), replace: vi.fn() })),
+  }
+})
 
 const vuetify = createVuetify({
   components,

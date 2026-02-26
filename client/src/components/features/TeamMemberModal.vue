@@ -3,9 +3,13 @@
   import type { Wallet } from '@/api/wallets'
   import { useQuery } from '@pinia/colada'
   import { computed, ref, watch } from 'vue'
+  import { useI18n } from 'vue-i18n'
+  import { useFormValidation } from '@/composables/useFormValidation'
   import { walletsListQuery } from '@/queries/wallets'
   import { useTeamMemberStore } from '@/stores/team-member'
   import { getValidationErrors, isApiError } from '@/utils/errors'
+
+  const { t } = useI18n()
 
   const props = defineProps<{
     user?: TeamMember | null
@@ -16,6 +20,7 @@
 
   const dialog = ref(false)
   const processing = ref(false)
+  const { formRef, formValid, validate, resetValidation } = useFormValidation()
   const form = ref({
     name: '',
     email: '',
@@ -23,6 +28,8 @@
   })
   const errors = ref<Record<string, string[]>>({})
   const teamMemberStore = useTeamMemberStore()
+
+  const requiredRule = (v: unknown) => !!v || t('validation.required')
 
   const { data: walletsData } = useQuery(
     walletsListQuery,
@@ -43,8 +50,10 @@
             wallets: props.user.assigned_wallets || [],
           }
           : { name: '', email: '', wallets: [] }
+        resetValidation()
       }
     },
+    { immediate: true },
   )
 
   watch(dialog, val => {
@@ -52,6 +61,9 @@
   })
 
   async function save () {
+    const valid = await validate()
+    if (!valid) return
+
     processing.value = true
     errors.value = {}
     try {
@@ -78,13 +90,14 @@
       </v-card-title>
       <v-divider />
       <v-card-text class="pa-4">
-        <v-form @submit.prevent="save">
+        <v-form ref="formRef" v-model="formValid" @submit.prevent="save">
           <v-text-field
             v-model="form.name"
             data-testid="member-name-input"
             :error-messages="errors.name"
             :label="$t('common.fullName')"
             :placeholder="$t('teamMembers.fullNamePlaceholder')"
+            :rules="[requiredRule]"
             variant="outlined"
           />
           <v-text-field
@@ -93,6 +106,7 @@
             :error-messages="errors.email"
             :label="$t('common.emailAddress')"
             :placeholder="$t('teamMembers.emailPlaceholder')"
+            :rules="[requiredRule]"
             type="email"
             variant="outlined"
           />
@@ -137,6 +151,7 @@
         <v-btn
           color="primary"
           data-testid="member-submit-btn"
+          :disabled="!formValid"
           :loading="processing"
           variant="flat"
           @click="save"

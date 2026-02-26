@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-  import { getRoleColors } from '@/utils/colors'
   import { useAuthStore } from '@/stores/auth'
+  import { getRoleColors } from '@/utils/colors'
 
   const authStore = useAuthStore()
 

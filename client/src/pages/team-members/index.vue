@@ -6,13 +6,13 @@
   import PageHeader from '@/components/layout/PageHeader.vue'
   import ConfirmDialog from '@/components/ui/ConfirmDialog.vue'
   import DataTable from '@/components/ui/DataTable.vue'
-  import { getRoleColors } from '@/utils/colors'
   import { useConfirmDialog } from '@/composables/useConfirmDialog'
   import { useRefreshData } from '@/composables/useRefreshData'
   import { useUrlPagination } from '@/composables/useUrlPagination'
   import { useTeamMemberList } from '@/queries/team-members'
   import { useAuthStore } from '@/stores/auth'
   import { useTeamMemberStore } from '@/stores/team-member'
+  import { getRoleColors } from '@/utils/colors'
 
   const { t } = useI18n()
   const authStore = useAuthStore()

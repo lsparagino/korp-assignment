@@ -1,10 +1,10 @@
 <script lang="ts" setup>
+  import { ref } from 'vue'
   import TransactionTable from '@/components/features/TransactionTable.vue'
   import TransferDialog from '@/components/features/TransferDialog.vue'
   import PageHeader from '@/components/layout/PageHeader.vue'
   import { useRefreshData } from '@/composables/useRefreshData'
   import { useTransactionFilters } from '@/composables/useTransactionFilters'
-  import { ref } from 'vue'
 
   const {
     filterForm,
@@ -43,27 +43,27 @@
   <PageHeader :title="$t('transactions.title')">
     <div class="d-flex ga-2 align-center">
       <v-btn
-      class="text-none font-weight-bold me-2"
-      color="primary"
-      data-testid="initiate-transfer-btn"
-      prepend-icon="mdi-swap-horizontal"
-      rounded="lg"
-      variant="flat"
-      @click="transferDialog = true"
-    >
-      {{ $t('transfers.initiateTransfer') }}
-    </v-btn>
-    <v-btn
-      :aria-label="$t('common.refreshData')"
-      color="grey-darken-1"
-      density="comfortable"
-      icon="mdi-refresh"
-      :loading="refreshing"
-      variant="text"
-      @click="refresh"
-    />
+        class="text-none font-weight-bold me-2"
+        color="primary"
+        data-testid="initiate-transfer-btn"
+        prepend-icon="mdi-swap-horizontal"
+        rounded="lg"
+        variant="flat"
+        @click="transferDialog = true"
+      >
+        {{ $t('transfers.initiateTransfer') }}
+      </v-btn>
+      <v-btn
+        :aria-label="$t('common.refreshData')"
+        color="grey-darken-1"
+        density="comfortable"
+        icon="mdi-refresh"
+        :loading="refreshing"
+        variant="text"
+        @click="refresh"
+      />
     </div>
-    
+
   </PageHeader>
 
   <TransferDialog
@@ -278,7 +278,7 @@
         </v-expansion-panel>
       </v-expansion-panels>
 
-      <v-row >
+      <v-row>
         <v-col class="d-flex ga-2 mt-4 justify-end align-center">
           <v-btn
             v-if="activeFiltersCount > 0"

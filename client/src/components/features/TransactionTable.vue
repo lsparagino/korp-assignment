@@ -3,9 +3,9 @@
   import type { Wallet } from '@/api/wallets'
   import type { PaginationMeta } from '@/composables/useUrlPagination'
   import { ref } from 'vue'
-  import DataTable from '@/components/ui/DataTable.vue'
   import TransactionDetailModal from '@/components/features/TransactionDetailModal.vue'
-  import { getTransactionTypeColors, getTransactionStatusColors } from '@/utils/colors'
+  import DataTable from '@/components/ui/DataTable.vue'
+  import { getTransactionStatusColors, getTransactionTypeColors } from '@/utils/colors'
   import { formatCurrency, formatDate } from '@/utils/formatters'
 
   interface Props {
@@ -119,12 +119,12 @@
   >
     <template #columns>
       <th>{{ $t('transactions.tableHeaders.date') }}</th>
-      <th>{{ $t('transactions.tableHeaders.type') }}</th>
-      <th>{{ $t('transactions.tableHeaders.status') }}</th>
+      <th class="d-none d-sm-table-cell">{{ $t('transactions.tableHeaders.type') }}</th>
+      <th class="d-none d-sm-table-cell">{{ $t('transactions.tableHeaders.status') }}</th>
       <th>{{ $t('transactions.tableHeaders.amount') }}</th>
       <th>{{ $t('transactions.tableHeaders.fromWallet') }}</th>
       <th>{{ $t('transactions.tableHeaders.toWallet') }}</th>
-      <th>{{ $t('transactions.tableHeaders.reference') }}</th>
+      <th class="d-none d-sm-table-cell" style="max-width: 25%">{{ $t('transactions.tableHeaders.reference') }}</th>
       <th class="text-center" style="width: 60px">
         {{ $t('transactions.tableHeaders.actions') }}
       </th>
@@ -137,7 +137,7 @@
         >
           {{ formatDate(item.created_at) }}
         </td>
-        <td class="text-grey-darken-3 font-weight-bold">
+        <td class="text-grey-darken-3 font-weight-bold d-none d-sm-table-cell">
           <v-chip
             class="text-uppercase font-weight-bold"
             :color="getChipColor(item)"
@@ -149,7 +149,7 @@
             </span>
           </v-chip>
         </td>
-        <td>
+        <td class="d-none d-sm-table-cell">
           <v-chip
             class="text-uppercase font-weight-bold"
             :color="getTransactionStatusColors(item.status).bg"
@@ -222,8 +222,13 @@
             >{{ getToLabel(item) }}</span>
           </div>
         </td>
-        <td class="text-grey-darken-2 text-caption">
-          {{ item.reference }}
+        <td class="d-none d-sm-table-cell">
+          <div
+            class="text-grey-darken-2 text-caption text-truncate"
+            style="max-width: 25vw"
+          >
+            {{ item.reference }}
+          </div>
         </td>
         <td class="text-center">
           <v-btn

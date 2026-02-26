@@ -17,7 +17,7 @@ interface TeamMemberForm {
 export const useTeamMemberStore = defineStore('team-member', () => {
   const queryCache = useQueryCache()
 
-  async function invalidateQueries() {
+  async function invalidateQueries () {
     await queryCache.invalidateQueries({ key: TEAM_MEMBER_QUERY_KEYS.root })
   }
 
