@@ -6,6 +6,7 @@
   import PageHeader from '@/components/layout/PageHeader.vue'
   import ConfirmDialog from '@/components/ui/ConfirmDialog.vue'
   import DataTable from '@/components/ui/DataTable.vue'
+  import { getRoleColors } from '@/utils/colors'
   import { useConfirmDialog } from '@/composables/useConfirmDialog'
   import { useRefreshData } from '@/composables/useRefreshData'
   import { useUrlPagination } from '@/composables/useUrlPagination'
@@ -103,22 +104,11 @@
     @update:page="handlePageChange"
   >
     <template #columns>
-      <th class="text-grey-darken-1 text-uppercase text-caption font-weight-bold text-left">
-        {{ $t('teamMembers.tableHeaders.name') }}
-      </th>
-      <th class="text-grey-darken-1 text-uppercase text-caption font-weight-bold text-left">
-        {{ $t('teamMembers.tableHeaders.email') }}
-      </th>
-      <th class="text-grey-darken-1 text-uppercase text-caption font-weight-bold text-left">
-        {{ $t('teamMembers.tableHeaders.role') }}
-      </th>
-      <th class="text-grey-darken-1 text-uppercase text-caption font-weight-bold text-left">
-        {{ $t('teamMembers.tableHeaders.walletAccess') }}
-      </th>
-      <th
-        v-if="authStore.isAdmin"
-        class="text-grey-darken-1 text-uppercase text-caption font-weight-bold text-right"
-      >
+      <th>{{ $t('teamMembers.tableHeaders.name') }}</th>
+      <th>{{ $t('teamMembers.tableHeaders.email') }}</th>
+      <th>{{ $t('teamMembers.tableHeaders.role') }}</th>
+      <th>{{ $t('teamMembers.tableHeaders.walletAccess') }}</th>
+      <th v-if="authStore.isAdmin" class="text-right">
         {{ $t('teamMembers.tableHeaders.actions') }}
       </th>
     </template>
@@ -148,10 +138,12 @@
         <td>
           <v-chip
             class="text-uppercase font-weight-bold"
-            :color="m.role === 'Admin' ? 'primary' : m.role === 'Manager' ? 'info' : 'grey-darken-1'"
+            :color="getRoleColors(m.role).bg"
             size="small"
             variant="flat"
-          >{{ m.role }}</v-chip>
+          >
+            <span :class="`text-${getRoleColors(m.role).text}`">{{ m.role }}</span>
+          </v-chip>
         </td>
         <td>
           <span class="text-caption text-grey-darken-2">{{ m.wallet_access }}</span>

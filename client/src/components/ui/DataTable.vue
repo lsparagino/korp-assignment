@@ -41,3 +41,13 @@
     <slot name="footer" />
   </v-card>
 </template>
+
+<style scoped>
+:deep(thead th) {
+    color: rgb(var(--v-theme-grey-darken-1));
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-align: left;
+}
+</style>

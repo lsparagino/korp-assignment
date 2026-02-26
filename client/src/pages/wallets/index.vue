@@ -111,35 +111,12 @@
     @update:per-page="handlePerPageChange"
   >
     <template #columns>
-      <th
-        class="text-grey-darken-1 text-uppercase text-caption font-weight-bold text-left"
-      >
-        {{ $t('wallets.tableHeaders.name') }}
-      </th>
-      <th
-        class="text-grey-darken-1 text-uppercase text-caption font-weight-bold text-left"
-      >
-        {{ $t('wallets.tableHeaders.address') }}
-      </th>
-      <th
-        class="text-grey-darken-1 text-uppercase text-caption font-weight-bold text-left"
-      >
-        {{ $t('wallets.tableHeaders.balance') }}
-      </th>
-      <th
-        class="text-grey-darken-1 text-uppercase text-caption font-weight-bold text-left"
-      >
-        {{ $t('wallets.tableHeaders.currency') }}
-      </th>
-      <th
-        class="text-grey-darken-1 text-uppercase text-caption font-weight-bold text-left"
-      >
-        {{ $t('wallets.tableHeaders.status') }}
-      </th>
-      <th
-        v-if="authStore.isAdmin"
-        class="text-grey-darken-1 text-uppercase text-caption font-weight-bold text-right"
-      >
+      <th>{{ $t('wallets.tableHeaders.name') }}</th>
+      <th>{{ $t('wallets.tableHeaders.address') }}</th>
+      <th>{{ $t('wallets.tableHeaders.balance') }}</th>
+      <th>{{ $t('wallets.tableHeaders.currency') }}</th>
+      <th>{{ $t('wallets.tableHeaders.status') }}</th>
+      <th v-if="authStore.isAdmin" class="text-right">
         {{ $t('common.actions') }}
       </th>
     </template>

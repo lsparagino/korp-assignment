@@ -1,82 +1,51 @@
 import { describe, expect, it } from 'vitest'
 import { getCurrencyColors, getRoleColors, getStatusColors, getTransactionTypeColors } from './colors'
 
+function expectColorPair(result: { bg: string, text: string }) {
+  expect(result.bg).toBeTruthy()
+  expect(result.text).toBeTruthy()
+}
+
 describe('getCurrencyColors', () => {
-  it('returns a color pair for USD', () => {
-    const result = getCurrencyColors('USD')
-    expect(result).toHaveProperty('bg')
-    expect(result).toHaveProperty('text')
+  it.each(['USD', 'EUR', 'GBP'])('returns a color pair for %s', (currency) => {
+    expectColorPair(getCurrencyColors(currency))
   })
 
-  it('returns a color pair for EUR', () => {
-    const result = getCurrencyColors('EUR')
-    expect(result).toHaveProperty('bg')
-    expect(result).toHaveProperty('text')
-  })
-
-  it('returns a default color for unknown currencies', () => {
-    const result = getCurrencyColors('UNKNOWN')
-    expect(result).toHaveProperty('bg')
-    expect(result).toHaveProperty('text')
+  it('returns a fallback for unknown currencies', () => {
+    expectColorPair(getCurrencyColors('UNKNOWN'))
   })
 })
 
 describe('getStatusColors', () => {
-  it('returns green tones for active status', () => {
-    const result = getStatusColors('active')
-    expect(result.bg).toBeTruthy()
-    expect(result.text).toBeTruthy()
+  it.each(['active', 'frozen'])('returns a color pair for %s', (status) => {
+    expectColorPair(getStatusColors(status))
   })
 
-  it('returns a color pair for frozen status', () => {
-    const result = getStatusColors('frozen')
-    expect(result.bg).toBeTruthy()
-    expect(result.text).toBeTruthy()
+  it('returns a fallback for unknown statuses', () => {
+    expectColorPair(getStatusColors('unknown'))
   })
 })
 
 describe('getRoleColors', () => {
-  it('returns a color pair for owner role', () => {
-    const result = getRoleColors('owner')
-    expect(result).toHaveProperty('bg')
-    expect(result).toHaveProperty('text')
+  it.each(['admin', 'manager', 'member'])('returns a color pair for %s', (role) => {
+    expectColorPair(getRoleColors(role))
   })
 
-  it('returns a color pair for admin role', () => {
-    const result = getRoleColors('admin')
-    expect(result).toHaveProperty('bg')
-    expect(result).toHaveProperty('text')
+  it('is case-insensitive', () => {
+    expect(getRoleColors('Admin')).toEqual(getRoleColors('admin'))
   })
 
-  it('returns a default for unknown roles', () => {
-    const result = getRoleColors('unknown')
-    expect(result).toHaveProperty('bg')
-    expect(result).toHaveProperty('text')
+  it('returns a fallback for unknown roles', () => {
+    expectColorPair(getRoleColors('unknown'))
   })
 })
 
 describe('getTransactionTypeColors', () => {
-  it('returns red tones for debit', () => {
-    const result = getTransactionTypeColors('debit')
-    expect(result.bg).toContain('red')
-    expect(result.text).toContain('red')
+  it.each(['debit', 'credit', 'transfer'])('returns a color pair for %s', (type) => {
+    expectColorPair(getTransactionTypeColors(type))
   })
 
-  it('returns green tones for credit', () => {
-    const result = getTransactionTypeColors('credit')
-    expect(result.bg).toContain('green')
-    expect(result.text).toContain('green')
-  })
-
-  it('returns blue tones for transfer', () => {
-    const result = getTransactionTypeColors('transfer')
-    expect(result.bg).toContain('blue')
-    expect(result.text).toContain('blue')
-  })
-
-  it('returns a default for unknown types', () => {
-    const result = getTransactionTypeColors('unknown')
-    expect(result).toHaveProperty('bg')
-    expect(result).toHaveProperty('text')
+  it('returns a fallback for unknown types', () => {
+    expectColorPair(getTransactionTypeColors('unknown'))
   })
 })

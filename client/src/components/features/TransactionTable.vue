@@ -87,6 +87,10 @@
   function getChipTextColor (item: Transaction) {
     return `text-${getTransactionTypeColors(getTransactionLabel(item)).text}`
   }
+
+  function getDisplayAmount (item: Transaction) {
+    return isTransfer(item) ? Math.abs(Number(item.amount)) : Number(item.amount)
+  }
 </script>
 
 <template>
@@ -97,40 +101,13 @@
     @update:per-page="$emit('update:per-page', $event)"
   >
     <template #columns>
-      <th
-        class="text-grey-darken-1 text-uppercase text-caption font-weight-bold text-left"
-      >
-        {{ $t('transactions.tableHeaders.date') }}
-      </th>
-      <th
-        class="text-grey-darken-1 text-uppercase text-caption font-weight-bold text-left"
-      >
-        {{ $t('transactions.tableHeaders.type') }}
-      </th>
-      <th
-        class="text-grey-darken-1 text-uppercase text-caption font-weight-bold text-left"
-      >
-        {{ $t('transactions.tableHeaders.amount') }}
-      </th>
-      <th
-        class="text-grey-darken-1 text-uppercase text-caption font-weight-bold text-left"
-      >
-        {{ $t('transactions.tableHeaders.fromWallet') }}
-      </th>
-      <th
-        class="text-grey-darken-1 text-uppercase text-caption font-weight-bold text-left"
-      >
-        {{ $t('transactions.tableHeaders.toWallet') }}
-      </th>
-      <th
-        class="text-grey-darken-1 text-uppercase text-caption font-weight-bold text-left"
-      >
-        {{ $t('transactions.tableHeaders.reference') }}
-      </th>
-      <th
-        class="text-grey-darken-1 text-uppercase text-caption font-weight-bold text-center"
-        style="width: 60px"
-      >
+      <th>{{ $t('transactions.tableHeaders.date') }}</th>
+      <th>{{ $t('transactions.tableHeaders.type') }}</th>
+      <th>{{ $t('transactions.tableHeaders.amount') }}</th>
+      <th>{{ $t('transactions.tableHeaders.fromWallet') }}</th>
+      <th>{{ $t('transactions.tableHeaders.toWallet') }}</th>
+      <th>{{ $t('transactions.tableHeaders.reference') }}</th>
+      <th class="text-center" style="width: 60px">
         {{ $t('transactions.tableHeaders.actions') }}
       </th>
     </template>
@@ -157,7 +134,7 @@
         <td
           :class="[getTransactionColor(item), 'font-weight-black']"
         >
-          {{ formatCurrency(item.amount, item.currency) }}
+          {{ formatCurrency(getDisplayAmount(item), item.currency) }}
         </td>
         <td>
           <div class="d-flex align-center">
@@ -277,7 +254,7 @@
             class="text-h5 font-weight-black"
             :class="getTransactionColor(selectedTransaction)"
           >
-            {{ formatCurrency(selectedTransaction.amount, selectedTransaction.currency) }}
+            {{ formatCurrency(getDisplayAmount(selectedTransaction), selectedTransaction.currency) }}
           </span>
         </div>
 
