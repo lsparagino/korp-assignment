@@ -11,6 +11,7 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    AddressBookDialog: typeof import('./components/features/AddressBookDialog.vue')['default']
     AppLogo: typeof import('./components/ui/AppLogo.vue')['default']
     AppNotification: typeof import('./components/ui/AppNotification.vue')['default']
     AuthCard: typeof import('./components/ui/AuthCard.vue')['default']

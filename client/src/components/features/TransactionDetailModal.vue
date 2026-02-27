@@ -112,25 +112,23 @@
 
       <v-card-text class="pa-5">
         <!-- Type, Status & Amount Header -->
-        <div class="d-flex align-center justify-space-between mb-6">
-          <div class="d-flex align-center ga-2">
+        <div class="d-flex flex-column flex-sm-row align-center align-sm-center justify-space-between ga-2 mb-6">
+          <div class="d-flex align-center ga-1">
             <v-chip
               class="text-uppercase font-weight-bold"
-              :color="getTransactionTypeColors(getTransactionLabel()).bg"
-              variant="flat"
+              :color="getTransactionTypeColors(getTransactionLabel()).text"
+              size="small"
+              variant="text"
             >
-              <span :class="`text-${getTransactionTypeColors(getTransactionLabel()).text}`">
-                {{ getTransactionLabel() }}
-              </span>
+              {{ getTransactionLabel() }}
             </v-chip>
             <v-chip
               class="text-uppercase font-weight-bold"
-              :color="getTransactionStatusColors(transaction.status).bg"
-              variant="flat"
+              :color="getTransactionStatusColors(transaction.status).text"
+              size="small"
+              variant="text"
             >
-              <span :class="`text-${getTransactionStatusColors(transaction.status).text}`">
-                {{ getStatusLabel(transaction.status) }}
-              </span>
+              {{ getStatusLabel(transaction.status) }}
             </v-chip>
           </div>
           <span

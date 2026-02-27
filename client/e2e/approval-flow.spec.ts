@@ -16,12 +16,9 @@ test.describe('Approval Flow', () => {
         const member = await loginViaApi('member@example.com', 'password')
         const memberPage = await authenticatedPage(browser, member)
 
-        await memberPage.goto('/transactions')
-        await expect(memberPage.getByTestId('page-heading')).toBeVisible({ timeout: 10_000 })
-
-        // Click the new transfer button
-        await memberPage.getByTestId('initiate-transfer-btn').click({ timeout: 5_000 })
-        await expect(memberPage.getByTestId('transfer-dialog')).toBeVisible({ timeout: 5_000 })
+        // Navigate to transfer creation page
+        await memberPage.goto('/transactions/create')
+        await expect(memberPage.getByTestId('transfer-type-toggle')).toBeVisible({ timeout: 10_000 })
 
         // Fill in transfer form — use a large amount to trigger pending approval
         await memberPage.getByTestId('transfer-sender-wallet').click()
@@ -38,8 +35,8 @@ test.describe('Approval Flow', () => {
         // Step 2: Confirm
         await memberPage.getByTestId('transfer-confirm-btn').click()
 
-        // Wait for success — dialog should close
-        await expect(memberPage.getByTestId('transfer-dialog')).not.toBeVisible({ timeout: 10_000 })
+        // Wait for success — page should redirect to /transactions
+        await expect(memberPage).toHaveURL(/\/transactions\/?$/, { timeout: 10_000 })
         await memberPage.context().close()
 
         // Step 2: Login as admin and verify pending section on dashboard
@@ -74,11 +71,9 @@ test.describe('Approval Flow', () => {
         const member = await loginViaApi('member@example.com', 'password')
         const memberPage = await authenticatedPage(browser, member)
 
-        await memberPage.goto('/transactions')
-        await expect(memberPage.getByTestId('page-heading')).toBeVisible({ timeout: 10_000 })
-
-        await memberPage.getByTestId('initiate-transfer-btn').click({ timeout: 5_000 })
-        await expect(memberPage.getByTestId('transfer-dialog')).toBeVisible({ timeout: 5_000 })
+        // Navigate to transfer creation page
+        await memberPage.goto('/transactions/create')
+        await expect(memberPage.getByTestId('transfer-type-toggle')).toBeVisible({ timeout: 10_000 })
 
         await memberPage.getByTestId('transfer-sender-wallet').click()
         await memberPage.locator('.v-overlay .v-list-item').first().click()
@@ -93,7 +88,7 @@ test.describe('Approval Flow', () => {
 
         // Step 2: Confirm
         await memberPage.getByTestId('transfer-confirm-btn').click()
-        await expect(memberPage.getByTestId('transfer-dialog')).not.toBeVisible({ timeout: 10_000 })
+        await expect(memberPage).toHaveURL(/\/transactions\/?$/, { timeout: 10_000 })
         await memberPage.context().close()
 
         // Step 2: Login as admin and reject the pending transaction

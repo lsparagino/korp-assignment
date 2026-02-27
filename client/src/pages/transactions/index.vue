@@ -1,7 +1,5 @@
 <script lang="ts" setup>
-  import { ref } from 'vue'
   import TransactionTable from '@/components/features/TransactionTable.vue'
-  import TransferDialog from '@/components/features/TransferDialog.vue'
   import PageHeader from '@/components/layout/PageHeader.vue'
   import { useRefreshData } from '@/composables/useRefreshData'
   import { useTransactionFilters } from '@/composables/useTransactionFilters'
@@ -34,12 +32,6 @@
   } = useTransactionFilters()
 
   const { refreshing, refresh } = useRefreshData(() => invalidateQueries())
-
-  const transferDialog = ref(false)
-
-  function onTransferSaved () {
-    invalidateQueries()
-  }
 </script>
 
 <template>
@@ -51,18 +43,13 @@
         data-testid="initiate-transfer-btn"
         prepend-icon="mdi-swap-horizontal"
         rounded="lg"
+        to="/transactions/create"
         variant="flat"
-        @click="transferDialog = true"
       >
         {{ $t('transfers.initiateTransfer') }}
       </v-btn>
     </div>
   </PageHeader>
-
-  <TransferDialog
-    v-model="transferDialog"
-    @saved="onTransferSaved"
-  />
 
   <!-- Filters -->
   <v-card

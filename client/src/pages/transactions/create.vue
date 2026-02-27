@@ -3,38 +3,34 @@
   import type { TransferForm } from '@/api/transactions'
   import type { Wallet } from '@/api/wallets'
   import { useQuery, useQueryCache } from '@pinia/colada'
-  import { computed, ref, watch } from 'vue'
+  import { computed, onMounted, ref, watch } from 'vue'
   import { useI18n } from 'vue-i18n'
-  import { createAddressBookEntry } from '@/api/address-book'
+  import { useRouter } from 'vue-router'
   import { fetchCompanyThresholds } from '@/api/settings'
   import { initiateTransfer } from '@/api/transactions'
+  import AddressBookDialog from '@/components/features/AddressBookDialog.vue'
   import { useFormValidation } from '@/composables/useFormValidation'
-  import { ADDRESS_BOOK_QUERY_KEYS, addressBookListQuery } from '@/queries/address-book'
   import { WALLET_QUERY_KEYS, walletsListQuery } from '@/queries/wallets'
   import { useAuthStore } from '@/stores/auth'
   import { getValidationErrors, isApiError } from '@/utils/errors'
   import { formatCurrency, getCurrencySymbol } from '@/utils/formatters'
 
   const { t } = useI18n()
+  const router = useRouter()
   const authStore = useAuthStore()
+  const queryCache = useQueryCache()
 
   const bypassesThreshold = computed(() =>
     authStore.user?.role === 'admin' || authStore.user?.role === 'manager',
   )
 
-  const props = defineProps<{
-    modelValue: boolean
-  }>()
-
-  const emit = defineEmits(['update:modelValue', 'saved'])
-
-  const dialog = ref(false)
   const processing = ref(false)
   const { formRef, formValid, validate, resetValidation } = useFormValidation()
   const transferType = ref<'external' | 'internal'>('internal')
   const errors = ref<Record<string, string[]>>({})
   const apiError = ref('')
   const step = ref<'form' | 'recap'>('form')
+  const addressBookDialog = ref(false)
 
   const form = ref<TransferForm>({
     sender_wallet_id: 0,
@@ -56,45 +52,6 @@
   const activeWallets = computed(() =>
     wallets.value.filter(w => w.status !== 'frozen'),
   )
-
-  // --- Address Book ---
-  const { data: addressBookData } = useQuery(addressBookListQuery)
-  const addressBookEntries = computed<AddressBookEntry[]>(() => addressBookData.value ?? [])
-  const selectedAddressBookEntry = ref<AddressBookEntry | null>(null)
-  const showAddAddressForm = ref(false)
-  const savingAddress = ref(false)
-  const newAddress = ref({ name: '', address: '' })
-
-  function selectAddressBookEntry(entry: AddressBookEntry | null) {
-    selectedAddressBookEntry.value = entry
-    if (entry) {
-      form.value.external_name = entry.name
-      form.value.external_address = entry.address
-    }
-  }
-
-  async function saveNewAddress() {
-    if (!newAddress.value.name || !newAddress.value.address) return
-    savingAddress.value = true
-    try {
-      const { data } = await createAddressBookEntry(newAddress.value)
-      await queryCache.invalidateQueries({ key: ADDRESS_BOOK_QUERY_KEYS.root })
-      selectAddressBookEntry(data.data)
-      showAddAddressForm.value = false
-      newAddress.value = { name: '', address: '' }
-    } catch {
-      // Errors handled silently, form stays open for retry
-    } finally {
-      savingAddress.value = false
-    }
-  }
-
-  function resetAddressBookState() {
-    selectedAddressBookEntry.value = null
-    showAddAddressForm.value = false
-    savingAddress.value = false
-    newAddress.value = { name: '', address: '' }
-  }
 
   const selectedWallet = computed(() =>
     wallets.value.find(w => w.id === form.value.sender_wallet_id),
@@ -129,7 +86,7 @@
 
   const thresholdsMap = ref<Map<string, number>>(new Map())
 
-  async function loadThresholds () {
+  async function loadThresholds() {
     try {
       const { data } = await fetchCompanyThresholds()
       const map = new Map<string, number>()
@@ -155,28 +112,26 @@
   // --- Validation rules ---
   const requiredRule = (v: unknown) => !!v || t('validation.required')
   const positiveAmountRule = (v: number) => v > 0 || t('validation.positiveAmount')
-  function insufficientFundsRule (v: number) {
+  function insufficientFundsRule(v: number) {
     if (!selectedWallet.value) return true
     return v <= Number(selectedWallet.value.available_balance) || t('validation.insufficientFunds')
   }
   const amountRules = [requiredRule, positiveAmountRule, insufficientFundsRule]
   const referenceRules = [requiredRule]
 
+  // Set default wallet when wallets load
   watch(
-    () => props.modelValue,
-    val => {
-      dialog.value = val
-      if (val) {
-        resetForm()
-        loadThresholds()
+    wallets,
+    (list) => {
+      if (list.length > 0 && form.value.sender_wallet_id === 0) {
+        const defaultWallet = list.find(w => w.status !== 'frozen')
+        if (defaultWallet) {
+          form.value.sender_wallet_id = defaultWallet.id
+        }
       }
     },
     { immediate: true },
   )
-
-  watch(dialog, val => {
-    emit('update:modelValue', val)
-  })
 
   watch(transferType, type => {
     form.value.external = type === 'external'
@@ -185,7 +140,6 @@
     } else {
       form.value.external_address = ''
       form.value.external_name = ''
-      resetAddressBookState()
     }
   })
 
@@ -201,55 +155,41 @@
         return
       }
 
-      const receiverWallet = wallets.value.find(w => w.id === receiverId)
-      if (receiverWallet && selectedWallet.value && receiverWallet.currency !== selectedWallet.value.currency) {
+      const receiver = wallets.value.find(w => w.id === receiverId)
+      if (receiver && selectedWallet.value && receiver.currency !== selectedWallet.value.currency) {
         form.value.receiver_wallet_id = null
       }
     },
   )
 
-  function resetForm () {
-    errors.value = {}
-    apiError.value = ''
-    step.value = 'form'
-    transferType.value = 'internal'
-    const defaultWallet = activeWallets.value[0]
-    form.value = {
-      sender_wallet_id: defaultWallet?.id ?? 0,
-      receiver_wallet_id: null,
-      amount: 0,
-      external: false,
-      external_address: '',
-      external_name: '',
-      reference: '',
-      notes: '',
-    }
-    resetAddressBookState()
-    resetValidation()
+  onMounted(() => {
+    loadThresholds()
+  })
+
+  function onAddressBookSelect(entry: AddressBookEntry) {
+    form.value.external_name = entry.name
+    form.value.external_address = entry.address
   }
 
-  const queryCache = useQueryCache()
-
-  async function reviewTransfer () {
+  async function reviewTransfer() {
     const valid = await validate()
     if (!valid) return
     step.value = 'recap'
   }
 
-  function goBack () {
+  function goBack() {
     step.value = 'form'
     apiError.value = ''
   }
 
-  async function confirmTransfer () {
+  async function confirmTransfer() {
     processing.value = true
     errors.value = {}
     apiError.value = ''
     try {
       await initiateTransfer(form.value)
       await queryCache.invalidateQueries({ key: WALLET_QUERY_KEYS.root })
-      emit('saved')
-      dialog.value = false
+      router.push('/transactions/')
     } catch (error: unknown) {
       if (isApiError(error, 422)) {
         errors.value = getValidationErrors(error)
@@ -266,22 +206,25 @@
 </script>
 
 <template>
-  <v-dialog v-model="dialog" data-testid="transfer-dialog" max-width="520">
-    <v-card rounded="lg">
-      <v-card-title class="pa-4 font-weight-bold d-flex align-center justify-space-between">
-        {{ step === 'recap' ? $t('transfers.confirmTitle') : $t('transfers.title') }}
-        <v-btn
-          data-testid="transfer-close-btn"
-          density="comfortable"
-          icon="mdi-close"
-          size="small"
-          variant="text"
-          @click="dialog = false"
-        />
-      </v-card-title>
-      <v-divider />
+  <div class="mb-8">
+    <v-btn
+      class="text-none mb-4 px-0"
+      color="primary"
+      data-testid="transfer-back-link"
+      prepend-icon="mdi-arrow-left"
+      to="/transactions/"
+      variant="text"
+    >
+      {{ $t('transfers.backToTransactions') }}
+    </v-btn>
+    <h1 class="text-h5 font-weight-bold text-grey-darken-2">
+      {{ step === 'recap' ? $t('transfers.confirmTitle') : $t('transfers.title') }}
+    </h1>
+  </div>
 
-      <v-card-text class="pa-4">
+  <v-card border class="pa-6 pa-sm-8" flat rounded="lg">
+    <v-row justify="center">
+      <v-col cols="12" lg="5" md="8">
         <v-alert
           v-if="apiError"
           class="mb-4"
@@ -361,87 +304,18 @@
 
           <!-- To Destination (External) -->
           <template v-if="transferType === 'external'">
-            <div class="text-overline font-weight-bold text-grey-darken-1 mb-2 mt-4">
-              {{ $t('transfers.toExternal') }}
+            <div class="d-flex align-center justify-space-between mb-2 mt-4">
+              <div class="text-overline font-weight-bold text-grey-darken-1">
+                {{ $t('transfers.toExternal') }}
+              </div>
+              <a
+                class="text-caption text-primary text-decoration-none cursor-pointer"
+                data-testid="transfer-address-book-link"
+                @click="addressBookDialog = true"
+              >
+                {{ $t('addressBook.title') }}
+              </a>
             </div>
-
-            <!-- Address Book Autocomplete -->
-            <v-autocomplete
-              v-model="selectedAddressBookEntry"
-              class="mb-2"
-              clearable
-              data-testid="transfer-address-book-select"
-              density="comfortable"
-              hide-details="auto"
-              item-title="name"
-              item-value="id"
-              :items="addressBookEntries"
-              :label="$t('addressBook.selectOrAdd')"
-              :no-data-text="$t('addressBook.noEntries')"
-              return-object
-              variant="outlined"
-              @update:model-value="selectAddressBookEntry"
-            >
-              <template #item="{ item, props: itemProps }">
-                <v-list-item v-bind="itemProps">
-                  <template #subtitle>
-                    <span class="text-caption" style="font-family: monospace">{{ item.raw.address }}</span>
-                  </template>
-                </v-list-item>
-              </template>
-              <template #append-item>
-                <v-divider />
-                <v-list-item
-                  class="text-primary"
-                  data-testid="transfer-address-book-add-btn"
-                  prepend-icon="mdi-plus-circle-outline"
-                  :title="$t('addressBook.addNew')"
-                  @click.stop="showAddAddressForm = !showAddAddressForm"
-                />
-              </template>
-            </v-autocomplete>
-
-            <!-- Inline Add Address Form -->
-            <v-expand-transition>
-              <v-card v-if="showAddAddressForm" class="mb-3 pa-3" color="grey-lighten-5" flat rounded="lg">
-                <div class="text-caption font-weight-bold text-grey-darken-2 mb-2">
-                  {{ $t('addressBook.addNew') }}
-                </div>
-                <v-text-field
-                  v-model="newAddress.name"
-                  class="mb-2"
-                  data-testid="transfer-address-book-name"
-                  density="compact"
-                  hide-details="auto"
-                  :label="$t('addressBook.name')"
-                  :placeholder="$t('addressBook.namePlaceholder')"
-                  variant="outlined"
-                />
-                <v-text-field
-                  v-model="newAddress.address"
-                  class="mb-2"
-                  data-testid="transfer-address-book-address"
-                  density="compact"
-                  hide-details="auto"
-                  :label="$t('addressBook.address')"
-                  :placeholder="$t('addressBook.addressPlaceholder')"
-                  variant="outlined"
-                />
-                <v-btn
-                  block
-                  color="primary"
-                  data-testid="transfer-address-book-save-btn"
-                  :disabled="!newAddress.name || !newAddress.address"
-                  :loading="savingAddress"
-                  size="small"
-                  variant="tonal"
-                  @click="saveNewAddress"
-                >
-                  {{ $t('addressBook.save') }}
-                </v-btn>
-              </v-card>
-            </v-expand-transition>
-
             <v-text-field
               v-model="form.external_name"
               class="mb-1"
@@ -575,6 +449,32 @@
               variant="outlined"
             />
           </template>
+
+          <!-- Form Actions -->
+          <div class="d-flex ga-4 mt-6">
+            <v-btn
+              class="text-none font-weight-bold px-8"
+              color="primary"
+              data-testid="transfer-submit-btn"
+              :disabled="!formValid"
+              height="48"
+              rounded="lg"
+              @click="reviewTransfer"
+            >
+              {{ $t('transfers.submit') }}
+            </v-btn>
+            <v-btn
+              class="text-none font-weight-bold px-8"
+              color="grey-darken-1"
+              data-testid="transfer-cancel-btn"
+              height="48"
+              rounded="lg"
+              to="/transactions/"
+              variant="outlined"
+            >
+              {{ $t('common.cancel') }}
+            </v-btn>
+          </div>
         </v-form>
 
         <!-- ── Step 2: Recap ── -->
@@ -690,53 +590,45 @@
               : $t('transfers.thresholdWarning', { amount: formatCurrency(currentThreshold ?? 0, selectedWallet?.currency ?? 'USD') })
             }}
           </v-alert>
-        </div>
-      </v-card-text>
 
-      <v-divider />
-      <v-card-actions class="pa-4">
-        <v-spacer />
-        <!-- Form step actions -->
-        <template v-if="step === 'form'">
-          <v-btn
-            color="grey-darken-1"
-            data-testid="transfer-cancel-btn"
-            variant="text"
-            @click="dialog = false"
-          >
-            {{ $t('common.cancel') }}
-          </v-btn>
-          <v-btn
-            color="primary"
-            data-testid="transfer-submit-btn"
-            :disabled="!formValid"
-            variant="flat"
-            @click="reviewTransfer"
-          >
-            {{ $t('transfers.submit') }}
-          </v-btn>
-        </template>
-        <!-- Recap step actions -->
-        <template v-else>
-          <v-btn
-            color="grey-darken-1"
-            data-testid="transfer-back-btn"
-            variant="text"
-            @click="goBack"
-          >
-            {{ $t('common.goBack') }}
-          </v-btn>
-          <v-btn
-            color="primary"
-            data-testid="transfer-confirm-btn"
-            :loading="processing"
-            variant="flat"
-            @click="confirmTransfer"
-          >
-            {{ $t('transfers.initiateTransfer') }}
-          </v-btn>
-        </template>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
+          <!-- Recap Actions -->
+          <div class="d-flex ga-4 mt-6">
+            <v-btn
+              class="text-none font-weight-bold px-8"
+              color="primary"
+              data-testid="transfer-confirm-btn"
+              height="48"
+              :loading="processing"
+              rounded="lg"
+              @click="confirmTransfer"
+            >
+              {{ $t('transfers.initiateTransfer') }}
+            </v-btn>
+            <v-btn
+              class="text-none font-weight-bold px-8"
+              color="grey-darken-1"
+              data-testid="transfer-back-btn"
+              height="48"
+              rounded="lg"
+              variant="outlined"
+              @click="goBack"
+            >
+              {{ $t('common.goBack') }}
+            </v-btn>
+          </div>
+        </div>
+      </v-col>
+    </v-row>
+  </v-card>
+
+  <!-- Address Book Dialog -->
+  <AddressBookDialog
+    v-model="addressBookDialog"
+    @select="onAddressBookSelect"
+  />
 </template>
+
+<route lang="yaml">
+meta:
+    layout: App
+</route>

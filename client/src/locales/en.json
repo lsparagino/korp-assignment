@@ -18,7 +18,8 @@
         "genericError": "Something went wrong. Please try again.",
         "errorOccurred": "An error occurred. Please try again.",
         "refreshData": "Refresh data",
-        "goBack": "Go Back"
+        "goBack": "Go Back",
+        "confirm": "Confirm"
     },
     "nav": {
         "dashboard": "Dashboard",
@@ -341,7 +342,7 @@
         "external": "External Transfer",
         "internal": "Internal Transfer",
         "fromWallet": "From Wallet",
-        "toExternal": "To Destination (External)",
+        "toExternal": "To Destination (External Address)",
         "toWallet": "To Wallet",
         "recipientName": "Recipient Name",
         "recipientNamePlaceholder": "e.g., Acme Corp Vendor",
@@ -356,6 +357,7 @@
         "thresholdAutoApproved": "This transfer exceeds {amount}, but will be auto-approved due to your role.",
         "submit": "Review Transfer",
         "initiateTransfer": "Initiate Transfer",
+        "backToTransactions": "Back to Transactions",
         "errors": {
             "forbidden": "You are not authorized to perform this transfer. The wallet may be frozen.",
             "generic": "An unexpected error occurred. Please try again."
@@ -378,6 +380,8 @@
         "saving": "Saving...",
         "entryCreated": "Address saved to address book",
         "noEntries": "No saved addresses yet",
-        "duplicateAddress": "This address is already in your address book"
+        "duplicateAddress": "This address is already in your address book",
+        "searchPlaceholder": "Search contacts...",
+        "deleteConfirm": "Are you sure you want to delete this address book entry?"
     }
 }

@@ -35,6 +35,7 @@ declare module 'vue-router/auto-routes' {
     '/settings/two-factor': RouteRecordInfo<'/settings/two-factor', '/settings/two-factor', Record<never, never>, Record<never, never>>,
     '/team-members/': RouteRecordInfo<'/team-members/', '/team-members', Record<never, never>, Record<never, never>>,
     '/transactions/': RouteRecordInfo<'/transactions/', '/transactions', Record<never, never>, Record<never, never>>,
+    '/transactions/create': RouteRecordInfo<'/transactions/create', '/transactions/create', Record<never, never>, Record<never, never>>,
     '/wallets/': RouteRecordInfo<'/wallets/', '/wallets', Record<never, never>, Record<never, never>>,
     '/wallets/[id]/edit': RouteRecordInfo<'/wallets/[id]/edit', '/wallets/:id/edit', { id: ParamValue<true> }, { id: ParamValue<false> }>,
     '/wallets/create': RouteRecordInfo<'/wallets/create', '/wallets/create', Record<never, never>, Record<never, never>>,
@@ -117,6 +118,10 @@ declare module 'vue-router/auto-routes' {
     }
     'src/pages/transactions/index.vue': {
       routes: '/transactions/'
+      views: never
+    }
+    'src/pages/transactions/create.vue': {
+      routes: '/transactions/create'
       views: never
     }
     'src/pages/wallets/index.vue': {

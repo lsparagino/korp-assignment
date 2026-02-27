@@ -13,13 +13,11 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 // ── Helpers ──────────────────────────────────────────────────────
 
 /**
- * Open the transfer dialog from the transactions page.
+ * Navigate to the transfer creation page.
  */
-async function openTransferDialog(page: Page) {
-    await page.goto('/transactions')
-    await expect(page.getByTestId('page-heading')).toBeVisible({ timeout: 10_000 })
-    await page.getByTestId('initiate-transfer-btn').click()
-    await expect(page.getByTestId('transfer-dialog')).toBeVisible({ timeout: 5_000 })
+async function goToCreateTransfer(page: Page) {
+    await page.goto('/transactions/create')
+    await expect(page.getByTestId('transfer-type-toggle')).toBeVisible({ timeout: 10_000 })
 }
 
 /**
@@ -71,7 +69,8 @@ async function submitTransfer(page: Page) {
     await page.getByTestId('transfer-submit-btn').click()
     await expect(page.getByTestId('transfer-recap')).toBeVisible({ timeout: 10_000 })
     await page.getByTestId('transfer-confirm-btn').click()
-    await expect(page.getByTestId('transfer-dialog')).not.toBeVisible({ timeout: 15_000 })
+    // After successful transfer, the page redirects to /transactions
+    await expect(page).toHaveURL(/\/transactions\/?$/, { timeout: 15_000 })
 }
 
 // ── Tests ────────────────────────────────────────────────────────
@@ -117,7 +116,7 @@ test.describe('Transfer Approval Flow', () => {
         const member = await loginViaApi('member@example.com', 'password')
         const page = await authenticatedPage(browser, member)
 
-        await openTransferDialog(page)
+        await goToCreateTransfer(page)
         await fillInternalTransfer(page, '500', 'Below threshold transfer')
 
         // No threshold warning should appear
@@ -140,7 +139,7 @@ test.describe('Transfer Approval Flow', () => {
         const member = await loginViaApi('member@example.com', 'password')
         const page = await authenticatedPage(browser, member)
 
-        await openTransferDialog(page)
+        await goToCreateTransfer(page)
         await fillInternalTransfer(page, '5000', 'Above threshold transfer')
 
         // Threshold warning should appear
@@ -182,8 +181,8 @@ test.describe('Transfer Approval Flow', () => {
         const unfreezeBtn = page.locator('button').filter({ hasText: en.wallets.unfreezeWallet })
         await expect(unfreezeBtn).toBeVisible({ timeout: 10_000 })
 
-        // Open transfer dialog and check sender dropdown
-        await openTransferDialog(page)
+        // Open transfer page and check sender dropdown
+        await goToCreateTransfer(page)
         await page.getByTestId('transfer-sender-wallet').click()
 
         const allItems = page.locator('.v-overlay--active .v-list-item')
@@ -193,9 +192,8 @@ test.describe('Transfer Approval Flow', () => {
         const frozenItem = page.locator('.v-overlay--active .v-list-item').filter({ hasText: 'Frozen' })
         await expect(frozenItem.first()).toBeVisible({ timeout: 5_000 })
 
-        // Close dialog
+        // Go back to wallets
         await page.keyboard.press('Escape')
-        await page.getByTestId('transfer-close-btn').click()
 
         // Cleanup: unfreeze the wallet
         await page.goto('/wallets/')
@@ -217,7 +215,7 @@ test.describe('Transfer Approval Flow', () => {
         const member = await loginViaApi('member@example.com', 'password')
         const page = await authenticatedPage(browser, member)
 
-        await openTransferDialog(page)
+        await goToCreateTransfer(page)
         await selectFirstAvailableWallet(page, 'transfer-sender-wallet')
 
         // Enter an absurdly large amount
@@ -228,7 +226,7 @@ test.describe('Transfer Approval Flow', () => {
         await page.getByTestId('transfer-amount').locator('input').blur()
 
         // The insufficient funds error should be visible
-        await expect(page.locator('.v-dialog').first()).toContainText(en.validation.insufficientFunds, { timeout: 5_000 })
+        await expect(page.locator('.v-card').first()).toContainText(en.validation.insufficientFunds, { timeout: 5_000 })
 
         // Submit button should be disabled
         await expect(page.getByTestId('transfer-submit-btn')).toBeDisabled()
@@ -243,7 +241,7 @@ test.describe('Transfer Approval Flow', () => {
         const member = await loginViaApi('member@example.com', 'password')
         const page = await authenticatedPage(browser, member)
 
-        await openTransferDialog(page)
+        await goToCreateTransfer(page)
 
         // Switch to external transfer
         await page.getByTestId('transfer-type-external').click()
