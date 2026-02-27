@@ -18,6 +18,7 @@
     refreshing?: boolean
     isAdmin?: boolean
     isManagerOrAdmin?: boolean
+    compact?: boolean
   }
 
   const props = withDefaults(defineProps<Props>(), {
@@ -28,6 +29,7 @@
     refreshing: false,
     isAdmin: false,
     isManagerOrAdmin: false,
+    compact: false,
   })
 
   const emit = defineEmits(['update:page', 'update:per-page', 'refresh', 'reviewed'])
@@ -125,26 +127,28 @@
     @update:per-page="emit('update:per-page', $event)"
   >
     <template #columns>
-      <!-- Mobile header (xs only) -->
-      <th class="d-sm-none">{{ $t('transactions.tableHeaders.transaction') }}</th>
+      <!-- Mobile header (xs only, or always when compact) -->
+      <th :class="compact ? '' : 'd-sm-none'">{{ $t('transactions.tableHeaders.transaction') }}</th>
 
-      <!-- Desktop headers (sm+) -->
-      <th class="d-none d-sm-table-cell">{{ $t('transactions.tableHeaders.date') }}</th>
-      <th class="d-none d-lg-table-cell">{{ $t('transactions.tableHeaders.type') }}</th>
-      <th class="d-none d-sm-table-cell" style="width: 40px">{{ $t('transactions.tableHeaders.status') }}</th>
-      <th class="d-none d-sm-table-cell">{{ $t('transactions.tableHeaders.amount') }}</th>
-      <th class="d-none d-sm-table-cell">{{ $t('transactions.tableHeaders.fromWallet') }}</th>
-      <th class="d-none d-sm-table-cell">{{ $t('transactions.tableHeaders.toWallet') }}</th>
+      <!-- Desktop headers (sm+, hidden when compact) -->
+      <template v-if="!compact">
+        <th class="d-none d-sm-table-cell">{{ $t('transactions.tableHeaders.date') }}</th>
+        <th class="d-none d-lg-table-cell">{{ $t('transactions.tableHeaders.type') }}</th>
+        <th class="d-none d-sm-table-cell" style="width: 40px">{{ $t('transactions.tableHeaders.status') }}</th>
+        <th class="d-none d-sm-table-cell">{{ $t('transactions.tableHeaders.amount') }}</th>
+        <th class="d-none d-sm-table-cell">{{ $t('transactions.tableHeaders.fromWallet') }}</th>
+        <th class="d-none d-sm-table-cell">{{ $t('transactions.tableHeaders.toWallet') }}</th>
 
-      <th class="text-center d-none d-sm-table-cell" style="width: 60px">
-        {{ $t('transactions.tableHeaders.actions') }}
-      </th>
+        <th class="text-center d-none d-sm-table-cell" style="width: 60px">
+          {{ $t('transactions.tableHeaders.actions') }}
+        </th>
+      </template>
     </template>
 
     <template #body>
       <tr v-for="item in items" :key="item.id" class="cursor-pointer" @click="openDetail(item)">
         <!-- ── Mobile: Single cell with two rows ── -->
-        <td class="d-sm-none py-3">
+        <td :class="compact ? 'py-3' : 'd-sm-none py-3'">
           <!-- Row 1: status icon + date (left) — amount (right) -->
           <div class="d-flex align-center justify-space-between mb-2">
             <div class="d-flex align-center ga-1">
@@ -195,6 +199,7 @@
         </td>
 
         <!-- ── Desktop: Date ── -->
+        <template v-if="!compact">
         <td class="text-grey-darken-2 text-caption text-no-wrap d-none d-sm-table-cell">
           {{ formatDate(item.created_at) }}
         </td>
@@ -291,6 +296,7 @@
             @click.stop="openDetail(item)"
           />
         </td>
+        </template>
       </tr>
       <tr v-if="!loading && items.length === 0">
         <td

@@ -36,6 +36,7 @@ type TransactionParams = PaginationParams & {
   reference?: string
   wallet_id?: number | null
   counterpart_wallet_id?: number | null
+  initiator_user_id?: number
 }
 
 export interface TransferForm {

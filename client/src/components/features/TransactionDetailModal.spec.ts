@@ -226,4 +226,30 @@ describe('TransactionDetailModal.vue', () => {
     const textarea = document.body.querySelector('[data-testid="reject-reason-input"]')
     expect(textarea).not.toBeNull()
   })
+  it('shows view recent transactions link when initiator present and isManagerOrAdmin', async () => {
+    await mountModal({
+      transaction: createTransaction({
+        status: 'pending_approval',
+        initiator: { id: 10, name: 'Alice Johnson' },
+      }),
+      isManagerOrAdmin: true,
+    })
+
+    const btn = document.body.querySelector('[data-testid="view-recent-btn"]')
+    expect(btn).not.toBeNull()
+    expect(btn?.textContent).toContain(en.transactions.viewRecentTransactions)
+  })
+
+  it('hides view recent transactions link when not manager or admin', async () => {
+    await mountModal({
+      transaction: createTransaction({
+        status: 'pending_approval',
+        initiator: { id: 10, name: 'Alice Johnson' },
+      }),
+      isManagerOrAdmin: false,
+    })
+
+    const btn = document.body.querySelector('[data-testid="view-recent-btn"]')
+    expect(btn).toBeNull()
+  })
 })

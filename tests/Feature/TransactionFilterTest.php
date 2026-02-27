@@ -287,4 +287,34 @@ class TransactionFilterTest extends TestCase
         $response->assertJsonCount(1, 'data');
         $this->assertEquals('rejected', $response->json('data.0.status'));
     }
+    public function test_can_filter_transactions_by_initiator_user_id(): void
+    {
+        $initiator = User::factory()->create();
+        $initiator->companies()->attach($this->company);
+
+        $otherUser = User::factory()->create();
+        $otherUser->companies()->attach($this->company);
+
+        Transaction::factory()->create([
+            'wallet_id' => $this->wallet->id,
+            'initiator_user_id' => $initiator->id,
+        ]);
+
+        Transaction::factory()->create([
+            'wallet_id' => $this->wallet->id,
+            'initiator_user_id' => $otherUser->id,
+        ]);
+
+        Transaction::factory()->create([
+            'wallet_id' => $this->wallet->id,
+            'initiator_user_id' => null,
+        ]);
+
+        $response = $this->actingAs($this->user, 'sanctum')
+            ->getJson("/api/v0/transactions?initiator_user_id={$initiator->id}&company_id={$this->company->id}");
+
+        $response->assertStatus(200);
+        $response->assertJsonCount(1, 'data');
+        $this->assertEquals($initiator->id, $response->json('data.0.initiator_user_id'));
+    }
 }
