@@ -320,9 +320,23 @@ test.describe('Transfer Approval Flow', () => {
         // Click reject, enter reason, confirm
         await page.getByTestId('reject-btn').click()
         await expect(page.getByTestId('reject-reason-input')).toBeVisible({ timeout: 5_000 })
-        await page.getByTestId('reject-reason-input').locator('textarea').fill('Amount exceeds budget allocation')
-        await page.getByTestId('confirm-reject-btn').click()
-        await expect(page.getByTestId('confirm-reject-btn')).not.toBeVisible({ timeout: 10_000 })
+        const textarea = page.getByTestId('reject-reason-input').locator('textarea').first()
+        await textarea.click()
+        // Use evaluate to set value + dispatch native input event for Vue v-model
+        await textarea.evaluate(el => {
+            const t = el as HTMLTextAreaElement
+            const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
+                window.HTMLTextAreaElement.prototype, 'value',
+            )!.set!
+            nativeInputValueSetter.call(t, 'Budget exceeded')
+            t.dispatchEvent(new Event('input', { bubbles: true }))
+        })
+
+        // Wait for confirm button to become enabled after v-model updates
+        const confirmRejectBtn = page.getByTestId('confirm-reject-btn')
+        await expect(confirmRejectBtn).toBeEnabled({ timeout: 5_000 })
+        await confirmRejectBtn.click()
+        await expect(confirmRejectBtn).not.toBeVisible({ timeout: 10_000 })
 
         await page.context().close()
     })
