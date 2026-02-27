@@ -221,6 +221,7 @@
         :is-manager-or-admin="authStore.isManagerOrAdmin"
         :items="pendingTransactions"
         :wallets="wallets"
+        @refresh="invalidateDashboard"
         @reviewed="invalidateDashboard"
       />
     </div>
@@ -236,6 +237,7 @@
         :is-manager-or-admin="authStore.isManagerOrAdmin"
         :items="recentTransactions"
         :wallets="wallets"
+        @refresh="invalidateDashboard"
         @reviewed="invalidateDashboard"
       />
       <v-card

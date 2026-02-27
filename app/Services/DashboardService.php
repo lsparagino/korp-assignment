@@ -51,7 +51,7 @@ class DashboardService
         if (in_array($user->role, [UserRole::Admin, UserRole::Manager]) && $companyId) {
             $companyWalletIds = Wallet::where('company_id', $companyId)->pluck('id');
 
-            $pendingTransactions = Transaction::forWallets($companyWalletIds)
+            $pendingTransactions = Transaction::deduplicatedForWallets($companyWalletIds)
                 ->where('status', TransactionStatus::PendingApproval)
                 ->with(['wallet', 'counterpartWallet', 'initiator'])
                 ->latest()
