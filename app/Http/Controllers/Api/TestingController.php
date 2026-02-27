@@ -2,13 +2,17 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Enums\TransactionType;
+use App\Enums\WalletStatus;
 use App\Models\Company;
 use App\Models\User;
+use App\Models\Wallet;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Str;
 use Throwable;
 
 class TestingController
@@ -117,5 +121,45 @@ class TestingController
         return response()->json([
             'company' => $company,
         ]);
+    }
+
+    public function createWallet(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'email' => 'required|email|exists:users,email',
+            'name' => 'sometimes|string',
+            'currency' => 'sometimes|string|in:USD,EUR,GBP',
+            'balance' => 'sometimes|numeric|min:0',
+        ]);
+
+        $user = User::where('email', $validated['email'])->firstOrFail();
+        $company = $user->companies()->first();
+
+        $wallet = Wallet::create([
+            'user_id' => $user->id,
+            'company_id' => $company?->id,
+            'name' => $validated['name'] ?? 'Test Wallet',
+            'currency' => $validated['currency'] ?? 'USD',
+            'status' => WalletStatus::Active,
+            'address' => 'bc1q'.Str::lower(Str::random(36)),
+        ]);
+
+        // Fund the wallet with an initial credit if balance is requested
+        $balance = $validated['balance'] ?? 0;
+        if ($balance > 0) {
+            \App\Models\Transaction::create([
+                'wallet_id' => $wallet->id,
+                'counterpart_wallet_id' => null,
+                'type' => TransactionType::Credit,
+                'amount' => $balance,
+                'currency' => $wallet->currency,
+                'external' => true,
+                'status' => 'completed',
+                'reference' => 'Initial funding',
+                'group_id' => Str::uuid()->toString(),
+            ]);
+        }
+
+        return response()->json(['wallet' => $wallet]);
     }
 }

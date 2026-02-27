@@ -1,11 +1,19 @@
 import { DOMWrapper, flushPromises } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { ref } from 'vue'
 import { mountWithPlugins } from '@/test/setup'
 import TransferDialog from './TransferDialog.vue'
 
 vi.mock('@/api/transactions', () => ({
   initiateTransfer: vi.fn().mockResolvedValue({ data: { group_id: 'test-uuid', status: 'completed' } }),
+}))
+
+vi.mock('@/api/address-book', () => ({
+  createAddressBookEntry: vi.fn().mockResolvedValue({
+    data: { data: { id: 99, name: 'New Contact', address: 'new-addr-123', created_at: '2026-01-01T00:00:00Z' } },
+  }),
+  fetchAddressBook: vi.fn().mockResolvedValue({ data: { data: [] } }),
+  updateAddressBookEntry: vi.fn(),
+  deleteAddressBookEntry: vi.fn(),
 }))
 
 vi.mock('@/stores/auth', () => ({
@@ -20,6 +28,11 @@ const mockWallets = [
   { id: 2, name: 'Business', address: 'addr2', balance: 3000, locked_balance: 0, available_balance: 3000, currency: 'USD', status: 'active', can_delete: false },
 ]
 
+const mockAddressBookEntries = [
+  { id: 1, name: 'Acme Corp', address: 'acme-addr-001', created_at: '2026-01-01T00:00:00Z' },
+  { id: 2, name: 'Beta Inc', address: 'beta-addr-002', created_at: '2026-01-02T00:00:00Z' },
+]
+
 // Mock the wallets query module so useQuery returns our test data
 vi.mock('@/queries/wallets', () => ({
   WALLET_QUERY_KEYS: { root: ['wallets'], list: vi.fn(), byId: vi.fn() },
@@ -31,6 +44,14 @@ vi.mock('@/queries/wallets', () => ({
   walletByIdQuery: vi.fn(),
 }))
 
+vi.mock('@/queries/address-book', () => ({
+  ADDRESS_BOOK_QUERY_KEYS: { root: ['address-book'], list: vi.fn() },
+  addressBookListQuery: () => ({
+    key: ['address-book', 'list'],
+    query: async () => mockAddressBookEntries,
+  }),
+}))
+
 describe('TransferDialog.vue', () => {
   let wrapper: ReturnType<typeof mountWithPlugins>
 
@@ -39,7 +60,7 @@ describe('TransferDialog.vue', () => {
     document.body.innerHTML = ''
   })
 
-  async function mountDialog (props: Record<string, unknown> = {}) {
+  async function mountDialog(props: Record<string, unknown> = {}) {
     const w = mountWithPlugins(TransferDialog, {
       props: {
         modelValue: true,
@@ -53,7 +74,7 @@ describe('TransferDialog.vue', () => {
     return w
   }
 
-  function findByTestId (testId: string) {
+  function findByTestId(testId: string) {
     const el = document.body.querySelector(`[data-testid="${testId}"]`)
     return el ? new DOMWrapper(el as HTMLElement) : null
   }
@@ -89,6 +110,23 @@ describe('TransferDialog.vue', () => {
     expect(findByTestId('transfer-external-name')).not.toBeNull()
     expect(findByTestId('transfer-external-address')).not.toBeNull()
     expect(findByTestId('transfer-receiver-wallet')).toBeNull()
+  })
+
+  it('shows address book autocomplete in external mode', async () => {
+    wrapper = await mountDialog()
+
+    const externalBtn = findByTestId('transfer-type-external')
+    await externalBtn!.trigger('click')
+    await flushPromises()
+    await wrapper.vm.$nextTick()
+
+    expect(findByTestId('transfer-address-book-select')).not.toBeNull()
+  })
+
+  it('does not show address book in internal mode', async () => {
+    wrapper = await mountDialog()
+
+    expect(findByTestId('transfer-address-book-select')).toBeNull()
   })
 
   it('does not show threshold warning for zero amount', async () => {

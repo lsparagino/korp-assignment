@@ -89,6 +89,11 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasOne(UserSetting::class);
     }
 
+    public function addressBookEntries(): HasMany
+    {
+        return $this->hasMany(AddressBookEntry::class);
+    }
+
     public function getIsPendingAttribute(): bool
     {
         return $this->invitation_token !== null;

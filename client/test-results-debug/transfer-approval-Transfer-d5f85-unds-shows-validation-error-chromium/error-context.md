@@ -1,0 +1,175 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e5]:
+      - banner [ref=e6]:
+        - generic [ref=e8]:
+          - generic [ref=e9]:
+            - text: 󰍜
+            - img "SecureWallet" [ref=e11]
+          - generic [ref=e12]:
+            - button "Acme Corp" [ref=e14] [cursor=pointer]:
+              - generic [ref=e15]:
+                - text: Acme Corp
+                - generic [ref=e16]: 󰅀
+            - button [disabled]:
+              - generic:
+                - generic: 󰂜
+            - button [ref=e17] [cursor=pointer]:
+              - generic [ref=e21]: 󰀄
+      - navigation [ref=e22]:
+        - generic [ref=e24]:
+          - text: 󰅀
+          - list [ref=e25]:
+            - link "Dashboard" [ref=e26] [cursor=pointer]:
+              - /url: /dashboard
+              - img [ref=e29]
+              - generic [ref=e35]: Dashboard
+            - link "Wallets" [ref=e36] [cursor=pointer]:
+              - /url: /wallets/
+              - img [ref=e39]
+              - generic [ref=e43]: Wallets
+            - link "Transactions" [ref=e44] [cursor=pointer]:
+              - /url: /transactions/
+              - img [ref=e47]
+              - generic [ref=e53]: Transactions
+            - link "Team Members" [ref=e54] [cursor=pointer]:
+              - /url: /team-members/
+              - img [ref=e57]
+              - generic [ref=e63]: Team Members
+          - separator [ref=e64]
+      - main [ref=e65]:
+        - generic [ref=e66]:
+          - generic [ref=e67]:
+            - heading "Transactions - Acme Corp" [level=1] [ref=e68]
+            - button "Initiate Transfer" [ref=e70] [cursor=pointer]:
+              - generic [ref=e72]: 󰓡
+              - generic [ref=e73]: Initiate Transfer
+          - generic [ref=e74]:
+            - generic [ref=e76]: Filter Options
+            - generic [ref=e77]:
+              - generic [ref=e78]:
+                - generic [ref=e82]:
+                  - generic [ref=e84]: 󰃭
+                  - generic [ref=e85]:
+                    - generic: Date From
+                    - textbox "Date From" [ref=e86] [cursor=pointer]
+                  - text: 󰅙
+                - generic [ref=e90]:
+                  - generic [ref=e92]: 󰃭
+                  - generic [ref=e93]:
+                    - generic: Date To
+                    - textbox "Date To" [ref=e94] [cursor=pointer]
+                  - text: 󰅙
+                - combobox [ref=e98] [cursor=pointer]:
+                  - generic [ref=e100]:
+                    - generic [ref=e102]: All
+                    - combobox "Type": All
+                  - generic [ref=e104]: 󰍝
+                  - generic:
+                    - generic:
+                      - generic: Type
+                - combobox [ref=e108] [cursor=pointer]:
+                  - generic [ref=e110]:
+                    - generic [ref=e112]: All
+                    - combobox "Status": All
+                  - generic [ref=e114]: 󰍝
+                  - generic:
+                    - generic:
+                      - generic: Status
+              - button "Advanced Filters" [ref=e118] [cursor=pointer]:
+                - text: Advanced Filters
+                - generic [ref=e121]: 󰅀
+              - button "Filter" [ref=e124] [cursor=pointer]:
+                - generic [ref=e126]: 󰈶
+                - generic [ref=e127]: Filter
+          - generic [ref=e128]:
+            - generic [ref=e129]:
+              - generic [ref=e130]:
+                - generic [ref=e131]: Transactions List
+                - generic [ref=e132]: (0)
+              - button "Refresh data" [ref=e134] [cursor=pointer]:
+                - generic [ref=e136]: 󰑐
+            - table [ref=e140]:
+              - rowgroup [ref=e141]:
+                - row "Date Type Status Amount From Wallet To Wallet Reference Actions" [ref=e142]:
+                  - columnheader "Date" [ref=e143]
+                  - columnheader "Type" [ref=e144]
+                  - columnheader "Status" [ref=e145]
+                  - columnheader "Amount" [ref=e146]
+                  - columnheader "From Wallet" [ref=e147]
+                  - columnheader "To Wallet" [ref=e148]
+                  - columnheader "Reference" [ref=e149]
+                  - columnheader "Actions" [ref=e150]
+              - rowgroup [ref=e151]:
+                - row "No transactions found." [ref=e152]:
+                  - cell "No transactions found." [ref=e153]
+            - generic [ref=e155]:
+              - generic [ref=e156]: Showing 0 to 0 of 0 entries
+              - generic [ref=e157]:
+                - generic [ref=e158]:
+                  - generic [ref=e159]: "Per page:"
+                  - combobox [ref=e162] [cursor=pointer]:
+                    - generic [ref=e164]:
+                      - generic [ref=e166]: "25"
+                      - combobox: "25"
+                    - generic [ref=e168]: 󰍝
+                - navigation "Pagination Navigation" [ref=e169]:
+                  - list [ref=e170]:
+                    - listitem [ref=e171]:
+                      - button "Previous page" [disabled]:
+                        - generic:
+                          - generic: 󰅁
+                    - listitem [ref=e172]:
+                      - button "Page 1, Current page" [disabled]:
+                        - generic: "1"
+                    - listitem [ref=e173]:
+                      - button "Next page" [disabled]:
+                        - generic:
+                          - generic: 󰅂
+    - button "Open Pinia Colada Devtools" [ref=e174]:
+      - img "Pinia Colada Devtools Logo"
+  - generic:
+    - dialog:
+      - generic [ref=e177]:
+        - generic [ref=e178]:
+          - text: Initiate Transfer
+          - button [ref=e179] [cursor=pointer]:
+            - generic [ref=e181]: 󰅖
+        - separator [ref=e182]
+        - generic [ref=e184]:
+          - generic [ref=e185]: Transfer Type
+          - generic [ref=e186]:
+            - button "Internal Transfer" [ref=e187] [cursor=pointer]:
+              - generic [ref=e188]: Internal Transfer
+            - button "External Transfer" [ref=e189] [cursor=pointer]:
+              - generic [ref=e190]: External Transfer
+          - generic [ref=e191]: From Wallet
+          - generic [ref=e192]:
+            - combobox [ref=e194] [cursor=pointer]:
+              - generic [ref=e196]:
+                - generic [ref=e197]: (US$NaN)
+                - combobox: "0"
+              - generic [ref=e199]: 󰍝
+            - alert [ref=e200]:
+              - generic [ref=e202]: This field is required
+          - generic [ref=e203]: To Wallet
+          - combobox [ref=e206] [cursor=pointer]:
+            - generic [ref=e208]:
+              - combobox
+            - generic [ref=e210]: 󰍝
+          - generic [ref=e211]: Amount
+          - generic [ref=e215]:
+            - generic [ref=e217]: $
+            - spinbutton [ref=e218]: "999999999"
+          - generic [ref=e219]: Reference
+          - textbox "Payment description..." [active] [ref=e224]: Should fail
+        - separator [ref=e225]
+        - generic [ref=e226]:
+          - button "Cancel" [ref=e227] [cursor=pointer]:
+            - generic [ref=e228]: Cancel
+          - button "Review Transfer" [disabled]:
+            - generic: Review Transfer
+```

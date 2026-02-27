@@ -132,6 +132,7 @@
           <v-btn
             class="text-none font-weight-bold"
             color="primary"
+            data-testid="add-threshold-btn"
             :disabled="allThresholdsSet"
             prepend-icon="mdi-plus"
             variant="flat"
@@ -167,6 +168,7 @@
                 <td class="text-center">
                   <v-btn
                     color="primary"
+                    data-testid="threshold-edit-btn"
                     density="comfortable"
                     icon="mdi-pencil"
                     size="small"
@@ -175,6 +177,7 @@
                   />
                   <v-btn
                     color="error"
+                    data-testid="threshold-delete-btn"
                     density="comfortable"
                     icon="mdi-delete"
                     size="small"
@@ -207,6 +210,7 @@
             <v-form ref="formRef" v-model="formValid" @submit.prevent="handleSubmit">
               <v-select
                 v-model="form.currency"
+                data-testid="threshold-currency-select"
                 :disabled="!!editingId"
                 :error-messages="errors.currency"
                 :items="editingId ? currencyOptions : availableCurrencies"
@@ -216,6 +220,7 @@
               />
               <v-text-field
                 v-model.number="form.approval_threshold"
+                data-testid="threshold-amount-input"
                 :error-messages="errors.approval_threshold"
                 :label="$t('settings.thresholds.approvalThreshold')"
                 min="0"
@@ -234,6 +239,7 @@
                 <v-btn
                   class="text-none font-weight-bold"
                   color="primary"
+                  data-testid="threshold-save-btn"
                   :disabled="!formValid"
                   :loading="processing"
                   type="submit"

@@ -365,5 +365,19 @@
         "required": "This field is required",
         "positiveAmount": "Amount must be greater than zero",
         "insufficientFunds": "Insufficient available funds"
+    },
+    "addressBook": {
+        "title": "Address Book",
+        "selectOrAdd": "Select from address book or add new",
+        "addNew": "Add New Address",
+        "name": "Contact Name",
+        "namePlaceholder": "e.g., Acme Corp",
+        "address": "Address",
+        "addressPlaceholder": "e.g., bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh",
+        "save": "Save to Address Book",
+        "saving": "Saving...",
+        "entryCreated": "Address saved to address book",
+        "noEntries": "No saved addresses yet",
+        "duplicateAddress": "This address is already in your address book"
     }
 }

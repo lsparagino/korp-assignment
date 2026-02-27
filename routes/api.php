@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\AddressBookEntryController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CompanyController;
 use App\Http\Controllers\Api\DashboardController;
@@ -95,6 +96,10 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::apiResource('/', WalletController::class)->parameters(['' => 'wallet']);
             Route::patch('/{wallet}/toggle-freeze', [WalletController::class, 'toggleFreeze']);
         });
+
+        Route::apiResource('address-book', AddressBookEntryController::class)
+            ->parameters(['address-book' => 'addressBookEntry'])
+            ->except(['show']);
     });
 });
 
@@ -106,5 +111,6 @@ if (app()->environment('testing')) {
         Route::post('/login', [App\Http\Controllers\Api\TestingController::class, 'loginUser']);
         Route::post('/create-password-reset-token', [App\Http\Controllers\Api\TestingController::class, 'createPasswordResetToken']);
         Route::post('/create-second-company', [App\Http\Controllers\Api\TestingController::class, 'createSecondCompany']);
+        Route::post('/create-wallet', [App\Http\Controllers\Api\TestingController::class, 'createWallet']);
     });
 }

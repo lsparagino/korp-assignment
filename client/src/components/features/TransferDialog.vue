@@ -1,12 +1,15 @@
 <script lang="ts" setup>
+  import type { AddressBookEntry } from '@/api/address-book'
   import type { TransferForm } from '@/api/transactions'
   import type { Wallet } from '@/api/wallets'
   import { useQuery, useQueryCache } from '@pinia/colada'
   import { computed, ref, watch } from 'vue'
   import { useI18n } from 'vue-i18n'
+  import { createAddressBookEntry } from '@/api/address-book'
   import { fetchCompanyThresholds } from '@/api/settings'
   import { initiateTransfer } from '@/api/transactions'
   import { useFormValidation } from '@/composables/useFormValidation'
+  import { ADDRESS_BOOK_QUERY_KEYS, addressBookListQuery } from '@/queries/address-book'
   import { WALLET_QUERY_KEYS, walletsListQuery } from '@/queries/wallets'
   import { useAuthStore } from '@/stores/auth'
   import { getValidationErrors, isApiError } from '@/utils/errors'
@@ -53,6 +56,45 @@
   const activeWallets = computed(() =>
     wallets.value.filter(w => w.status !== 'frozen'),
   )
+
+  // --- Address Book ---
+  const { data: addressBookData } = useQuery(addressBookListQuery)
+  const addressBookEntries = computed<AddressBookEntry[]>(() => addressBookData.value ?? [])
+  const selectedAddressBookEntry = ref<AddressBookEntry | null>(null)
+  const showAddAddressForm = ref(false)
+  const savingAddress = ref(false)
+  const newAddress = ref({ name: '', address: '' })
+
+  function selectAddressBookEntry(entry: AddressBookEntry | null) {
+    selectedAddressBookEntry.value = entry
+    if (entry) {
+      form.value.external_name = entry.name
+      form.value.external_address = entry.address
+    }
+  }
+
+  async function saveNewAddress() {
+    if (!newAddress.value.name || !newAddress.value.address) return
+    savingAddress.value = true
+    try {
+      const { data } = await createAddressBookEntry(newAddress.value)
+      await queryCache.invalidateQueries({ key: ADDRESS_BOOK_QUERY_KEYS.root })
+      selectAddressBookEntry(data.data)
+      showAddAddressForm.value = false
+      newAddress.value = { name: '', address: '' }
+    } catch {
+      // Errors handled silently, form stays open for retry
+    } finally {
+      savingAddress.value = false
+    }
+  }
+
+  function resetAddressBookState() {
+    selectedAddressBookEntry.value = null
+    showAddAddressForm.value = false
+    savingAddress.value = false
+    newAddress.value = { name: '', address: '' }
+  }
 
   const selectedWallet = computed(() =>
     wallets.value.find(w => w.id === form.value.sender_wallet_id),
@@ -143,6 +185,7 @@
     } else {
       form.value.external_address = ''
       form.value.external_name = ''
+      resetAddressBookState()
     }
   })
 
@@ -181,6 +224,7 @@
       reference: '',
       notes: '',
     }
+    resetAddressBookState()
     resetValidation()
   }
 
@@ -320,6 +364,84 @@
             <div class="text-overline font-weight-bold text-grey-darken-1 mb-2 mt-4">
               {{ $t('transfers.toExternal') }}
             </div>
+
+            <!-- Address Book Autocomplete -->
+            <v-autocomplete
+              v-model="selectedAddressBookEntry"
+              class="mb-2"
+              clearable
+              data-testid="transfer-address-book-select"
+              density="comfortable"
+              hide-details="auto"
+              item-title="name"
+              item-value="id"
+              :items="addressBookEntries"
+              :label="$t('addressBook.selectOrAdd')"
+              :no-data-text="$t('addressBook.noEntries')"
+              return-object
+              variant="outlined"
+              @update:model-value="selectAddressBookEntry"
+            >
+              <template #item="{ item, props: itemProps }">
+                <v-list-item v-bind="itemProps">
+                  <template #subtitle>
+                    <span class="text-caption" style="font-family: monospace">{{ item.raw.address }}</span>
+                  </template>
+                </v-list-item>
+              </template>
+              <template #append-item>
+                <v-divider />
+                <v-list-item
+                  class="text-primary"
+                  data-testid="transfer-address-book-add-btn"
+                  prepend-icon="mdi-plus-circle-outline"
+                  :title="$t('addressBook.addNew')"
+                  @click.stop="showAddAddressForm = !showAddAddressForm"
+                />
+              </template>
+            </v-autocomplete>
+
+            <!-- Inline Add Address Form -->
+            <v-expand-transition>
+              <v-card v-if="showAddAddressForm" class="mb-3 pa-3" color="grey-lighten-5" flat rounded="lg">
+                <div class="text-caption font-weight-bold text-grey-darken-2 mb-2">
+                  {{ $t('addressBook.addNew') }}
+                </div>
+                <v-text-field
+                  v-model="newAddress.name"
+                  class="mb-2"
+                  data-testid="transfer-address-book-name"
+                  density="compact"
+                  hide-details="auto"
+                  :label="$t('addressBook.name')"
+                  :placeholder="$t('addressBook.namePlaceholder')"
+                  variant="outlined"
+                />
+                <v-text-field
+                  v-model="newAddress.address"
+                  class="mb-2"
+                  data-testid="transfer-address-book-address"
+                  density="compact"
+                  hide-details="auto"
+                  :label="$t('addressBook.address')"
+                  :placeholder="$t('addressBook.addressPlaceholder')"
+                  variant="outlined"
+                />
+                <v-btn
+                  block
+                  color="primary"
+                  data-testid="transfer-address-book-save-btn"
+                  :disabled="!newAddress.name || !newAddress.address"
+                  :loading="savingAddress"
+                  size="small"
+                  variant="tonal"
+                  @click="saveNewAddress"
+                >
+                  {{ $t('addressBook.save') }}
+                </v-btn>
+              </v-card>
+            </v-expand-transition>
+
             <v-text-field
               v-model="form.external_name"
               class="mb-1"

@@ -20,20 +20,25 @@ test.describe('Approval Flow', () => {
         await expect(memberPage.getByTestId('page-heading')).toBeVisible({ timeout: 10_000 })
 
         // Click the new transfer button
-        await memberPage.getByTestId('new-transfer-btn').click({ timeout: 5_000 })
+        await memberPage.getByTestId('initiate-transfer-btn').click({ timeout: 5_000 })
         await expect(memberPage.getByTestId('transfer-dialog')).toBeVisible({ timeout: 5_000 })
 
         // Fill in transfer form — use a large amount to trigger pending approval
-        await memberPage.getByTestId('sender-wallet-select').click()
+        await memberPage.getByTestId('transfer-sender-wallet').click()
         await memberPage.locator('.v-overlay .v-list-item').first().click()
-        await memberPage.getByTestId('receiver-wallet-select').click()
+        await memberPage.getByTestId('transfer-receiver-wallet').click()
         await memberPage.locator('.v-overlay .v-list-item').first().click()
-        await memberPage.getByTestId('amount-input').fill('15000')
-        await memberPage.getByTestId('reference-input').fill('E2E approval test')
+        await memberPage.getByTestId('transfer-amount').locator('input').fill('15000')
+        await memberPage.getByTestId('transfer-reference').locator('input').fill('E2E approval test')
 
-        await memberPage.getByTestId('submit-transfer-btn').click()
+        // Step 1: Review
+        await memberPage.getByTestId('transfer-submit-btn').click()
+        await expect(memberPage.getByTestId('transfer-recap')).toBeVisible({ timeout: 5_000 })
 
-        // Wait for success — dialog should close or show success
+        // Step 2: Confirm
+        await memberPage.getByTestId('transfer-confirm-btn').click()
+
+        // Wait for success — dialog should close
         await expect(memberPage.getByTestId('transfer-dialog')).not.toBeVisible({ timeout: 10_000 })
         await memberPage.context().close()
 
@@ -72,17 +77,22 @@ test.describe('Approval Flow', () => {
         await memberPage.goto('/transactions')
         await expect(memberPage.getByTestId('page-heading')).toBeVisible({ timeout: 10_000 })
 
-        await memberPage.getByTestId('new-transfer-btn').click({ timeout: 5_000 })
+        await memberPage.getByTestId('initiate-transfer-btn').click({ timeout: 5_000 })
         await expect(memberPage.getByTestId('transfer-dialog')).toBeVisible({ timeout: 5_000 })
 
-        await memberPage.getByTestId('sender-wallet-select').click()
+        await memberPage.getByTestId('transfer-sender-wallet').click()
         await memberPage.locator('.v-overlay .v-list-item').first().click()
-        await memberPage.getByTestId('receiver-wallet-select').click()
+        await memberPage.getByTestId('transfer-receiver-wallet').click()
         await memberPage.locator('.v-overlay .v-list-item').first().click()
-        await memberPage.getByTestId('amount-input').fill('15000')
-        await memberPage.getByTestId('reference-input').fill('E2E reject test')
+        await memberPage.getByTestId('transfer-amount').locator('input').fill('15000')
+        await memberPage.getByTestId('transfer-reference').locator('input').fill('E2E reject test')
 
-        await memberPage.getByTestId('submit-transfer-btn').click()
+        // Step 1: Review
+        await memberPage.getByTestId('transfer-submit-btn').click()
+        await expect(memberPage.getByTestId('transfer-recap')).toBeVisible({ timeout: 5_000 })
+
+        // Step 2: Confirm
+        await memberPage.getByTestId('transfer-confirm-btn').click()
         await expect(memberPage.getByTestId('transfer-dialog')).not.toBeVisible({ timeout: 10_000 })
         await memberPage.context().close()
 
