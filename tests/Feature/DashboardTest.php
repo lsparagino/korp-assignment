@@ -77,3 +77,52 @@ test('wallet balance uses eager-loaded values when available', function () {
     expect($eagerBalance)->toBe($accessorBalance);
     expect($eagerBalance)->toBe(250.0);
 });
+
+test('dashboard returns pending_transactions for admin', function () {
+    $admin = User::factory()->create(['role' => 'admin']);
+    $company = Company::factory()->create();
+    $admin->companies()->attach($company);
+
+    $member = User::factory()->create(['role' => 'member']);
+    $member->companies()->attach($company);
+
+    $wallet = Wallet::factory()->create(['user_id' => $member->id, 'company_id' => $company->id, 'currency' => 'USD']);
+    Transaction::factory()->create(['wallet_id' => $wallet->id, 'amount' => 5000, 'type' => TransactionType::Credit, 'external' => true]);
+
+    Transaction::factory()->create([
+        'wallet_id' => $wallet->id,
+        'type' => TransactionType::Debit,
+        'amount' => -1000,
+        'status' => 'pending_approval',
+        'external' => true,
+        'initiator_user_id' => $member->id,
+    ]);
+
+    $this->actingAs($admin, 'sanctum');
+
+    $response = $this->getJson("/api/v0/dashboard?company_id={$company->id}");
+    $response->assertOk()
+        ->assertJsonStructure(['pending_transactions'])
+        ->assertJsonCount(1, 'pending_transactions');
+});
+
+test('dashboard does not return pending_transactions for member', function () {
+    $member = User::factory()->create(['role' => 'member']);
+    $company = Company::factory()->create();
+    $member->companies()->attach($company);
+
+    $wallet = Wallet::factory()->create(['user_id' => $member->id, 'company_id' => $company->id, 'currency' => 'USD']);
+    Transaction::factory()->create([
+        'wallet_id' => $wallet->id,
+        'type' => TransactionType::Debit,
+        'amount' => -1000,
+        'status' => 'pending_approval',
+        'external' => true,
+    ]);
+
+    $this->actingAs($member, 'sanctum');
+
+    $response = $this->getJson("/api/v0/dashboard?company_id={$company->id}");
+    $response->assertOk()
+        ->assertJsonMissing(['pending_transactions']);
+});

@@ -10,6 +10,7 @@ export const useAuthStore = defineStore('auth', () => {
   const twoFactorUserId = ref<number | null>(null)
 
   const isAdmin = computed(() => user.value?.role === 'admin')
+  const isManagerOrAdmin = computed(() => user.value?.role === 'admin' || user.value?.role === 'manager')
   const isAuthenticated = computed(() => !!token.value)
   const isEmailVerified = computed(() => !!user.value?.email_verified_at)
 
@@ -60,6 +61,7 @@ export const useAuthStore = defineStore('auth', () => {
     token,
     twoFactorUserId,
     isAdmin,
+    isManagerOrAdmin,
     isAuthenticated,
     isEmailVerified,
     setToken,

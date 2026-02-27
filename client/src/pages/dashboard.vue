@@ -1,11 +1,11 @@
 <script lang="ts" setup>
   import type { Transaction } from '@/api/transactions'
   import type { Wallet } from '@/api/wallets'
-  import { useQuery } from '@pinia/colada'
+  import { useQuery, useQueryCache } from '@pinia/colada'
   import { computed } from 'vue'
   import TransactionTable from '@/components/features/TransactionTable.vue'
   import PageHeader from '@/components/layout/PageHeader.vue'
-  import { dashboardQuery } from '@/queries/dashboard'
+  import { dashboardQuery, DASHBOARD_QUERY_KEYS } from '@/queries/dashboard'
   import { useAuthStore } from '@/stores/auth'
   import { useCompanyStore } from '@/stores/company'
   import { formatCurrency, getAmountColor, getCurrencyIcon } from '@/utils/formatters'
@@ -24,6 +24,8 @@
     () => companyStore.currentCompany?.id ?? 0,
   )
 
+  const queryCache = useQueryCache()
+
   const balances = computed<BalanceSummary[]>(() =>
     (data.value?.balances ?? []).map(
       (b: { currency: string, amount: number }) => ({
@@ -36,6 +38,12 @@
   const otherWallets = computed(() => data.value?.others ?? { count: 0, totalUSD: 0, totalEUR: 0 })
   const recentTransactions = computed<Transaction[]>(() => data.value?.transactions?.data ?? data.value?.transactions ?? [])
   const wallets = computed<Wallet[]>(() => (data.value?.wallets ?? []).map((w: any) => ({ id: w.id, name: w.name })))
+  const pendingTransactions = computed<Transaction[]>(() => data.value?.pending_transactions?.data ?? data.value?.pending_transactions ?? [])
+
+  function invalidateDashboard () {
+    const companyId = companyStore.currentCompany?.id ?? 0
+    queryCache.invalidateQueries({ key: DASHBOARD_QUERY_KEYS.byCompany(companyId) })
+  }
 
 
 </script>
@@ -186,6 +194,37 @@
       </v-card>
     </div>
 
+        <!-- Pending Approval (Admin/Manager only) -->
+    <div
+      v-if="authStore.isManagerOrAdmin && pendingTransactions.length > 0"
+      class="mb-8"
+      data-testid="pending-transactions-section"
+    >
+      <div class="d-flex align-center justify-space-between mb-4">
+        <h2 class="text-h6 font-weight-bold text-grey-darken-2">
+          {{ $t('dashboard.pendingApproval') }}
+        </h2>
+        <v-btn
+          class="text-none font-weight-bold"
+          color="primary"
+          data-testid="view-all-pending-btn"
+          density="compact"
+          rounded="lg"
+          to="/transactions?status=pending_approval"
+          variant="text"
+        >
+          {{ $t('dashboard.viewAllPending') }}
+        </v-btn>
+      </div>
+      <TransactionTable
+        :is-admin="authStore.isAdmin"
+        :is-manager-or-admin="authStore.isManagerOrAdmin"
+        :items="pendingTransactions"
+        :wallets="wallets"
+        @reviewed="invalidateDashboard"
+      />
+    </div>
+
     <!-- Recent Transactions -->
     <div data-testid="recent-transactions-section">
       <h2 class="text-h6 font-weight-bold text-grey-darken-2 mb-4">
@@ -194,8 +233,10 @@
       <TransactionTable
         v-if="recentTransactions.length > 0"
         :is-admin="authStore.isAdmin"
+        :is-manager-or-admin="authStore.isManagerOrAdmin"
         :items="recentTransactions"
         :wallets="wallets"
+        @reviewed="invalidateDashboard"
       />
       <v-card
         v-else

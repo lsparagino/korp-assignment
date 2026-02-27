@@ -63,7 +63,7 @@ class TransactionService
             $query->where('counterpart_wallet_id', $filters['counterpart_wallet_id']);
         }
 
-        return $query->with(['wallet', 'counterpartWallet'])
+        return $query->with(['wallet', 'counterpartWallet', 'initiator', 'reviewer'])
             ->latest()
             ->paginate($perPage);
     }

@@ -5,7 +5,7 @@ import en from '@/locales/en.json'
 import { mountWithPlugins } from '@/test/setup'
 import TransactionDetailModal from './TransactionDetailModal.vue'
 
-function createTransaction (overrides: Partial<Transaction> = {}): Transaction {
+function createTransaction(overrides: Partial<Transaction> = {}): Transaction {
   return {
     id: 1,
     group_id: 'grp-1',
@@ -24,6 +24,8 @@ function createTransaction (overrides: Partial<Transaction> = {}): Transaction {
     external_name: null,
     initiator_user_id: 1,
     reviewer_user_id: null,
+    initiator: null,
+    reviewer: null,
     reject_reason: null,
     notes: null,
     created_at: '2026-02-20T10:00:00.000Z',
@@ -39,7 +41,7 @@ describe('TransactionDetailModal.vue', () => {
     document.body.innerHTML = ''
   })
 
-  async function mountModal (props: Record<string, unknown> = {}) {
+  async function mountModal(props: Record<string, unknown> = {}) {
     wrapper = mountWithPlugins(TransactionDetailModal, {
       props: {
         modelValue: true,
@@ -54,7 +56,7 @@ describe('TransactionDetailModal.vue', () => {
     return wrapper
   }
 
-  function bodyText () {
+  function bodyText() {
     return document.body.textContent || ''
   }
 
@@ -156,5 +158,72 @@ describe('TransactionDetailModal.vue', () => {
     await new DOMWrapper(closeBtn).trigger('click')
 
     expect(wrapper.emitted('update:modelValue')).toBeTruthy()
+  })
+
+  it('shows initiator name when present', async () => {
+    await mountModal({
+      transaction: createTransaction({ initiator: { id: 10, name: 'Alice Johnson' } }),
+    })
+
+    const text = bodyText()
+    expect(text).toContain(en.transactions.initiator)
+    expect(text).toContain('Alice Johnson')
+  })
+
+  it('shows reviewer name when present', async () => {
+    await mountModal({
+      transaction: createTransaction({ reviewer: { id: 20, name: 'Bob Manager' } }),
+    })
+
+    const text = bodyText()
+    expect(text).toContain(en.transactions.reviewer)
+    expect(text).toContain('Bob Manager')
+  })
+
+  it('shows approve/reject buttons for pending transaction when isManagerOrAdmin', async () => {
+    await mountModal({
+      transaction: createTransaction({ status: 'pending_approval' }),
+      isManagerOrAdmin: true,
+    })
+
+    const approveBtn = document.body.querySelector('[data-testid="approve-btn"]')
+    const rejectBtn = document.body.querySelector('[data-testid="reject-btn"]')
+    expect(approveBtn).not.toBeNull()
+    expect(rejectBtn).not.toBeNull()
+  })
+
+  it('hides approve/reject buttons when user is not manager or admin', async () => {
+    await mountModal({
+      transaction: createTransaction({ status: 'pending_approval' }),
+      isManagerOrAdmin: false,
+    })
+
+    const approveBtn = document.body.querySelector('[data-testid="approve-btn"]')
+    expect(approveBtn).toBeNull()
+  })
+
+  it('hides approve/reject buttons for non-pending transactions', async () => {
+    await mountModal({
+      transaction: createTransaction({ status: 'completed' }),
+      isManagerOrAdmin: true,
+    })
+
+    const approveBtn = document.body.querySelector('[data-testid="approve-btn"]')
+    expect(approveBtn).toBeNull()
+  })
+
+  it('shows reject reason textarea after clicking reject', async () => {
+    await mountModal({
+      transaction: createTransaction({ status: 'pending_approval' }),
+      isManagerOrAdmin: true,
+    })
+
+    const rejectBtn = document.body.querySelector('[data-testid="reject-btn"]') as HTMLElement
+    expect(rejectBtn).not.toBeNull()
+    await new DOMWrapper(rejectBtn).trigger('click')
+    await flushPromises()
+
+    const textarea = document.body.querySelector('[data-testid="reject-reason-input"]')
+    expect(textarea).not.toBeNull()
   })
 })

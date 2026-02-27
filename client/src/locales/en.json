@@ -121,6 +121,9 @@
         "noWallets": "No wallets found. Create one to get started.",
         "recentTransactions": "Recent Transactions",
         "noTransactions": "No transactions yet.",
+        "pendingApproval": "Pending Approval",
+        "viewAllPending": "View All →",
+        "noPendingTransactions": "No pending transactions.",
         "missingThresholds": "No transaction approval thresholds are configured. All transfers will be auto-approved.",
         "configureThresholds": "Configure thresholds →"
     },
@@ -203,7 +206,16 @@
             "toWallet": "To Wallet",
             "reference": "Reference",
             "actions": "Actions"
-        }
+        },
+        "initiator": "Initiated By",
+        "reviewer": "Reviewed By",
+        "approve": "Approve",
+        "reject": "Reject",
+        "rejectReasonLabel": "Reason for rejection",
+        "rejectReasonPlaceholder": "Please explain why this transaction is being rejected...",
+        "approveSuccess": "Transaction approved successfully.",
+        "rejectSuccess": "Transaction rejected successfully.",
+        "confirmApprove": "Are you sure you want to approve this transaction?"
     },
     "teamMembers": {
         "title": "Team Members",

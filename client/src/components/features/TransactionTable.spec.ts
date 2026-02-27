@@ -10,7 +10,7 @@ const mockWallets = [
   { id: 2, name: 'Business', address: 'addr2', balance: 3000, locked_balance: 0, available_balance: 3000, currency: 'USD', status: 'active' as const, can_delete: false },
 ]
 
-function createTransaction (overrides: Partial<Transaction> = {}): Transaction {
+function createTransaction(overrides: Partial<Transaction> = {}): Transaction {
   return {
     id: 1,
     group_id: 'grp-1',
@@ -29,6 +29,8 @@ function createTransaction (overrides: Partial<Transaction> = {}): Transaction {
     external_name: null,
     initiator_user_id: 1,
     reviewer_user_id: null,
+    initiator: null,
+    reviewer: null,
     reject_reason: null,
     notes: null,
     created_at: '2026-02-20T10:00:00.000Z',
@@ -44,7 +46,7 @@ describe('TransactionTable.vue', () => {
     document.body.innerHTML = ''
   })
 
-  async function mountTable (props: Record<string, unknown> = {}) {
+  async function mountTable(props: Record<string, unknown> = {}) {
     wrapper = mountWithPlugins(TransactionTable, {
       props: {
         items: [],
@@ -57,7 +59,7 @@ describe('TransactionTable.vue', () => {
     return wrapper
   }
 
-  function bodyText () {
+  function bodyText() {
     return document.body.textContent || ''
   }
 

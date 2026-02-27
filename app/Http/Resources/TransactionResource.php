@@ -27,6 +27,14 @@ class TransactionResource extends JsonResource
             'reference' => $this->reference,
             'initiator_user_id' => $this->initiator_user_id,
             'reviewer_user_id' => $this->reviewer_user_id,
+            'initiator' => $this->whenLoaded('initiator', fn () => [
+                'id' => $this->initiator->id,
+                'name' => $this->initiator->name,
+            ]),
+            'reviewer' => $this->whenLoaded('reviewer', fn () => [
+                'id' => $this->reviewer->id,
+                'name' => $this->reviewer->name,
+            ]),
             'reject_reason' => $this->reject_reason,
             'notes' => $this->notes,
             'created_at' => $this->created_at,

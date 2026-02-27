@@ -17,6 +17,7 @@
     title?: string
     refreshing?: boolean
     isAdmin?: boolean
+    isManagerOrAdmin?: boolean
   }
 
   const props = withDefaults(defineProps<Props>(), {
@@ -26,9 +27,10 @@
     title: 'Transactions',
     refreshing: false,
     isAdmin: false,
+    isManagerOrAdmin: false,
   })
 
-  defineEmits(['update:page', 'update:per-page', 'refresh'])
+  const emit = defineEmits(['update:page', 'update:per-page', 'refresh', 'reviewed'])
 
   const detailDialog = ref(false)
   const selectedTransaction = ref<Transaction | null>(null)
@@ -118,9 +120,9 @@
     :meta="showPagination ? meta : undefined"
     :refreshing="refreshing"
     :title="title"
-    @refresh="$emit('refresh')"
-    @update:page="$emit('update:page', $event)"
-    @update:per-page="$emit('update:per-page', $event)"
+    @refresh="emit('refresh')"
+    @update:page="emit('update:page', $event)"
+    @update:per-page="emit('update:per-page', $event)"
   >
     <template #columns>
       <th>{{ $t('transactions.tableHeaders.date') }}</th>
@@ -263,7 +265,9 @@
 
   <TransactionDetailModal
     v-model="detailDialog"
+    :is-manager-or-admin="isManagerOrAdmin"
     :is-transfer="selectedTransaction ? isTransfer(selectedTransaction) : false"
     :transaction="selectedTransaction"
+    @reviewed="emit('reviewed')"
   />
 </template>

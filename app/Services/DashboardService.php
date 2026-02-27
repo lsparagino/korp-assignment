@@ -2,9 +2,11 @@
 
 namespace App\Services;
 
+use App\Enums\TransactionStatus;
 use App\Enums\UserRole;
 use App\Http\Resources\TransactionResource;
 use App\Models\CompanySetting;
+use App\Models\Transaction;
 use App\Models\User;
 use App\Models\Wallet;
 use Illuminate\Support\Facades\Log;
@@ -44,6 +46,19 @@ class DashboardService
 
         if ($user->role === UserRole::Admin && $companyId) {
             $data['missing_thresholds'] = CompanySetting::where('company_id', $companyId)->count() === 0;
+        }
+
+        if (in_array($user->role, [UserRole::Admin, UserRole::Manager]) && $companyId) {
+            $companyWalletIds = Wallet::where('company_id', $companyId)->pluck('id');
+
+            $pendingTransactions = Transaction::forWallets($companyWalletIds)
+                ->where('status', TransactionStatus::PendingApproval)
+                ->with(['wallet', 'counterpartWallet', 'initiator'])
+                ->latest()
+                ->limit(5)
+                ->get();
+
+            $data['pending_transactions'] = TransactionResource::collection($pendingTransactions);
         }
 
         return $data;

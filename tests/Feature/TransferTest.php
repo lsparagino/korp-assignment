@@ -448,3 +448,39 @@ test('frozen sender wallet on external transfer returns 403', function () {
     $response->assertStatus(403);
     expect($this->senderWallet->fresh()->balance)->toBe(20000.0);
 });
+
+test('transaction resource includes initiator and reviewer names', function () {
+    // Create a pending transfer as a member
+    $response = $this->actingAs($this->member, 'sanctum')
+        ->postJson('/api/v0/transfers', [
+            'sender_wallet_id' => $this->senderWallet->id,
+            'receiver_wallet_id' => $this->receiverWallet->id,
+            'amount' => 15000,
+            'external' => false,
+            'reference' => 'Initiator test',
+            'company_id' => $this->company->id,
+        ]);
+
+    $groupId = $response->json('data.group_id');
+
+    // Approve as manager
+    $this->actingAs($this->manager, 'sanctum')
+        ->postJson("/api/v0/transfers/{$groupId}/review", [
+            'action' => 'approve',
+            'company_id' => $this->company->id,
+        ])
+        ->assertOk();
+
+    // Fetch transactions and verify initiator/reviewer names are present
+    $indexResponse = $this->actingAs($this->member, 'sanctum')
+        ->getJson("/api/v0/transactions?company_id={$this->company->id}");
+
+    $indexResponse->assertOk();
+
+    $transactions = $indexResponse->json('data');
+    $reviewed = collect($transactions)->firstWhere('group_id', $groupId);
+
+    expect($reviewed)->not->toBeNull();
+    expect($reviewed['initiator']['name'])->toBe($this->member->name);
+    expect($reviewed['reviewer']['name'])->toBe($this->manager->name);
+});

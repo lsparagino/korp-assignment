@@ -5,6 +5,9 @@
   import PageHeader from '@/components/layout/PageHeader.vue'
   import { useRefreshData } from '@/composables/useRefreshData'
   import { useTransactionFilters } from '@/composables/useTransactionFilters'
+  import { useAuthStore } from '@/stores/auth'
+
+  const authStore = useAuthStore()
 
   const {
     filterForm,
@@ -300,6 +303,7 @@
 
   <!-- Transactions Table -->
   <TransactionTable
+    :is-manager-or-admin="authStore.isManagerOrAdmin"
     :items="transactions"
     :loading="processing"
     :meta="meta"
@@ -308,6 +312,7 @@
     :title="$t('transactions.transactionsList')"
     :wallets="wallets"
     @refresh="refresh"
+    @reviewed="invalidateQueries"
     @update:page="handlePageChange"
     @update:per-page="handlePerPageChange"
   />

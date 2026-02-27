@@ -24,4 +24,9 @@ setup('reset database and create auth states', async () => {
   const member = await loginViaApi('member@example.com', 'password')
   const memberState = buildStorageState(member)
   fs.writeFileSync(path.join(authDir, 'member.json'), JSON.stringify(memberState, null, 2))
+
+  // Login as manager and save storage state
+  const manager = await loginViaApi('manager@example.com', 'password')
+  const managerState = buildStorageState(manager)
+  fs.writeFileSync(path.join(authDir, 'manager.json'), JSON.stringify(managerState, null, 2))
 })

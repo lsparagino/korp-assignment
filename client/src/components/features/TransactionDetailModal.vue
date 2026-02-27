@@ -1,5 +1,8 @@
 <script lang="ts" setup>
   import type { Transaction } from '@/api/transactions'
+  import { ref } from 'vue'
+  import { useI18n } from 'vue-i18n'
+  import { reviewTransfer } from '@/api/transactions'
   import { getTransactionStatusColors, getTransactionTypeColors } from '@/utils/colors'
   import { formatCurrency, formatDate } from '@/utils/formatters'
 
@@ -7,9 +10,16 @@
     modelValue: boolean
     transaction: Transaction | null
     isTransfer?: boolean
+    isManagerOrAdmin?: boolean
   }>()
 
-  const emit = defineEmits(['update:modelValue'])
+  const emit = defineEmits(['update:modelValue', 'reviewed'])
+
+  const { t } = useI18n()
+  const rejectMode = ref(false)
+  const rejectReason = ref('')
+  const submitting = ref(false)
+  const error = ref('')
 
   function getTransactionLabel () {
     if (!props.transaction) return ''
@@ -39,10 +49,56 @@
   function getStatusLabel (status: string) {
     return status === 'pending_approval' ? 'pending' : status
   }
+
+  function isPending () {
+    return props.transaction?.status === 'pending_approval'
+  }
+
+  function canReview () {
+    return isPending() && props.isManagerOrAdmin
+  }
+
+  async function handleApprove () {
+    if (!props.transaction) return
+    submitting.value = true
+    error.value = ''
+    try {
+      await reviewTransfer(props.transaction.group_id, { action: 'approve' })
+      emit('reviewed')
+      emit('update:modelValue', false)
+    } catch {
+      error.value = t('common.genericError')
+    } finally {
+      submitting.value = false
+    }
+  }
+
+  async function handleReject () {
+    if (!props.transaction || !rejectReason.value.trim()) return
+    submitting.value = true
+    error.value = ''
+    try {
+      await reviewTransfer(props.transaction.group_id, { action: 'reject', reason: rejectReason.value })
+      rejectMode.value = false
+      rejectReason.value = ''
+      emit('reviewed')
+      emit('update:modelValue', false)
+    } catch {
+      error.value = t('common.genericError')
+    } finally {
+      submitting.value = false
+    }
+  }
+
+  function resetState () {
+    rejectMode.value = false
+    rejectReason.value = ''
+    error.value = ''
+  }
 </script>
 
 <template>
-  <v-dialog max-width="560" :model-value="modelValue" @update:model-value="emit('update:modelValue', $event)">
+  <v-dialog max-width="560" :model-value="modelValue" @update:model-value="emit('update:modelValue', $event)" @after-leave="resetState">
     <v-card v-if="transaction" rounded="lg">
       <v-card-title class="d-flex align-center justify-space-between pa-5 border-b">
         <span class="text-h6 font-weight-bold">{{ $t('transactions.transactionDetails') }}</span>
@@ -171,6 +227,38 @@
             </div>
           </v-list-item>
 
+          <!-- Initiator -->
+          <template v-if="transaction.initiator">
+            <v-divider />
+            <v-list-item class="px-0" data-testid="initiator-row">
+              <template #prepend>
+                <v-icon class="me-3" color="grey-darken-1" icon="mdi-account" />
+              </template>
+              <v-list-item-title class="text-caption text-grey-darken-1">
+                {{ $t('transactions.initiator') }}
+              </v-list-item-title>
+              <div class="text-body-2 font-weight-medium text-grey-darken-3">
+                {{ transaction.initiator.name }}
+              </div>
+            </v-list-item>
+          </template>
+
+          <!-- Reviewer -->
+          <template v-if="transaction.reviewer">
+            <v-divider />
+            <v-list-item class="px-0" data-testid="reviewer-row">
+              <template #prepend>
+                <v-icon class="me-3" color="grey-darken-1" icon="mdi-account-check" />
+              </template>
+              <v-list-item-title class="text-caption text-grey-darken-1">
+                {{ $t('transactions.reviewer') }}
+              </v-list-item-title>
+              <div class="text-body-2 font-weight-medium text-grey-darken-3">
+                {{ transaction.reviewer.name }}
+              </div>
+            </v-list-item>
+          </template>
+
           <!-- Reference -->
           <template v-if="transaction.reference">
             <v-divider />
@@ -219,6 +307,90 @@
             </v-list-item>
           </template>
         </v-list>
+
+        <!-- Approval Actions -->
+        <template v-if="canReview()">
+          <v-divider class="my-4" />
+
+          <v-alert
+            v-if="error"
+            class="mb-4"
+            color="error"
+            data-testid="review-error"
+            density="compact"
+            type="error"
+            variant="tonal"
+          >
+            {{ error }}
+          </v-alert>
+
+          <template v-if="!rejectMode">
+            <div class="d-flex ga-3">
+              <v-btn
+                class="text-none font-weight-bold flex-grow-1"
+                color="success"
+                data-testid="approve-btn"
+                :loading="submitting"
+                prepend-icon="mdi-check-circle"
+                rounded="lg"
+                variant="flat"
+                @click="handleApprove"
+              >
+                {{ $t('transactions.approve') }}
+              </v-btn>
+              <v-btn
+                class="text-none font-weight-bold flex-grow-1"
+                color="error"
+                data-testid="reject-btn"
+                prepend-icon="mdi-close-circle"
+                rounded="lg"
+                variant="outlined"
+                @click="rejectMode = true"
+              >
+                {{ $t('transactions.reject') }}
+              </v-btn>
+            </div>
+          </template>
+
+          <template v-else>
+            <v-textarea
+              v-model="rejectReason"
+              auto-grow
+              class="mb-3"
+              color="error"
+              data-testid="reject-reason-input"
+              :label="$t('transactions.rejectReasonLabel')"
+              :placeholder="$t('transactions.rejectReasonPlaceholder')"
+              rows="3"
+              variant="outlined"
+            />
+            <div class="d-flex ga-3">
+              <v-btn
+                class="text-none font-weight-bold flex-grow-1"
+                color="error"
+                data-testid="confirm-reject-btn"
+                :disabled="!rejectReason.trim()"
+                :loading="submitting"
+                prepend-icon="mdi-close-circle"
+                rounded="lg"
+                variant="flat"
+                @click="handleReject"
+              >
+                {{ $t('transactions.reject') }}
+              </v-btn>
+              <v-btn
+                class="text-none font-weight-bold"
+                color="grey-darken-1"
+                data-testid="cancel-reject-btn"
+                rounded="lg"
+                variant="outlined"
+                @click="rejectMode = false"
+              >
+                {{ $t('common.cancel') }}
+              </v-btn>
+            </div>
+          </template>
+        </template>
       </v-card-text>
     </v-card>
   </v-dialog>

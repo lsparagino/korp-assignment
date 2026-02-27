@@ -19,6 +19,8 @@ export interface Transaction {
   external_name: string | null
   initiator_user_id: number | null
   reviewer_user_id: number | null
+  initiator: { id: number, name: string } | null
+  reviewer: { id: number, name: string } | null
   reject_reason: string | null
   notes: string | null
   created_at: string
@@ -47,10 +49,14 @@ export interface TransferForm {
   notes?: string
 }
 
-export function fetchTransactions (params: TransactionParams) {
+export function fetchTransactions(params: TransactionParams) {
   return api.get('/transactions', { params })
 }
 
-export function initiateTransfer (form: TransferForm) {
+export function initiateTransfer(form: TransferForm) {
   return api.post('/transfers', form)
+}
+
+export function reviewTransfer(groupId: string, payload: { action: 'approve' | 'reject', reason?: string }) {
+  return api.post(`/transfers/${groupId}/review`, payload)
 }
