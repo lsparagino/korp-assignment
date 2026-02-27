@@ -206,18 +206,8 @@
           </v-list>
 
           <v-divider />
-          <div v-if="authStore.isAdmin" class="pa-4 flex-shrink-0">
-            <v-btn
-              block
-              class="text-none"
-              color="primary"
-              data-testid="sidebar-create-wallet-btn"
-              prepend-icon="mdi-plus"
-              size="large"
-              to="/wallets/create/"
-            >
-              {{ $t('nav.createWallet') }}
-            </v-btn>
+          <div class="pa-4 flex-shrink-0">
+            <TransferButton block size="large" />
           </div>
         </div>
       </v-navigation-drawer>

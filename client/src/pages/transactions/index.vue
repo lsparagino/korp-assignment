@@ -37,17 +37,7 @@
 <template>
   <PageHeader :title="$t('transactions.title')">
     <div class="d-flex ga-2 align-center">
-      <v-btn
-        class="text-none font-weight-bold me-2"
-        color="primary"
-        data-testid="initiate-transfer-btn"
-        prepend-icon="mdi-swap-horizontal"
-        rounded="lg"
-        to="/transactions/create"
-        variant="flat"
-      >
-        {{ $t('transfers.initiateTransfer') }}
-      </v-btn>
+      <TransferButton />
     </div>
   </PageHeader>
 

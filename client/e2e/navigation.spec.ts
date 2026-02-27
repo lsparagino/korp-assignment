@@ -36,12 +36,12 @@ test.describe('Navigation', () => {
     await expect(page).toHaveURL(/\/settings\/profile/, { timeout: 10_000 })
   })
 
-  test('sidebar create wallet button works', async ({ page }) => {
+  test('sidebar transfer button works', async ({ page }) => {
     await page.goto('/dashboard')
     await expect(page.getByTestId('page-heading')).toBeVisible({ timeout: 10_000 })
 
-    await page.getByTestId('sidebar-create-wallet-btn').click()
+    await page.getByTestId('transfer-btn').click()
 
-    await expect(page).toHaveURL(/\/wallets\/create/, { timeout: 10_000 })
+    await expect(page).toHaveURL(/\/transactions\/create/, { timeout: 10_000 })
   })
 })
