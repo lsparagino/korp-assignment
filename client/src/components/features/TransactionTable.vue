@@ -131,7 +131,7 @@
       <th>{{ $t('transactions.tableHeaders.amount') }}</th>
       <th>{{ $t('transactions.tableHeaders.fromWallet') }}</th>
       <th>{{ $t('transactions.tableHeaders.toWallet') }}</th>
-      <th class="d-none d-sm-table-cell" style="max-width: 25%">{{ $t('transactions.tableHeaders.reference') }}</th>
+
       <th class="text-center" style="width: 60px">
         {{ $t('transactions.tableHeaders.actions') }}
       </th>
@@ -229,14 +229,7 @@
             >{{ getToLabel(item) }}</span>
           </div>
         </td>
-        <td class="d-none d-sm-table-cell">
-          <div
-            class="text-grey-darken-2 text-caption text-truncate"
-            style="max-width: 25vw"
-          >
-            {{ item.reference }}
-          </div>
-        </td>
+
         <td class="text-center">
           <v-btn
             color="primary"
@@ -251,7 +244,7 @@
       <tr v-if="!loading && items.length === 0">
         <td
           class="text-grey-darken-1 py-8 text-center"
-          colspan="8"
+          colspan="7"
         >
           {{ $t('transactions.noTransactions') }}
         </td>

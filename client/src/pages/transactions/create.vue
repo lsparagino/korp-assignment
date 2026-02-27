@@ -245,7 +245,7 @@
           </div>
           <v-btn-toggle
             v-model="transferType"
-            class="mb-4"
+            class="mb-4 w-100 d-flex"
             color="primary"
             data-testid="transfer-type-toggle"
             density="comfortable"
@@ -253,10 +253,10 @@
             rounded="lg"
             variant="outlined"
           >
-            <v-btn data-testid="transfer-type-internal" value="internal">
+            <v-btn data-testid="transfer-type-internal" value="internal" class="flex-grow-1">
               {{ $t('transfers.internal') }}
             </v-btn>
-            <v-btn data-testid="transfer-type-external" value="external">
+            <v-btn data-testid="transfer-type-external" value="external" class="flex-grow-1">
               {{ $t('transfers.external') }}
             </v-btn>
           </v-btn-toggle>
