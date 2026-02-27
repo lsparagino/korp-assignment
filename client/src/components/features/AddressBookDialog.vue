@@ -155,7 +155,7 @@
               :placeholder="$t('addressBook.addressPlaceholder')"
               variant="outlined"
             />
-            <div class="d-flex ga-2">
+            <div class="d-flex ga-2 justify-end">
               <v-btn
                 class="text-none"
                 color="grey"
