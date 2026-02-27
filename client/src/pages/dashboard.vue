@@ -8,7 +8,7 @@
   import { dashboardQuery } from '@/queries/dashboard'
   import { useAuthStore } from '@/stores/auth'
   import { useCompanyStore } from '@/stores/company'
-  import { formatCurrency, getAmountColor } from '@/utils/formatters'
+  import { formatCurrency, getAmountColor, getCurrencyIcon } from '@/utils/formatters'
 
   const authStore = useAuthStore()
   const companyStore = useCompanyStore()
@@ -37,9 +37,7 @@
   const recentTransactions = computed<Transaction[]>(() => data.value?.transactions?.data ?? data.value?.transactions ?? [])
   const wallets = computed<Wallet[]>(() => (data.value?.wallets ?? []).map((w: any) => ({ id: w.id, name: w.name })))
 
-  function getCurrencyIcon (currency: string): string {
-    return currency === 'EUR' ? 'mdi-currency-eur' : 'mdi-currency-usd'
-  }
+
 </script>
 
 <template>
@@ -57,6 +55,29 @@
       {{ $t('wallets.createWallet') }}
     </v-btn>
   </PageHeader>
+
+  <v-alert
+    v-if="authStore.isAdmin && data?.missing_thresholds"
+    class="mb-6 "
+    color="warning"
+    data-testid="missing-thresholds-warning"
+    density="compact"
+    type="warning"
+    variant="tonal"
+  >
+  <div class="d-flex align-center justify-space-between">
+    <span>{{ $t('dashboard.missingThresholds') }}</span>
+    <v-btn
+      color="warning"
+      density="compact"
+      to="/settings/thresholds"
+      variant="text"
+    >
+      {{ $t('dashboard.configureThresholds') }}
+    </v-btn>
+    </div>
+    
+  </v-alert>
 
   <v-progress-linear v-if="loading" color="primary" indeterminate />
 

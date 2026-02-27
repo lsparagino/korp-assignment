@@ -1,6 +1,6 @@
 <script lang="ts" setup>
   import type { UserPreferences } from '@/api/settings'
-  import { onMounted, reactive, ref } from 'vue'
+  import { computed, onMounted, reactive, ref } from 'vue'
   import { useI18n } from 'vue-i18n'
   import { fetchUserPreferences, updateUserPreferences } from '@/api/settings'
   import SettingsLayout from '@/components/layout/SettingsLayout.vue'
@@ -8,10 +8,12 @@
   import { useAppNotification } from '@/composables/useAppNotification'
   import { useFormSubmit } from '@/composables/useFormSubmit'
   import { useAuthStore } from '@/stores/auth'
+  import { usePreferencesStore } from '@/stores/preferences'
 
   const { t } = useI18n()
   const authStore = useAuthStore()
   const { notifyError } = useAppNotification()
+  const preferencesStore = usePreferencesStore()
 
   const loading = ref(true)
   const form = reactive<Omit<UserPreferences, 'id'>>({
@@ -28,25 +30,30 @@
   const isMemberOnly = authStore.user?.role === 'member'
   const isManagerOrAdmin = authStore.user?.role === 'admin' || authStore.user?.role === 'manager'
 
-  const localeOptions = [
-    { title: 'English (UK) — dd/MM/yyyy', value: 'en-GB' },
-    { title: 'English (US) — MM/dd/yyyy', value: 'en-US' },
-    { title: 'German — dd.MM.yyyy', value: 'de-DE' },
-    { title: 'French — dd/MM/yyyy', value: 'fr-FR' },
-    { title: 'Italian — dd/MM/yyyy', value: 'it-IT' },
-    { title: 'Spanish — dd/MM/yyyy', value: 'es-ES' },
-    { title: 'Japanese — yyyy/MM/dd', value: 'ja-JP' },
-    { title: 'Chinese — yyyy/MM/dd', value: 'zh-CN' },
-  ]
+  const SUPPORTED_LOCALES = ['en-GB', 'en-US', 'de-DE', 'fr-FR', 'it-IT', 'es-ES', 'ja-JP', 'zh-CN']
 
-  const numberFormatOptions = [
-    { title: '1,234.56 (en-GB)', value: 'en-GB' },
-    { title: '1,234.56 (en-US)', value: 'en-US' },
-    { title: '1.234,56 (de-DE)', value: 'de-DE' },
-    { title: '1 234,56 (fr-FR)', value: 'fr-FR' },
-    { title: '1.234,56 (it-IT)', value: 'it-IT' },
-    { title: '1.234,56 (es-ES)', value: 'es-ES' },
-  ]
+  const SAMPLE_DATE = new Date(2000, 0, 31, 15, 30)
+  const SAMPLE_NUMBER = 1234.56
+
+  function getLocaleName (locale: string): string {
+    const dn = new Intl.DisplayNames([locale], { type: 'language' })
+    const name = dn.of(locale) ?? locale
+    return name.charAt(0).toUpperCase() + name.slice(1)
+  }
+
+  const localeOptions = computed(() =>
+    SUPPORTED_LOCALES.map(locale => ({
+      title: `${getLocaleName(locale)} — ${new Intl.DateTimeFormat(locale, { dateStyle: 'short', timeStyle: 'short' }).format(SAMPLE_DATE)}`,
+      value: locale,
+    })),
+  )
+
+  const numberFormatOptions = computed(() =>
+    SUPPORTED_LOCALES.map(locale => ({
+      title: `${new Intl.NumberFormat(locale).format(SAMPLE_NUMBER)} (${locale})`,
+      value: locale,
+    })),
+  )
 
   onMounted(async () => {
     try {
@@ -71,6 +78,7 @@
   const { processing, recentlySuccessful, submit } = useFormSubmit({
     submitFn: async (data: typeof form) => {
       await updateUserPreferences(data)
+      preferencesStore.update(data.date_format, data.number_format)
     },
   })
 </script>

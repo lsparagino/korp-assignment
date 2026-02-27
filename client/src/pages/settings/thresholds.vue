@@ -1,13 +1,15 @@
 <script lang="ts" setup>
   import type { CompanyThreshold } from '@/api/settings'
-  import { onMounted, reactive, ref } from 'vue'
+  import { onMounted, reactive, ref, computed } from 'vue'
   import { useI18n } from 'vue-i18n'
   import { deleteCompanyThreshold, fetchCompanyThresholds, upsertCompanyThreshold } from '@/api/settings'
+  import { fetchCurrencies } from '@/api/wallets'
   import SettingsLayout from '@/components/layout/SettingsLayout.vue'
   import ConfirmDialog from '@/components/ui/ConfirmDialog.vue'
   import Heading from '@/components/ui/Heading.vue'
   import { useAppNotification } from '@/composables/useAppNotification'
   import { useFormSubmit } from '@/composables/useFormSubmit'
+  import { useFormValidation } from '@/composables/useFormValidation'
 
   const { t } = useI18n()
   const { notifyError } = useAppNotification()
@@ -28,7 +30,20 @@
     onConfirm: () => {},
   })
 
-  const currencyOptions = ['EUR', 'USD', 'GBP', 'CHF', 'JPY', 'CAD', 'AUD']
+  const currencyOptions = ref<string[]>([])
+  const { formRef, formValid, validate, resetValidation } = useFormValidation()
+
+  const requiredRule = (v: unknown) => !!v || t('validation.required')
+  const positiveRule = (v: number) => v > 0 || t('validation.positiveAmount')
+
+  const availableCurrencies = computed(() => {
+    const used = new Set(thresholds.value.map(t => t.currency))
+    return currencyOptions.value.filter(c => !used.has(c))
+  })
+
+  const allThresholdsSet = computed(() =>
+    currencyOptions.value.length > 0 && availableCurrencies.value.length === 0,
+  )
 
   onMounted(async () => {
     await loadThresholds()
@@ -37,8 +52,12 @@
   async function loadThresholds () {
     loading.value = true
     try {
-      const response = await fetchCompanyThresholds()
-      thresholds.value = response.data.data
+      const [thresholdsRes, currenciesRes] = await Promise.all([
+        fetchCompanyThresholds(),
+        fetchCurrencies(),
+      ])
+      thresholds.value = thresholdsRes.data.data
+      currencyOptions.value = currenciesRes.data
     } catch (err) {
       notifyError(err)
     } finally {
@@ -50,6 +69,7 @@
     editingId.value = null
     form.currency = ''
     form.approval_threshold = 0
+    resetValidation()
     dialog.value = true
   }
 
@@ -57,6 +77,7 @@
     editingId.value = threshold.id
     form.currency = threshold.currency
     form.approval_threshold = Number(threshold.approval_threshold)
+    resetValidation()
     dialog.value = true
   }
 
@@ -87,6 +108,12 @@
     },
   })
 
+  async function handleSubmit () {
+    const valid = await validate()
+    if (!valid) return
+    await submit(form)
+  }
+
   function formatAmount (value: string) {
     return Number(value).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
   }
@@ -105,6 +132,7 @@
           <v-btn
             class="text-none font-weight-bold"
             color="primary"
+            :disabled="allThresholdsSet"
             prepend-icon="mdi-plus"
             variant="flat"
             @click="openAdd"
@@ -176,13 +204,14 @@
           </v-card-title>
           <v-divider />
           <v-card-text class="pa-4">
-            <v-form @submit.prevent="submit(form)">
+            <v-form ref="formRef" v-model="formValid" @submit.prevent="handleSubmit">
               <v-select
                 v-model="form.currency"
                 :disabled="!!editingId"
                 :error-messages="errors.currency"
-                :items="currencyOptions"
+                :items="editingId ? currencyOptions : availableCurrencies"
                 :label="$t('settings.thresholds.currency')"
+                :rules="[requiredRule]"
                 variant="outlined"
               />
               <v-text-field
@@ -190,6 +219,7 @@
                 :error-messages="errors.approval_threshold"
                 :label="$t('settings.thresholds.approvalThreshold')"
                 min="0"
+                :rules="[requiredRule, positiveRule]"
                 type="number"
                 variant="outlined"
               />
@@ -204,6 +234,7 @@
                 <v-btn
                   class="text-none font-weight-bold"
                   color="primary"
+                  :disabled="!formValid"
                   :loading="processing"
                   type="submit"
                   variant="flat"

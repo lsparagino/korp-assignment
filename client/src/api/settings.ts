@@ -28,23 +28,23 @@ export function updatePassword(form: PasswordForm) {
 }
 
 export function enableTwoFactor() {
-  return api.post('/user/two-factor-authentication')
+  return api.post('/user/two-factor/authentication')
 }
 
 export function getTwoFactorQrCode() {
-  return api.get('/user/two-factor-qr-code')
+  return api.get('/user/two-factor/qr-code')
 }
 
 export function confirmTwoFactor(code: string) {
-  return api.post('/user/confirmed-two-factor-authentication', { code })
+  return api.post('/user/two-factor/confirmed-authentication', { code })
 }
 
 export function disableTwoFactor() {
-  return api.delete('/user/two-factor-authentication')
+  return api.delete('/user/two-factor/authentication')
 }
 
 export function getRecoveryCodes() {
-  return api.get('/user/two-factor-recovery-codes')
+  return api.get('/user/two-factor/recovery-codes')
 }
 
 export function cancelPendingEmail() {

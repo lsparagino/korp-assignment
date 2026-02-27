@@ -4,12 +4,13 @@
   import { useQuery, useQueryCache } from '@pinia/colada'
   import { computed, ref, watch } from 'vue'
   import { useI18n } from 'vue-i18n'
+  import { fetchCompanyThresholds } from '@/api/settings'
   import { initiateTransfer } from '@/api/transactions'
   import { useFormValidation } from '@/composables/useFormValidation'
   import { WALLET_QUERY_KEYS, walletsListQuery } from '@/queries/wallets'
   import { useAuthStore } from '@/stores/auth'
   import { getValidationErrors, isApiError } from '@/utils/errors'
-  import { formatCurrency } from '@/utils/formatters'
+  import { formatCurrency, getCurrencySymbol } from '@/utils/formatters'
 
   const { t } = useI18n()
   const authStore = useAuthStore()
@@ -61,12 +62,9 @@
     wallets.value.find(w => w.id === form.value.receiver_wallet_id),
   )
 
-  const currencySymbol = computed(() => {
-    const currency = selectedWallet.value?.currency
-    if (currency === 'EUR') return '€'
-    if (currency === 'USD') return '$'
-    return currency ?? '$'
-  })
+  const currencySymbol = computed(() =>
+    getCurrencySymbol(selectedWallet.value?.currency ?? 'USD'),
+  )
 
   const senderWalletItems = computed(() =>
     wallets.value.map(w => ({
@@ -87,10 +85,29 @@
       })),
   )
 
-  const APPROVAL_THRESHOLD = 10_000
+  const thresholdsMap = ref<Map<string, number>>(new Map())
+
+  async function loadThresholds () {
+    try {
+      const { data } = await fetchCompanyThresholds()
+      const map = new Map<string, number>()
+      for (const item of data.data) {
+        map.set(item.currency, Number(item.approval_threshold))
+      }
+      thresholdsMap.value = map
+    } catch {
+      // If thresholds can't be loaded, no warnings will be shown
+    }
+  }
+
+  const currentThreshold = computed(() => {
+    const currency = selectedWallet.value?.currency
+    if (!currency) return null
+    return thresholdsMap.value.get(currency) ?? null
+  })
 
   const exceedsThreshold = computed(() =>
-    form.value.amount > APPROVAL_THRESHOLD,
+    currentThreshold.value !== null && form.value.amount > currentThreshold.value,
   )
 
   // --- Validation rules ---
@@ -109,6 +126,7 @@
       dialog.value = val
       if (val) {
         resetForm()
+        loadThresholds()
       }
     },
     { immediate: true },
@@ -399,8 +417,8 @@
             variant="tonal"
           >
             {{ bypassesThreshold
-              ? $t('transfers.thresholdAutoApproved', { amount: formatCurrency(APPROVAL_THRESHOLD, selectedWallet?.currency ?? 'USD') })
-              : $t('transfers.thresholdWarning', { amount: formatCurrency(APPROVAL_THRESHOLD, selectedWallet?.currency ?? 'USD') })
+              ? $t('transfers.thresholdAutoApproved', { amount: formatCurrency(currentThreshold ?? 0, selectedWallet?.currency ?? 'USD') })
+              : $t('transfers.thresholdWarning', { amount: formatCurrency(currentThreshold ?? 0, selectedWallet?.currency ?? 'USD') })
             }}
           </v-alert>
 
@@ -546,8 +564,8 @@
             variant="tonal"
           >
             {{ bypassesThreshold
-              ? $t('transfers.thresholdAutoApproved', { amount: formatCurrency(APPROVAL_THRESHOLD, selectedWallet?.currency ?? 'USD') })
-              : $t('transfers.thresholdWarning', { amount: formatCurrency(APPROVAL_THRESHOLD, selectedWallet?.currency ?? 'USD') })
+              ? $t('transfers.thresholdAutoApproved', { amount: formatCurrency(currentThreshold ?? 0, selectedWallet?.currency ?? 'USD') })
+              : $t('transfers.thresholdWarning', { amount: formatCurrency(currentThreshold ?? 0, selectedWallet?.currency ?? 'USD') })
             }}
           </v-alert>
         </div>

@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Enums\TransactionStatus;
 use App\Enums\TransactionType;
 use App\Enums\UserRole;
+use App\Models\CompanySetting;
 use App\Models\Transaction;
 use App\Models\User;
 use App\Models\Wallet;
@@ -41,7 +42,7 @@ class TransferService
                 }
             }
 
-            $status = $this->determineTargetStatus($user, $amount, $senderWallet->currency->value);
+            $status = $this->determineTargetStatus($user, $amount, $senderWallet->currency->value, $senderWallet->company_id);
             $groupId = Str::uuid()->toString();
 
             if ($status === TransactionStatus::PendingApproval) {
@@ -104,15 +105,21 @@ class TransferService
         });
     }
 
-    private function determineTargetStatus(User $user, float $amount, string $currency): TransactionStatus
+    private function determineTargetStatus(User $user, float $amount, string $currency, int $companyId): TransactionStatus
     {
         if (in_array($user->role, [UserRole::Admin, UserRole::Manager])) {
             return TransactionStatus::Completed;
         }
 
-        $threshold = config("transactions.approval_thresholds.{$currency}", 0);
+        $setting = CompanySetting::where('company_id', $companyId)
+            ->where('currency', $currency)
+            ->first();
 
-        return $amount > $threshold
+        if (! $setting) {
+            return TransactionStatus::Completed;
+        }
+
+        return $amount > (float) $setting->approval_threshold
             ? TransactionStatus::PendingApproval
             : TransactionStatus::Completed;
     }

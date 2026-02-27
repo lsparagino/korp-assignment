@@ -8,6 +8,12 @@ vi.mock('@/api/auth', () => ({
   logout: vi.fn(),
 }))
 
+vi.mock('@/api/settings', () => ({
+  fetchUserPreferences: vi.fn().mockResolvedValue({
+    data: { data: { date_format: 'en-GB', number_format: 'en-GB' } },
+  }),
+}))
+
 // Mock localStorage
 const localStorageMock = (() => {
   let store: Record<string, string> = {}

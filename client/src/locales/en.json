@@ -120,7 +120,9 @@
         "otherWallets": "Other Wallets ({count})",
         "noWallets": "No wallets found. Create one to get started.",
         "recentTransactions": "Recent Transactions",
-        "noTransactions": "No transactions yet."
+        "noTransactions": "No transactions yet.",
+        "missingThresholds": "No transaction approval thresholds are configured. All transfers will be auto-approved.",
+        "configureThresholds": "Configure thresholds →"
     },
     "wallets": {
         "title": "Wallets",

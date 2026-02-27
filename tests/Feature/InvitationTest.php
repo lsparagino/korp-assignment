@@ -40,7 +40,7 @@ test('invitation can be accepted with valid token', function () {
     ]);
     $user->companies()->attach($this->company);
 
-    $response = $this->postJson("/api/v0/accept-invitation/{$token}", [
+    $response = $this->postJson("/api/v0/invitation/{$token}/accept", [
         'password' => 'new-password-123',
         'password_confirmation' => 'new-password-123',
     ]);
@@ -54,7 +54,7 @@ test('invitation can be accepted with valid token', function () {
 });
 
 test('invitation cannot be accepted with invalid token', function () {
-    $response = $this->postJson('/api/v0/accept-invitation/invalid-token', [
+    $response = $this->postJson('/api/v0/invitation/invalid-token/accept', [
         'password' => 'new-password-123',
         'password_confirmation' => 'new-password-123',
     ]);
@@ -70,7 +70,7 @@ test('invitation acceptance requires password confirmation', function () {
         'invitation_token' => $token,
     ]);
 
-    $response = $this->postJson("/api/v0/accept-invitation/{$token}", [
+    $response = $this->postJson("/api/v0/invitation/{$token}/accept", [
         'password' => 'new-password-123',
     ]);
 

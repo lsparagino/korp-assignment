@@ -3,10 +3,22 @@ import Vue from '@vitejs/plugin-vue'
 import Vuetify from 'vite-plugin-vuetify'
 import { defineConfig } from 'vitest/config'
 
+function stubRouteBlock() {
+  return {
+    name: 'stub-route-block',
+    transform(code: string, id: string) {
+      if (id.includes('vue&type=route')) {
+        return { code: 'export default {}', map: null }
+      }
+    },
+  }
+}
+
 export default defineConfig({
   plugins: [
     Vue(),
     Vuetify({ autoImport: true }),
+    stubRouteBlock(),
   ],
   test: {
     environment: 'jsdom',

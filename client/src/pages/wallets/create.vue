@@ -1,7 +1,8 @@
 <script lang="ts" setup>
   import { Wallet } from 'lucide-vue-next'
-  import { reactive, ref } from 'vue'
+  import { onMounted, reactive, ref } from 'vue'
   import { useRouter } from 'vue-router'
+  import { fetchCurrencies } from '@/api/wallets'
   import { useWalletStore } from '@/stores/wallet'
   import { getValidationErrors, isApiError } from '@/utils/errors'
 
@@ -15,10 +16,16 @@
     currency: 'USD',
   })
 
-  const currencies = [
-    { title: 'US Dollar (USD)', value: 'USD' },
-    { title: 'Euro (EUR)', value: 'EUR' },
-  ]
+  const currencies = ref<string[]>([])
+
+  onMounted(async () => {
+    try {
+      const { data } = await fetchCurrencies()
+      currencies.value = data
+    } catch {
+      // Fallback handled by empty array
+    }
+  })
 
   async function submit () {
     processing.value = true

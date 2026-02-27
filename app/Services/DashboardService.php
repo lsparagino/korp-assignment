@@ -2,7 +2,9 @@
 
 namespace App\Services;
 
+use App\Enums\UserRole;
 use App\Http\Resources\TransactionResource;
+use App\Models\CompanySetting;
 use App\Models\User;
 use App\Models\Wallet;
 use Illuminate\Support\Facades\Log;
@@ -32,12 +34,18 @@ class DashboardService
 
         Log::info('Dashboard data accessed', ['user_id' => $user->id, 'company_id' => $companyId]);
 
-        return [
+        $data = [
             'balances' => $balancesByCurrency,
             'top_wallets' => $top3,
             'others' => $othersAggregated,
             'transactions' => TransactionResource::collection($recentTransactions),
             'wallets' => $allWallets,
         ];
+
+        if ($user->role === UserRole::Admin && $companyId) {
+            $data['missing_thresholds'] = CompanySetting::where('company_id', $companyId)->count() === 0;
+        }
+
+        return $data;
     }
 }

@@ -1,7 +1,18 @@
-import { describe, expect, it } from 'vitest'
+import { createPinia, setActivePinia } from 'pinia'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { formatCurrency, formatDate, getAmountColor } from './formatters'
 
+vi.mock('@/api/settings', () => ({
+  fetchUserPreferences: vi.fn().mockResolvedValue({
+    data: { data: { date_format: 'en-GB', number_format: 'en-GB' } },
+  }),
+}))
+
 describe('formatCurrency', () => {
+  beforeEach(() => {
+    setActivePinia(createPinia())
+  })
+
   it('formats a positive USD amount', () => {
     const result = formatCurrency(1234.56, 'USD')
     expect(result).toContain('1,234.56')
@@ -19,6 +30,10 @@ describe('formatCurrency', () => {
 })
 
 describe('formatDate', () => {
+  beforeEach(() => {
+    setActivePinia(createPinia())
+  })
+
   it('formats a valid ISO date string', () => {
     const result = formatDate('2025-06-15T10:30:00.000Z')
     expect(result).toBeTruthy()

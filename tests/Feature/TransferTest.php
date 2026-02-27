@@ -3,6 +3,7 @@
 use App\Enums\TransactionType;
 use App\Enums\WalletCurrency;
 use App\Models\Company;
+use App\Models\CompanySetting;
 use App\Models\Transaction;
 use App\Models\User;
 use App\Models\Wallet;
@@ -40,6 +41,13 @@ beforeEach(function () {
         'amount' => 20000,
         'external' => true,
         'status' => 'completed',
+    ]);
+
+    // Set a USD approval threshold of $10,000
+    CompanySetting::create([
+        'company_id' => $this->company->id,
+        'currency' => 'USD',
+        'approval_threshold' => 10000,
     ]);
 });
 
@@ -82,6 +90,43 @@ test('internal transfer pending above threshold', function () {
     expect($this->senderWallet->fresh()->balance)->toBe(20000.0);
     expect($this->receiverWallet->fresh()->balance)->toBe(0.0);
     expect((float) $this->senderWallet->fresh()->locked_balance)->toBe(15000.0);
+});
+
+test('transfer completes immediately when no threshold is configured for currency', function () {
+    $eurSender = Wallet::factory()->create([
+        'user_id' => $this->member->id,
+        'company_id' => $this->company->id,
+        'currency' => WalletCurrency::EUR,
+        'status' => 'active',
+    ]);
+    $eurReceiver = Wallet::factory()->create([
+        'user_id' => $this->admin->id,
+        'company_id' => $this->company->id,
+        'currency' => WalletCurrency::EUR,
+        'status' => 'active',
+    ]);
+    Transaction::factory()->create([
+        'wallet_id' => $eurSender->id,
+        'type' => TransactionType::Credit,
+        'amount' => 50000,
+        'external' => true,
+        'status' => 'completed',
+    ]);
+
+    // No CompanySetting for EUR — large transfer should complete immediately
+    $response = $this->actingAs($this->member, 'sanctum')
+        ->postJson('/api/v0/transfers', [
+            'sender_wallet_id' => $eurSender->id,
+            'receiver_wallet_id' => $eurReceiver->id,
+            'amount' => 25000,
+            'external' => false,
+            'reference' => 'No threshold test',
+            'company_id' => $this->company->id,
+        ]);
+
+    $response->assertStatus(201);
+    $response->assertJsonPath('data.status', 'completed');
+    expect((float) $eurSender->fresh()->locked_balance)->toBe(0.0);
 });
 
 // ── External Transfer Tests ──────────────────────────────────────
