@@ -1,9 +1,19 @@
 <script lang="ts" setup>
+  import { computed } from 'vue'
   import { useI18n } from 'vue-i18n'
+  import { useAuthStore } from '@/stores/auth'
 
   const { t } = useI18n()
+  const authStore = useAuthStore()
 
-  const settingsNav = [
+  interface NavItem {
+    title: string
+    to: string
+    icon: string
+    adminOnly?: boolean
+  }
+
+  const allNavItems: NavItem[] = [
     { title: t('settings.nav.profile'), to: '/settings/profile', icon: 'mdi-account' },
     { title: t('settings.nav.password'), to: '/settings/password', icon: 'mdi-lock' },
     {
@@ -11,7 +21,18 @@
       to: '/settings/two-factor',
       icon: 'mdi-shield-check',
     },
+    { title: t('settings.nav.preferences'), to: '/settings/preferences', icon: 'mdi-tune' },
+    {
+      title: t('settings.nav.thresholds'),
+      to: '/settings/thresholds',
+      icon: 'mdi-currency-usd',
+      adminOnly: true,
+    },
   ]
+
+  const settingsNav = computed(() =>
+    allNavItems.filter(item => !item.adminOnly || authStore.isAdmin),
+  )
 </script>
 
 <template>

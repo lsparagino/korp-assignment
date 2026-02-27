@@ -29,7 +29,9 @@ declare module 'vue-router/auto-routes' {
     '/auth/verify-email': RouteRecordInfo<'/auth/verify-email', '/auth/verify-email', Record<never, never>, Record<never, never>>,
     '/dashboard': RouteRecordInfo<'/dashboard', '/dashboard', Record<never, never>, Record<never, never>>,
     '/settings/password': RouteRecordInfo<'/settings/password', '/settings/password', Record<never, never>, Record<never, never>>,
+    '/settings/preferences': RouteRecordInfo<'/settings/preferences', '/settings/preferences', Record<never, never>, Record<never, never>>,
     '/settings/profile': RouteRecordInfo<'/settings/profile', '/settings/profile', Record<never, never>, Record<never, never>>,
+    '/settings/thresholds': RouteRecordInfo<'/settings/thresholds', '/settings/thresholds', Record<never, never>, Record<never, never>>,
     '/settings/two-factor': RouteRecordInfo<'/settings/two-factor', '/settings/two-factor', Record<never, never>, Record<never, never>>,
     '/team-members/': RouteRecordInfo<'/team-members/', '/team-members', Record<never, never>, Record<never, never>>,
     '/transactions/': RouteRecordInfo<'/transactions/', '/transactions', Record<never, never>, Record<never, never>>,
@@ -93,8 +95,16 @@ declare module 'vue-router/auto-routes' {
       routes: '/settings/password'
       views: never
     }
+    'src/pages/settings/preferences.vue': {
+      routes: '/settings/preferences'
+      views: never
+    }
     'src/pages/settings/profile.vue': {
       routes: '/settings/profile'
+      views: never
+    }
+    'src/pages/settings/thresholds.vue': {
+      routes: '/settings/thresholds'
       views: never
     }
     'src/pages/settings/two-factor.vue': {

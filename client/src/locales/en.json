@@ -232,7 +232,9 @@
         "nav": {
             "profile": "Profile",
             "password": "Password",
-            "twoFactor": "Two-Factor"
+            "twoFactor": "Two-Factor",
+            "preferences": "Preferences",
+            "thresholds": "Thresholds"
         },
         "profile": {
             "title": "Profile information",
@@ -266,6 +268,38 @@
             "confirmAndEnable": "Confirm & Enable",
             "enabledDescription": "Two-factor authentication is enabled. You can manage your recovery codes below.",
             "recoveryCodes": "Recovery Codes"
+        },
+        "preferences": {
+            "title": "Preferences",
+            "description": "Manage your notification and formatting preferences",
+            "notifications": "Email Notifications",
+            "notificationsDescription": "Choose which email notifications you'd like to receive",
+            "notifyMoneyReceived": "Received money",
+            "notifyMoneySent": "Transferred money",
+            "notifyTransactionApproved": "Transaction approved",
+            "notifyTransactionRejected": "Transaction rejected",
+            "notifyApprovalNeeded": "Transaction needs approval",
+            "formatting": "Format & Locale",
+            "formattingDescription": "Configure how dates and numbers are displayed",
+            "dateFormat": "Date & time format",
+            "numberFormat": "Number format",
+            "limits": "Personal Limits",
+            "limitsDescription": "Set personal daily transaction limits",
+            "dailyTransactionLimit": "Daily transaction limit",
+            "dailyTransactionLimitHint": "Leave empty for no limit",
+            "limitMustBePositive": "Must be a positive number",
+            "noLimit": "No limit"
+        },
+        "thresholds": {
+            "title": "Transaction Thresholds",
+            "description": "Configure approval thresholds per currency. Transactions above these amounts will require admin approval.",
+            "currency": "Currency",
+            "approvalThreshold": "Approval threshold",
+            "addThreshold": "Add Threshold",
+            "editThreshold": "Edit Threshold",
+            "deleteConfirmTitle": "Delete Threshold",
+            "deleteConfirmMessage": "Are you sure you want to remove the approval threshold for {currency}?",
+            "noThresholds": "No thresholds configured yet"
         }
     },
     "deleteUser": {

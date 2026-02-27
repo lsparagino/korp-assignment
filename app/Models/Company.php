@@ -24,4 +24,9 @@ class Company extends Model
     {
         return $this->hasMany(Wallet::class);
     }
+
+    public function settings(): HasMany
+    {
+        return $this->hasMany(CompanySetting::class);
+    }
 }

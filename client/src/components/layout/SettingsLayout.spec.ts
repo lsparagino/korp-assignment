@@ -1,35 +1,47 @@
-import { describe, expect, it } from 'vitest'
+import { createTestingPinia } from '@pinia/testing'
+import { describe, expect, it, vi } from 'vitest'
+import en from '@/locales/en.json'
 import { mountWithPlugins } from '@/test/setup'
 import SettingsLayout from './SettingsLayout.vue'
 
+const nav = en.settings.nav
+
 describe('SettingsLayout.vue', () => {
-  it('renders navigation items', () => {
-    const wrapper = mountWithPlugins(SettingsLayout, {
-      global: {
-        stubs: {
-          RouterLink: true,
-        },
-      },
-    })
+  it('renders navigation items for non-admin users', () => {
+    const wrapper = mountWithPlugins(SettingsLayout)
 
-    // With our i18n mock setup or real en.json, the titles should be present
-    expect(wrapper.text()).toContain('Profile')
-    expect(wrapper.text()).toContain('Password')
-    expect(wrapper.text()).toContain('Two-Factor')
+    expect(wrapper.text()).toContain(nav.profile)
+    expect(wrapper.text()).toContain(nav.password)
+    expect(wrapper.text()).toContain(nav.twoFactor)
+    expect(wrapper.text()).toContain(nav.preferences)
 
-    // Uses v-list-item components
+    // Thresholds should NOT be visible for non-admin (default mock user)
+    expect(wrapper.text()).not.toContain(nav.thresholds)
+
     const vListItems = wrapper.findAllComponents({ name: 'v-list-item' })
-    expect(vListItems.length).toBe(3)
+    expect(vListItems.length).toBe(4)
   })
 
-  it('renders slot content', () => {
+  it('renders thresholds nav item for admin users', () => {
     const wrapper = mountWithPlugins(SettingsLayout, {
-      slots: {
-        default: '<div class="settings-content">Settings Form</div>',
+      global: {
+        plugins: [
+          createTestingPinia({
+            createSpy: vi.fn,
+            stubActions: false,
+            initialState: {
+              auth: {
+                user: { id: 1, name: 'Admin', role: 'admin', email: 'a@test.com', email_verified_at: '2024-01-01' },
+              },
+            },
+          }),
+        ],
       },
     })
 
-    expect(wrapper.find('.settings-content').exists()).toBe(true)
-    expect(wrapper.text()).toContain('Settings Form')
+    expect(wrapper.text()).toContain(nav.thresholds)
+
+    const vListItems = wrapper.findAllComponents({ name: 'v-list-item' })
+    expect(vListItems.length).toBe(5)
   })
 })

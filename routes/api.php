@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CompanyController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\PasswordResetController;
+use App\Http\Controllers\Api\SettingController;
 use App\Http\Controllers\Api\TeamMemberController;
 use App\Http\Controllers\Api\TransactionController;
 use App\Http\Controllers\Api\TransferController;
@@ -69,10 +70,19 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     // Settings Routes
+    Route::get('/settings/preferences', [SettingController::class, 'showUserSettings'])->name('settings.preferences.show');
+    Route::put('/settings/preferences', [SettingController::class, 'updateUserSettings'])->name('settings.preferences.update');
     Route::patch('/settings/profile', [ProfileController::class, 'update'])->name('settings.profile.update');
     Route::delete('/settings/profile', [ProfileController::class, 'destroy'])->name('settings.profile.destroy');
     Route::delete('/settings/pending-email', [ProfileController::class, 'cancelPendingEmail'])->name('settings.pending-email.destroy');
     Route::put('/settings/password', [PasswordController::class, 'update'])->name('settings.password.update');
+
+    // Company-scoped threshold routes
+    Route::middleware('company')->group(function () {
+        Route::get('/settings/thresholds', [SettingController::class, 'indexCompanyThresholds'])->name('settings.thresholds.index');
+        Route::put('/settings/thresholds', [SettingController::class, 'upsertCompanyThreshold'])->name('settings.thresholds.upsert');
+        Route::delete('/settings/thresholds/{threshold}', [SettingController::class, 'destroyCompanyThreshold'])->name('settings.thresholds.destroy');
+    });
 });
 
 // E2E Testing Routes (only available when APP_ENV=testing)
