@@ -206,7 +206,9 @@
             "fromWallet": "From Wallet",
             "toWallet": "To Wallet",
             "reference": "Reference",
-            "actions": "Actions"
+            "actions": "Actions",
+            "transaction": "Transaction",
+            "walletsColumn": "Wallets"
         },
         "initiator": "Initiated By",
         "reviewer": "Reviewed By",

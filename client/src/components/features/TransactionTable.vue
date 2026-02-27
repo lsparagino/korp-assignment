@@ -6,7 +6,7 @@
   import TransactionDetailModal from '@/components/features/TransactionDetailModal.vue'
   import DataTable from '@/components/ui/DataTable.vue'
   import { getTransactionStatusColors, getTransactionTypeColors } from '@/utils/colors'
-  import { formatCurrency, formatDate } from '@/utils/formatters'
+  import { formatCurrency, formatDate, getStatusIcon } from '@/utils/formatters'
 
   interface Props {
     items: Transaction[]
@@ -125,26 +125,82 @@
     @update:per-page="emit('update:per-page', $event)"
   >
     <template #columns>
-      <th>{{ $t('transactions.tableHeaders.date') }}</th>
-      <th class="d-none d-sm-table-cell">{{ $t('transactions.tableHeaders.type') }}</th>
-      <th class="d-none d-sm-table-cell">{{ $t('transactions.tableHeaders.status') }}</th>
-      <th>{{ $t('transactions.tableHeaders.amount') }}</th>
-      <th>{{ $t('transactions.tableHeaders.fromWallet') }}</th>
-      <th>{{ $t('transactions.tableHeaders.toWallet') }}</th>
+      <!-- Mobile header (xs only) -->
+      <th class="d-sm-none">{{ $t('transactions.tableHeaders.transaction') }}</th>
 
-      <th class="text-center" style="width: 60px">
+      <!-- Desktop headers (sm+) -->
+      <th class="d-none d-sm-table-cell">{{ $t('transactions.tableHeaders.date') }}</th>
+      <th class="d-none d-lg-table-cell">{{ $t('transactions.tableHeaders.type') }}</th>
+      <th class="d-none d-sm-table-cell" style="width: 40px">{{ $t('transactions.tableHeaders.status') }}</th>
+      <th class="d-none d-sm-table-cell">{{ $t('transactions.tableHeaders.amount') }}</th>
+      <th class="d-none d-sm-table-cell">{{ $t('transactions.tableHeaders.fromWallet') }}</th>
+      <th class="d-none d-sm-table-cell">{{ $t('transactions.tableHeaders.toWallet') }}</th>
+
+      <th class="text-center d-none d-sm-table-cell" style="width: 60px">
         {{ $t('transactions.tableHeaders.actions') }}
       </th>
     </template>
 
     <template #body>
-      <tr v-for="item in items" :key="item.id">
-        <td
-          class="text-grey-darken-2 text-caption text-no-wrap"
-        >
+      <tr v-for="item in items" :key="item.id" class="cursor-pointer" @click="openDetail(item)">
+        <!-- ── Mobile: Single cell with two rows ── -->
+        <td class="d-sm-none py-3">
+          <!-- Row 1: status icon + date (left) — amount (right) -->
+          <div class="d-flex align-center justify-space-between mb-2">
+            <div class="d-flex align-center ga-1">
+              <v-icon
+                :color="getTransactionStatusColors(item.status).text"
+                :icon="getStatusIcon(item.status)"
+                size="14"
+              />
+              <span class="text-caption text-grey-darken-1 text-no-wrap">
+                {{ formatDate(item.created_at) }}
+              </span>
+            </div>
+            <span
+              class="font-weight-black text-body-2"
+              :class="getTransactionColor(item)"
+            >
+              {{ formatCurrency(getDisplayAmount(item), item.currency) }}
+            </span>
+          </div>
+          <!-- Row 2: from wallet → to wallet -->
+          <div class="d-flex align-center ga-1 text-caption">
+            <v-avatar
+              class="flex-shrink-0"
+              :color="isAssigned(getFromWalletId(item)) ? 'primary' : 'grey-lighten-2'"
+              rounded="sm"
+              size="14"
+            >
+              <v-icon color="white" icon="mdi-wallet" size="8" />
+            </v-avatar>
+            <span
+              class="font-weight-medium text-no-wrap text-truncate"
+              :class="isAssigned(getFromWalletId(item)) ? 'text-grey-darken-2' : 'text-grey-lighten-1'"
+            >{{ getFromLabel(item) }}</span>
+            <v-icon color="grey" icon="mdi-arrow-right" size="12" />
+            <v-avatar
+              class="flex-shrink-0"
+              :color="isAssigned(getToWalletId(item)) ? 'primary' : 'grey-lighten-2'"
+              rounded="sm"
+              size="14"
+            >
+              <v-icon color="white" icon="mdi-wallet" size="8" />
+            </v-avatar>
+            <span
+              class="font-weight-medium text-no-wrap text-truncate"
+              :class="isAssigned(getToWalletId(item)) ? 'text-grey-darken-2' : 'text-grey-lighten-1'"
+            >{{ getToLabel(item) }}</span>
+          </div>
+        </td>
+
+        <!-- ── Desktop: Date ── -->
+        <td class="text-grey-darken-2 text-caption text-no-wrap d-none d-sm-table-cell">
           {{ formatDate(item.created_at) }}
         </td>
-        <td class="text-grey-darken-3 font-weight-bold d-none d-sm-table-cell">
+
+        <!-- ── Desktop lg+: Type ── -->
+        <td class="text-grey-darken-3 font-weight-bold d-none d-lg-table-cell">
           <v-chip
             class="text-uppercase font-weight-bold"
             :color="getChipColor(item)"
@@ -156,7 +212,18 @@
             </span>
           </v-chip>
         </td>
-        <td class="d-none d-sm-table-cell">
+
+        <!-- ── Tablet sm/md: Status icon only ── -->
+        <td class="d-none d-sm-table-cell d-lg-none text-center">
+          <v-icon
+            :color="getTransactionStatusColors(item.status).text"
+            :icon="getStatusIcon(item.status)"
+            size="18"
+          />
+        </td>
+
+        <!-- ── Desktop lg+: Status chip ── -->
+        <td class="d-none d-lg-table-cell">
           <v-chip
             class="text-uppercase font-weight-bold"
             :color="getTransactionStatusColors(item.status).bg"
@@ -168,83 +235,67 @@
             </span>
           </v-chip>
         </td>
+
+        <!-- ── Desktop: Amount ── -->
         <td
+          class="d-none d-sm-table-cell"
           :class="[getTransactionColor(item), 'font-weight-black']"
         >
           {{ formatCurrency(getDisplayAmount(item), item.currency) }}
         </td>
-        <td>
+
+        <!-- ── Desktop: From Wallet ── -->
+        <td class="d-none d-sm-table-cell">
           <div class="d-flex align-center">
             <v-avatar
               class="me-2"
-              :color="
-                isAssigned(getFromWalletId(item))
-                  ? 'primary'
-                  : 'grey-lighten-2'
-              "
+              :color="isAssigned(getFromWalletId(item)) ? 'primary' : 'grey-lighten-2'"
               rounded="sm"
               size="20"
             >
-              <v-icon
-                color="white"
-                icon="mdi-wallet"
-                size="12"
-              />
+              <v-icon color="white" icon="mdi-wallet" size="12" />
             </v-avatar>
             <span
               class="text-caption font-weight-medium"
-              :class="
-                isAssigned(getFromWalletId(item))
-                  ? 'text-grey-darken-2'
-                  : 'text-grey-lighten-1'
-              "
+              :class="isAssigned(getFromWalletId(item)) ? 'text-grey-darken-2' : 'text-grey-lighten-1'"
             >{{ getFromLabel(item) }}</span>
           </div>
         </td>
-        <td>
+
+        <!-- ── Desktop: To Wallet ── -->
+        <td class="d-none d-sm-table-cell">
           <div class="d-flex align-center">
             <v-avatar
               class="me-2"
-              :color="
-                isAssigned(getToWalletId(item))
-                  ? 'primary'
-                  : 'grey-lighten-2'
-              "
+              :color="isAssigned(getToWalletId(item)) ? 'primary' : 'grey-lighten-2'"
               rounded="sm"
               size="20"
             >
-              <v-icon
-                color="white"
-                icon="mdi-wallet"
-                size="12"
-              />
+              <v-icon color="white" icon="mdi-wallet" size="12" />
             </v-avatar>
             <span
               class="text-caption font-weight-medium"
-              :class="
-                isAssigned(getToWalletId(item))
-                  ? 'text-grey-darken-2'
-                  : 'text-grey-lighten-1'
-              "
+              :class="isAssigned(getToWalletId(item)) ? 'text-grey-darken-2' : 'text-grey-lighten-1'"
             >{{ getToLabel(item) }}</span>
           </div>
         </td>
 
-        <td class="text-center">
+        <!-- ── Actions (desktop only) ── -->
+        <td class="text-center d-none d-sm-table-cell">
           <v-btn
             color="primary"
             density="comfortable"
             icon="mdi-eye"
             size="small"
             variant="text"
-            @click="openDetail(item)"
+            @click.stop="openDetail(item)"
           />
         </td>
       </tr>
       <tr v-if="!loading && items.length === 0">
         <td
           class="text-grey-darken-1 py-8 text-center"
-          colspan="7"
+          colspan="9"
         >
           {{ $t('transactions.noTransactions') }}
         </td>

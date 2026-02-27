@@ -55,3 +55,13 @@ const CURRENCY_SYMBOLS: Record<string, string> = {
 export function getCurrencySymbol(currency: string): string {
   return CURRENCY_SYMBOLS[currency] ?? currency
 }
+
+const STATUS_ICONS: Record<string, string> = {
+  completed: 'mdi-check-circle',
+  pending_approval: 'mdi-clock-outline',
+  rejected: 'mdi-close-circle',
+}
+
+export function getStatusIcon(status: string): string {
+  return STATUS_ICONS[status.toLowerCase()] ?? 'mdi-help-circle'
+}

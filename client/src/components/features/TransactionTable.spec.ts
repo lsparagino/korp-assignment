@@ -68,13 +68,13 @@ describe('TransactionTable.vue', () => {
 
     const text = bodyText()
     const headers = en.transactions.tableHeaders
+    expect(text).toContain(headers.transaction)
     expect(text).toContain(headers.date)
     expect(text).toContain(headers.type)
     expect(text).toContain(headers.status)
     expect(text).toContain(headers.amount)
     expect(text).toContain(headers.fromWallet)
     expect(text).toContain(headers.toWallet)
-    expect(text).toContain(headers.reference)
     expect(text).toContain(headers.actions)
   })
 
@@ -156,11 +156,4 @@ describe('TransactionTable.vue', () => {
     expect(chipTexts).toContain('pending')
   })
 
-  it('shows reference in row', async () => {
-    await mountTable({
-      items: [createTransaction({ reference: 'INV-2026' })],
-    })
-
-    expect(bodyText()).toContain('INV-2026')
-  })
 })

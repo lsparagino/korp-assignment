@@ -90,7 +90,7 @@
   >
     <template #columns>
       <th>{{ $t('wallets.tableHeaders.name') }}</th>
-      <th>{{ $t('wallets.tableHeaders.address') }}</th>
+
       <th>{{ $t('wallets.tableHeaders.balance') }}</th>
       <th>{{ $t('wallets.tableHeaders.availableBalance') }}</th>
       <th>{{ $t('wallets.tableHeaders.currency') }}</th>
@@ -105,12 +105,7 @@
         <td class="font-weight-bold text-grey-darken-3">
           {{ w.name }}
         </td>
-        <td
-          class="text-caption text-grey-darken-1"
-          style="font-family: monospace"
-        >
-          {{ w.address }}
-        </td>
+
         <td
           class="font-weight-bold"
         >
