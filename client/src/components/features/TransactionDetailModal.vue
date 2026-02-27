@@ -461,6 +461,7 @@
 
               <TransactionTable
                 compact
+                is-admin
                 :items="recentTransactions"
                 :loading="loadingRecent"
                 :title="$t('transactions.recentTransactionsByUser', { name: transaction.initiator?.name })"
