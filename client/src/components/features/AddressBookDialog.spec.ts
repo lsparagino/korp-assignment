@@ -1,123 +1,117 @@
-import type { AddressBookEntry } from '@/api/address-book'
 import { flushPromises } from '@vue/test-utils'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import en from '@/locales/en.json'
 import { mountWithPlugins } from '@/test/setup'
 import AddressBookDialog from './AddressBookDialog.vue'
 
-const mockEntries: AddressBookEntry[] = [
-    { id: 1, name: 'Acme Corp', address: 'bc1q-acme-addr', created_at: '2026-01-01T00:00:00Z' },
-    { id: 2, name: 'Globex Ltd', address: 'bc1q-globex-addr', created_at: '2026-01-02T00:00:00Z' },
-]
-
 vi.mock('@/api/address-book', () => ({
-    fetchAddressBook: vi.fn().mockResolvedValue({ data: { data: [] } }),
-    createAddressBookEntry: vi.fn().mockResolvedValue({ data: { data: { id: 3, name: 'New', address: 'new-addr', created_at: '' } } }),
-    deleteAddressBookEntry: vi.fn().mockResolvedValue({}),
+  fetchAddressBook: vi.fn().mockResolvedValue({ data: { data: [] } }),
+  createAddressBookEntry: vi.fn().mockResolvedValue({ data: { data: { id: 3, name: 'New', address: 'new-addr', created_at: '' } } }),
+  deleteAddressBookEntry: vi.fn().mockResolvedValue({}),
 }))
 
 vi.mock('@/queries/address-book', () => ({
-    ADDRESS_BOOK_QUERY_KEYS: { root: ['address-book'], list: () => ['address-book', 'list'] },
-    addressBookListQuery: {
-        key: ['address-book', 'list'],
-        query: vi.fn().mockResolvedValue([]),
-    },
+  ADDRESS_BOOK_QUERY_KEYS: { root: ['address-book'], list: () => ['address-book', 'list'] },
+  addressBookListQuery: {
+    key: ['address-book', 'list'],
+    query: vi.fn().mockResolvedValue([]),
+  },
 }))
 
 describe('AddressBookDialog.vue', () => {
-    let wrapper: ReturnType<typeof mountWithPlugins>
+  let wrapper: ReturnType<typeof mountWithPlugins>
 
-    afterEach(() => {
-        wrapper?.unmount()
-        document.body.innerHTML = ''
+  afterEach(() => {
+    wrapper?.unmount()
+    document.body.innerHTML = ''
+  })
+
+  async function mountDialog (props: Record<string, unknown> = {}) {
+    wrapper = mountWithPlugins(AddressBookDialog, {
+      props: {
+        modelValue: true,
+        ...props,
+      },
+      attachTo: document.body,
     })
+    await flushPromises()
+    return wrapper
+  }
 
-    async function mountDialog(props: Record<string, unknown> = {}) {
-        wrapper = mountWithPlugins(AddressBookDialog, {
-            props: {
-                modelValue: true,
-                ...props,
-            },
-            attachTo: document.body,
-        })
-        await flushPromises()
-        return wrapper
-    }
+  function bodyText () {
+    return document.body.textContent || ''
+  }
 
-    function bodyText() {
-        return document.body.textContent || ''
-    }
+  it('renders the dialog title', async () => {
+    await mountDialog()
 
-    it('renders the dialog title', async () => {
-        await mountDialog()
+    expect(bodyText()).toContain(en.addressBook.title)
+  })
 
-        expect(bodyText()).toContain(en.addressBook.title)
-    })
+  it('shows empty state when no entries', async () => {
+    await mountDialog()
 
-    it('shows empty state when no entries', async () => {
-        await mountDialog()
+    const empty = document.body.querySelector('[data-testid="address-book-empty"]')
+    expect(empty).not.toBeNull()
+    expect(bodyText()).toContain(en.addressBook.noEntries)
+  })
 
-        const empty = document.body.querySelector('[data-testid="address-book-empty"]')
-        expect(empty).not.toBeNull()
-        expect(bodyText()).toContain(en.addressBook.noEntries)
-    })
+  it('renders search field', async () => {
+    await mountDialog()
 
-    it('renders search field', async () => {
-        await mountDialog()
+    const search = document.body.querySelector('[data-testid="address-book-search"]')
+    expect(search).not.toBeNull()
+  })
 
-        const search = document.body.querySelector('[data-testid="address-book-search"]')
-        expect(search).not.toBeNull()
-    })
+  it('renders add new button', async () => {
+    await mountDialog()
 
-    it('renders add new button', async () => {
-        await mountDialog()
+    const addBtn = document.body.querySelector('[data-testid="address-book-add-btn"]')
+    expect(addBtn).not.toBeNull()
+    expect(bodyText()).toContain(en.addressBook.addNew)
+  })
 
-        const addBtn = document.body.querySelector('[data-testid="address-book-add-btn"]')
-        expect(addBtn).not.toBeNull()
-        expect(bodyText()).toContain(en.addressBook.addNew)
-    })
+  it('shows add form when add button is clicked', async () => {
+    await mountDialog()
 
-    it('shows add form when add button is clicked', async () => {
-        await mountDialog()
+    const addBtn = document.body.querySelector('[data-testid="address-book-add-btn"]') as HTMLElement
+    await addBtn.click()
+    await flushPromises()
 
-        const addBtn = document.body.querySelector('[data-testid="address-book-add-btn"]') as HTMLElement
-        await addBtn.click()
-        await flushPromises()
+    const nameInput = document.body.querySelector('[data-testid="address-book-new-name"]')
+    const addressInput = document.body.querySelector('[data-testid="address-book-new-address"]')
+    expect(nameInput).not.toBeNull()
+    expect(addressInput).not.toBeNull()
+  })
 
-        const nameInput = document.body.querySelector('[data-testid="address-book-new-name"]')
-        const addressInput = document.body.querySelector('[data-testid="address-book-new-address"]')
-        expect(nameInput).not.toBeNull()
-        expect(addressInput).not.toBeNull()
-    })
+  it('save button is disabled when fields are empty', async () => {
+    await mountDialog()
 
-    it('save button is disabled when fields are empty', async () => {
-        await mountDialog()
+    const addBtn = document.body.querySelector('[data-testid="address-book-add-btn"]') as HTMLElement
+    await addBtn.click()
+    await flushPromises()
 
-        const addBtn = document.body.querySelector('[data-testid="address-book-add-btn"]') as HTMLElement
-        await addBtn.click()
-        await flushPromises()
+    const saveBtn = document.body.querySelector('[data-testid="address-book-save-btn"]') as HTMLButtonElement
+    expect(saveBtn).not.toBeNull()
+    expect(saveBtn.disabled).toBe(true)
+  })
 
-        const saveBtn = document.body.querySelector('[data-testid="address-book-save-btn"]') as HTMLButtonElement
-        expect(saveBtn).not.toBeNull()
-        expect(saveBtn.disabled).toBe(true)
-    })
+  it('has cancel/save buttons right-aligned', async () => {
+    await mountDialog()
 
-    it('has cancel/save buttons right-aligned', async () => {
-        await mountDialog()
+    const addBtn = document.body.querySelector('[data-testid="address-book-add-btn"]') as HTMLElement
+    await addBtn.click()
+    await flushPromises()
 
-        const addBtn = document.body.querySelector('[data-testid="address-book-add-btn"]') as HTMLElement
-        await addBtn.click()
-        await flushPromises()
+    const saveBtn = document.body.querySelector('[data-testid="address-book-save-btn"]') as HTMLElement
+    const btnContainer = saveBtn?.closest('.d-flex')
+    expect(btnContainer?.classList.contains('justify-end')).toBe(true)
+  })
 
-        const saveBtn = document.body.querySelector('[data-testid="address-book-save-btn"]') as HTMLElement
-        const btnContainer = saveBtn?.closest('.d-flex')
-        expect(btnContainer?.classList.contains('justify-end')).toBe(true)
-    })
+  it('has a close button', async () => {
+    await mountDialog()
 
-    it('has a close button', async () => {
-        await mountDialog()
-
-        const closeBtn = document.body.querySelector('[data-testid="address-book-close-btn"]')
-        expect(closeBtn).not.toBeNull()
-    })
+    const closeBtn = document.body.querySelector('[data-testid="address-book-close-btn"]')
+    expect(closeBtn).not.toBeNull()
+  })
 })

@@ -13,7 +13,7 @@
   import { useWalletStore } from '@/stores/wallet'
   import { getCurrencyColors, getStatusColors } from '@/utils/colors'
   import { getErrorMessage, isApiError } from '@/utils/errors'
-  import { formatCurrency, getAmountColor } from '@/utils/formatters'
+  import { formatCurrency } from '@/utils/formatters'
 
   const { t } = useI18n()
   const authStore = useAuthStore()
@@ -34,8 +34,6 @@
   const { refreshing, refresh } = useRefreshData(async () => {
     await refetch()
   })
-
-
 
   function deleteWallet (wallet: Wallet) {
     openConfirmDialog({

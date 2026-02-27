@@ -1,20 +1,21 @@
 import { DateTime } from 'luxon'
 import { usePreferencesStore } from '@/stores/preferences'
 
-export function formatCurrency(amount: number, currency: string): string {
+export function formatCurrency (amount: number, currency: string): string {
   const store = usePreferencesStore()
   return new Intl.NumberFormat(store.numberLocale, {
     style: 'currency',
     currency: currency || 'USD',
+    currencyDisplay: 'narrowSymbol',
   }).format(amount)
 }
 
-export function formatNumber(value: number): string {
+export function formatNumber (value: number): string {
   const store = usePreferencesStore()
   return new Intl.NumberFormat(store.numberLocale).format(value)
 }
 
-export function formatDate(dateString: string): string {
+export function formatDate (dateString: string): string {
   if (!dateString) {
     return ''
   }
@@ -23,10 +24,12 @@ export function formatDate(dateString: string): string {
     return 'Invalid Date'
   }
   const store = usePreferencesStore()
-  return dt.toLocaleString(DateTime.DATETIME_SHORT, { locale: store.dateLocale })
+  return dt.toLocaleString(DateTime.DATETIME_SHORT, {
+    locale: store.dateLocale,
+  })
 }
 
-export function getAmountColor(amount: number): string {
+export function getAmountColor (amount: number): string {
   if (amount > 0) {
     return 'text-green-darken-1'
   }
@@ -42,7 +45,7 @@ const CURRENCY_ICONS: Record<string, string> = {
   GBP: 'mdi-currency-gbp',
 }
 
-export function getCurrencyIcon(currency: string): string {
+export function getCurrencyIcon (currency: string): string {
   return CURRENCY_ICONS[currency] ?? 'mdi-cash'
 }
 
@@ -52,7 +55,7 @@ const CURRENCY_SYMBOLS: Record<string, string> = {
   GBP: '£',
 }
 
-export function getCurrencySymbol(currency: string): string {
+export function getCurrencySymbol (currency: string): string {
   return CURRENCY_SYMBOLS[currency] ?? currency
 }
 
@@ -62,6 +65,6 @@ const STATUS_ICONS: Record<string, string> = {
   rejected: 'mdi-close-circle',
 }
 
-export function getStatusIcon(status: string): string {
+export function getStatusIcon (status: string): string {
   return STATUS_ICONS[status.toLowerCase()] ?? 'mdi-help-circle'
 }

@@ -200,102 +200,102 @@
 
         <!-- ── Desktop: Date ── -->
         <template v-if="!compact">
-        <td class="text-grey-darken-2 text-caption text-no-wrap d-none d-sm-table-cell">
-          {{ formatDate(item.created_at) }}
-        </td>
+          <td class="text-grey-darken-2 text-caption text-no-wrap d-none d-sm-table-cell">
+            {{ formatDate(item.created_at) }}
+          </td>
 
-        <!-- ── Desktop lg+: Type ── -->
-        <td class="text-grey-darken-3 font-weight-bold d-none d-lg-table-cell">
-          <v-chip
-            class="text-uppercase font-weight-bold"
-            :color="getChipColor(item)"
-            size="x-small"
-            variant="text"
-          >
-            <span :class="getChipTextColor(item)">
-              {{ getTransactionLabel(item) }}
-            </span>
-          </v-chip>
-        </td>
-
-        <!-- ── Tablet sm/md: Status icon only ── -->
-        <td class="d-none d-sm-table-cell d-lg-none text-center">
-          <v-icon
-            :color="getTransactionStatusColors(item.status).text"
-            :icon="getStatusIcon(item.status)"
-            size="18"
-          />
-        </td>
-
-        <!-- ── Desktop lg+: Status chip ── -->
-        <td class="d-none d-lg-table-cell">
-          <v-chip
-            class="text-uppercase font-weight-bold"
-            :color="getTransactionStatusColors(item.status).bg"
-            size="x-small"
-            variant="text"
-          >
-            <span :class="`text-${getTransactionStatusColors(item.status).text}`">
-              {{ getStatusLabel(item.status) }}
-            </span>
-          </v-chip>
-        </td>
-
-        <!-- ── Desktop: Amount ── -->
-        <td
-          class="d-none d-sm-table-cell"
-          :class="[getTransactionColor(item), 'font-weight-black']"
-        >
-          {{ formatCurrency(getDisplayAmount(item), item.currency) }}
-        </td>
-
-        <!-- ── Desktop: From Wallet ── -->
-        <td class="d-none d-sm-table-cell">
-          <div class="d-flex align-center">
-            <v-avatar
-              class="me-2"
-              :color="isAssigned(getFromWalletId(item)) ? 'primary' : 'grey-lighten-2'"
-              rounded="sm"
-              size="20"
+          <!-- ── Desktop lg+: Type ── -->
+          <td class="text-grey-darken-3 font-weight-bold d-none d-lg-table-cell">
+            <v-chip
+              class="text-uppercase font-weight-bold"
+              :color="getChipColor(item)"
+              size="x-small"
+              variant="text"
             >
-              <v-icon color="white" icon="mdi-wallet" size="12" />
-            </v-avatar>
-            <span
-              class="text-caption font-weight-medium"
-              :class="isAssigned(getFromWalletId(item)) ? 'text-grey-darken-2' : 'text-grey-lighten-1'"
-            >{{ getFromLabel(item) }}</span>
-          </div>
-        </td>
+              <span :class="getChipTextColor(item)">
+                {{ getTransactionLabel(item) }}
+              </span>
+            </v-chip>
+          </td>
 
-        <!-- ── Desktop: To Wallet ── -->
-        <td class="d-none d-sm-table-cell">
-          <div class="d-flex align-center">
-            <v-avatar
-              class="me-2"
-              :color="isAssigned(getToWalletId(item)) ? 'primary' : 'grey-lighten-2'"
-              rounded="sm"
-              size="20"
+          <!-- ── Tablet sm/md: Status icon only ── -->
+          <td class="d-none d-sm-table-cell d-lg-none text-center">
+            <v-icon
+              :color="getTransactionStatusColors(item.status).text"
+              :icon="getStatusIcon(item.status)"
+              size="18"
+            />
+          </td>
+
+          <!-- ── Desktop lg+: Status chip ── -->
+          <td class="d-none d-lg-table-cell">
+            <v-chip
+              class="text-uppercase font-weight-bold"
+              :color="getTransactionStatusColors(item.status).bg"
+              size="x-small"
+              variant="text"
             >
-              <v-icon color="white" icon="mdi-wallet" size="12" />
-            </v-avatar>
-            <span
-              class="text-caption font-weight-medium"
-              :class="isAssigned(getToWalletId(item)) ? 'text-grey-darken-2' : 'text-grey-lighten-1'"
-            >{{ getToLabel(item) }}</span>
-          </div>
-        </td>
+              <span :class="`text-${getTransactionStatusColors(item.status).text}`">
+                {{ getStatusLabel(item.status) }}
+              </span>
+            </v-chip>
+          </td>
 
-        <!-- ── Actions (desktop only) ── -->
-        <td class="text-center d-none d-sm-table-cell">
-          <v-btn
-            color="primary"
-            density="comfortable"
-            icon="mdi-eye"
-            size="small"
-            variant="text"
-            @click.stop="openDetail(item)"
-          />
-        </td>
+          <!-- ── Desktop: Amount ── -->
+          <td
+            class="d-none d-sm-table-cell"
+            :class="[getTransactionColor(item), 'font-weight-black']"
+          >
+            {{ formatCurrency(getDisplayAmount(item), item.currency) }}
+          </td>
+
+          <!-- ── Desktop: From Wallet ── -->
+          <td class="d-none d-sm-table-cell">
+            <div class="d-flex align-center">
+              <v-avatar
+                class="me-2"
+                :color="isAssigned(getFromWalletId(item)) ? 'primary' : 'grey-lighten-2'"
+                rounded="sm"
+                size="20"
+              >
+                <v-icon color="white" icon="mdi-wallet" size="12" />
+              </v-avatar>
+              <span
+                class="text-caption font-weight-medium"
+                :class="isAssigned(getFromWalletId(item)) ? 'text-grey-darken-2' : 'text-grey-lighten-1'"
+              >{{ getFromLabel(item) }}</span>
+            </div>
+          </td>
+
+          <!-- ── Desktop: To Wallet ── -->
+          <td class="d-none d-sm-table-cell">
+            <div class="d-flex align-center">
+              <v-avatar
+                class="me-2"
+                :color="isAssigned(getToWalletId(item)) ? 'primary' : 'grey-lighten-2'"
+                rounded="sm"
+                size="20"
+              >
+                <v-icon color="white" icon="mdi-wallet" size="12" />
+              </v-avatar>
+              <span
+                class="text-caption font-weight-medium"
+                :class="isAssigned(getToWalletId(item)) ? 'text-grey-darken-2' : 'text-grey-lighten-1'"
+              >{{ getToLabel(item) }}</span>
+            </div>
+          </td>
+
+          <!-- ── Actions (desktop only) ── -->
+          <td class="text-center d-none d-sm-table-cell">
+            <v-btn
+              color="primary"
+              density="comfortable"
+              icon="mdi-eye"
+              size="small"
+              variant="text"
+              @click.stop="openDetail(item)"
+            />
+          </td>
         </template>
       </tr>
       <tr v-if="!loading && items.length === 0">

@@ -25,7 +25,7 @@
   )
 
   const processing = ref(false)
-  const { formRef, formValid, validate, resetValidation } = useFormValidation()
+  const { formRef, formValid, validate } = useFormValidation()
   const transferType = ref<'external' | 'internal'>('internal')
   const errors = ref<Record<string, string[]>>({})
   const apiError = ref('')
@@ -48,10 +48,6 @@
     () => ({ page: 1, perPage: 500 }),
   )
   const wallets = computed<Wallet[]>(() => walletsData.value?.data ?? [])
-
-  const activeWallets = computed(() =>
-    wallets.value.filter(w => w.status !== 'frozen'),
-  )
 
   const selectedWallet = computed(() =>
     wallets.value.find(w => w.id === form.value.sender_wallet_id),
@@ -86,7 +82,7 @@
 
   const thresholdsMap = ref<Map<string, number>>(new Map())
 
-  async function loadThresholds() {
+  async function loadThresholds () {
     try {
       const { data } = await fetchCompanyThresholds()
       const map = new Map<string, number>()
@@ -112,7 +108,7 @@
   // --- Validation rules ---
   const requiredRule = (v: unknown) => !!v || t('validation.required')
   const positiveAmountRule = (v: number) => v > 0 || t('validation.positiveAmount')
-  function insufficientFundsRule(v: number) {
+  function insufficientFundsRule (v: number) {
     if (!selectedWallet.value) return true
     return v <= Number(selectedWallet.value.available_balance) || t('validation.insufficientFunds')
   }
@@ -122,7 +118,7 @@
   // Set default wallet when wallets load
   watch(
     wallets,
-    (list) => {
+    list => {
       if (list.length > 0 && form.value.sender_wallet_id === 0) {
         const defaultWallet = list.find(w => w.status !== 'frozen')
         if (defaultWallet) {
@@ -166,23 +162,23 @@
     loadThresholds()
   })
 
-  function onAddressBookSelect(entry: AddressBookEntry) {
+  function onAddressBookSelect (entry: AddressBookEntry) {
     form.value.external_name = entry.name
     form.value.external_address = entry.address
   }
 
-  async function reviewTransfer() {
+  async function reviewTransfer () {
     const valid = await validate()
     if (!valid) return
     step.value = 'recap'
   }
 
-  function goBack() {
+  function goBack () {
     step.value = 'form'
     apiError.value = ''
   }
 
-  async function confirmTransfer() {
+  async function confirmTransfer () {
     processing.value = true
     errors.value = {}
     apiError.value = ''
@@ -253,10 +249,10 @@
             rounded="lg"
             variant="outlined"
           >
-            <v-btn data-testid="transfer-type-internal" value="internal" class="flex-grow-1">
+            <v-btn class="flex-grow-1" data-testid="transfer-type-internal" value="internal">
               {{ $t('transfers.internal') }}
             </v-btn>
-            <v-btn data-testid="transfer-type-external" value="external" class="flex-grow-1">
+            <v-btn class="flex-grow-1" data-testid="transfer-type-external" value="external">
               {{ $t('transfers.external') }}
             </v-btn>
           </v-btn-toggle>

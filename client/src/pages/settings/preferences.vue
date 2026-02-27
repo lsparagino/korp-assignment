@@ -59,8 +59,8 @@
     try {
       const response = await fetchUserPreferences()
       Object.assign(form, response.data.data)
-    } catch (err) {
-      notifyError(err)
+    } catch (error) {
+      notifyError(error)
     } finally {
       loading.value = false
     }
@@ -70,7 +70,7 @@
     (v: string | null) => {
       if (v === null || v === '') return true
       const num = Number(v)
-      if (isNaN(num) || num <= 0) return t('settings.preferences.limitMustBePositive')
+      if (Number.isNaN(num) || num <= 0) return t('settings.preferences.limitMustBePositive')
       return true
     },
   ]

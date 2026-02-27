@@ -50,14 +50,14 @@ export interface TransferForm {
   notes?: string
 }
 
-export function fetchTransactions(params: TransactionParams) {
+export function fetchTransactions (params: TransactionParams) {
   return api.get('/transactions', { params })
 }
 
-export function initiateTransfer(form: TransferForm) {
+export function initiateTransfer (form: TransferForm) {
   return api.post('/transfers', form)
 }
 
-export function reviewTransfer(groupId: string, payload: { action: 'approve' | 'reject', reason?: string }) {
+export function reviewTransfer (groupId: string, payload: { action: 'approve' | 'reject', reason?: string }) {
   return api.post(`/transfers/${groupId}/review`, payload)
 }

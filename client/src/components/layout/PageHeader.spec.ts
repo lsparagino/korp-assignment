@@ -1,5 +1,4 @@
-import { createTestingPinia } from '@pinia/testing'
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { mountWithPlugins } from '@/test/setup'
 import PageHeader from './PageHeader.vue'
 
@@ -33,18 +32,13 @@ describe('PageHeader.vue', () => {
       props: {
         title: 'Dashboard',
       },
-      global: {
-        plugins: [
-          createTestingPinia({
-            createSpy: vi.fn,
-            initialState: {
-              company: {
-                currentCompany: { id: 1, name: 'ACME Corp' },
-                companies: [{ id: 1, name: 'ACME Corp' }],
-              },
-            },
-          }),
-        ],
+      piniaOptions: {
+        initialState: {
+          company: {
+            currentCompany: { id: 1, name: 'ACME Corp' },
+            companies: [{ id: 1, name: 'ACME Corp' }],
+          },
+        },
       },
     })
 

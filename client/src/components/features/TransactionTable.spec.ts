@@ -10,7 +10,7 @@ const mockWallets = [
   { id: 2, name: 'Business', address: 'addr2', balance: 3000, locked_balance: 0, available_balance: 3000, currency: 'USD', status: 'active' as const, can_delete: false },
 ]
 
-function createTransaction(overrides: Partial<Transaction> = {}): Transaction {
+function createTransaction (overrides: Partial<Transaction> = {}): Transaction {
   return {
     id: 1,
     group_id: 'grp-1',
@@ -46,7 +46,7 @@ describe('TransactionTable.vue', () => {
     document.body.innerHTML = ''
   })
 
-  async function mountTable(props: Record<string, unknown> = {}) {
+  async function mountTable (props: Record<string, unknown> = {}) {
     wrapper = mountWithPlugins(TransactionTable, {
       props: {
         items: [],
@@ -59,7 +59,7 @@ describe('TransactionTable.vue', () => {
     return wrapper
   }
 
-  function bodyText() {
+  function bodyText () {
     return document.body.textContent || ''
   }
 
@@ -155,5 +155,4 @@ describe('TransactionTable.vue', () => {
     const chipTexts = Array.from(chips).map(c => c.textContent?.trim().toLowerCase())
     expect(chipTexts).toContain('pending')
   })
-
 })

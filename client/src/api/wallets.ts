@@ -18,30 +18,30 @@ interface WalletForm {
   currency: string
 }
 
-export function fetchWallets(params?: PaginationParams) {
+export function fetchWallets (params?: PaginationParams) {
   return api.get('/wallets', { params })
 }
 
-export function fetchWallet(id: string | number) {
+export function fetchWallet (id: string | number) {
   return api.get(`/wallets/${id}`)
 }
 
-export function createWallet(form: WalletForm) {
+export function createWallet (form: WalletForm) {
   return api.post('/wallets', form)
 }
 
-export function updateWallet(id: string | number, form: WalletForm) {
+export function updateWallet (id: string | number, form: WalletForm) {
   return api.put(`/wallets/${id}`, form)
 }
 
-export function toggleWalletFreeze(id: number) {
+export function toggleWalletFreeze (id: number) {
   return api.patch(`/wallets/${id}/toggle-freeze`)
 }
 
-export function deleteWallet(id: number) {
+export function deleteWallet (id: number) {
   return api.delete(`/wallets/${id}`)
 }
 
-export function fetchCurrencies() {
+export function fetchCurrencies () {
   return api.get<string[]>('/currencies')
 }

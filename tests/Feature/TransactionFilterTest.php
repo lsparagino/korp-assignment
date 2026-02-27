@@ -287,6 +287,7 @@ class TransactionFilterTest extends TestCase
         $response->assertJsonCount(1, 'data');
         $this->assertEquals('rejected', $response->json('data.0.status'));
     }
+
     public function test_can_filter_transactions_by_initiator_user_id(): void
     {
         $initiator = User::factory()->create();

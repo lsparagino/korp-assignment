@@ -5,97 +5,97 @@ import { mountWithPlugins } from '@/test/setup'
 import UserAvatar from './UserAvatar.vue'
 
 vi.mock('@/stores/auth', () => ({
-    useAuthStore: vi.fn(),
+  useAuthStore: vi.fn(),
 }))
 
-function mockAuthStore(overrides: Record<string, unknown> = {}) {
-    ; (useAuthStore as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
-        user: {
-            id: 1,
-            name: 'John Doe',
-            email: 'john@example.com',
-            role: 'member',
-        },
-        ...overrides,
-    })
+function mockAuthStore (overrides: Record<string, unknown> = {}) {
+  ; (useAuthStore as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
+    user: {
+      id: 1,
+      name: 'John Doe',
+      email: 'john@example.com',
+      role: 'member',
+    },
+    ...overrides,
+  })
 }
 
 describe('UserAvatar.vue', () => {
-    let wrapper: ReturnType<typeof mountWithPlugins>
+  let wrapper: ReturnType<typeof mountWithPlugins>
 
-    afterEach(() => {
-        wrapper?.unmount()
-        document.body.innerHTML = ''
-        vi.clearAllMocks()
+  afterEach(() => {
+    wrapper?.unmount()
+    document.body.innerHTML = ''
+    vi.clearAllMocks()
+  })
+
+  it('renders a v-avatar', () => {
+    mockAuthStore()
+    wrapper = mountWithPlugins(UserAvatar, { attachTo: document.body })
+
+    expect(wrapper.findComponent({ name: 'v-avatar' }).exists()).toBe(true)
+  })
+
+  it('renders a mdi-account icon inside the avatar', () => {
+    mockAuthStore()
+    wrapper = mountWithPlugins(UserAvatar, { attachTo: document.body })
+
+    const icon = wrapper.findComponent({ name: 'v-icon' })
+    expect(icon.exists()).toBe(true)
+    expect(icon.props('icon')).toBe('mdi-account')
+  })
+
+  it('does not show user info by default', () => {
+    mockAuthStore()
+    wrapper = mountWithPlugins(UserAvatar, { attachTo: document.body })
+
+    expect(wrapper.text()).not.toContain('John Doe')
+    expect(wrapper.text()).not.toContain('john@example.com')
+  })
+
+  it('shows user name, email, and role chip when showInfo is true', () => {
+    mockAuthStore()
+    wrapper = mountWithPlugins(UserAvatar, {
+      attachTo: document.body,
+      props: { showInfo: true },
     })
 
-    it('renders a v-avatar', () => {
-        mockAuthStore()
-        wrapper = mountWithPlugins(UserAvatar, { attachTo: document.body })
+    expect(wrapper.text()).toContain('John Doe')
+    expect(wrapper.text()).toContain('john@example.com')
+    expect(wrapper.text()).toContain('member')
+  })
 
-        expect(wrapper.findComponent({ name: 'v-avatar' }).exists()).toBe(true)
+  it('displays admin role when user is admin', () => {
+    mockAuthStore({
+      user: { id: 1, name: 'Admin User', email: 'admin@test.com', role: 'admin' },
+    })
+    wrapper = mountWithPlugins(UserAvatar, {
+      attachTo: document.body,
+      props: { showInfo: true },
     })
 
-    it('renders a mdi-account icon inside the avatar', () => {
-        mockAuthStore()
-        wrapper = mountWithPlugins(UserAvatar, { attachTo: document.body })
+    expect(wrapper.text()).toContain('admin')
+  })
 
-        const icon = wrapper.findComponent({ name: 'v-icon' })
-        expect(icon.exists()).toBe(true)
-        expect(icon.props('icon')).toBe('mdi-account')
+  it('accepts a custom size prop', () => {
+    mockAuthStore()
+    wrapper = mountWithPlugins(UserAvatar, {
+      attachTo: document.body,
+      props: { size: 64 },
     })
 
-    it('does not show user info by default', () => {
-        mockAuthStore()
-        wrapper = mountWithPlugins(UserAvatar, { attachTo: document.body })
+    const avatar = wrapper.findComponent({ name: 'v-avatar' })
+    expect(avatar.props('size')).toBe(64)
+  })
 
-        expect(wrapper.text()).not.toContain('John Doe')
-        expect(wrapper.text()).not.toContain('john@example.com')
+  it('hides info section when user is null', () => {
+    mockAuthStore({ user: null })
+    wrapper = mountWithPlugins(UserAvatar, {
+      attachTo: document.body,
+      props: { showInfo: true },
     })
 
-    it('shows user name, email, and role chip when showInfo is true', () => {
-        mockAuthStore()
-        wrapper = mountWithPlugins(UserAvatar, {
-            attachTo: document.body,
-            props: { showInfo: true },
-        })
-
-        expect(wrapper.text()).toContain('John Doe')
-        expect(wrapper.text()).toContain('john@example.com')
-        expect(wrapper.text()).toContain('member')
-    })
-
-    it('displays admin role when user is admin', () => {
-        mockAuthStore({
-            user: { id: 1, name: 'Admin User', email: 'admin@test.com', role: 'admin' },
-        })
-        wrapper = mountWithPlugins(UserAvatar, {
-            attachTo: document.body,
-            props: { showInfo: true },
-        })
-
-        expect(wrapper.text()).toContain('admin')
-    })
-
-    it('accepts a custom size prop', () => {
-        mockAuthStore()
-        wrapper = mountWithPlugins(UserAvatar, {
-            attachTo: document.body,
-            props: { size: 64 },
-        })
-
-        const avatar = wrapper.findComponent({ name: 'v-avatar' })
-        expect(avatar.props('size')).toBe(64)
-    })
-
-    it('hides info section when user is null', () => {
-        mockAuthStore({ user: null })
-        wrapper = mountWithPlugins(UserAvatar, {
-            attachTo: document.body,
-            props: { showInfo: true },
-        })
-
-        // Should not crash, and should not show info content
-        expect(wrapper.text()).not.toContain('John Doe')
-    })
+    // Should not crash, and should not show info content
+    expect(wrapper.text()).not.toContain('John Doe')
+  })
 })

@@ -5,7 +5,7 @@ import en from '@/locales/en.json'
 import { mountWithPlugins } from '@/test/setup'
 import TransactionDetailModal from './TransactionDetailModal.vue'
 
-function createTransaction(overrides: Partial<Transaction> = {}): Transaction {
+function createTransaction (overrides: Partial<Transaction> = {}): Transaction {
   return {
     id: 1,
     group_id: 'grp-1',
@@ -41,7 +41,7 @@ describe('TransactionDetailModal.vue', () => {
     document.body.innerHTML = ''
   })
 
-  async function mountModal(props: Record<string, unknown> = {}) {
+  async function mountModal (props: Record<string, unknown> = {}) {
     wrapper = mountWithPlugins(TransactionDetailModal, {
       props: {
         modelValue: true,
@@ -56,7 +56,7 @@ describe('TransactionDetailModal.vue', () => {
     return wrapper
   }
 
-  function bodyText() {
+  function bodyText () {
     return document.body.textContent || ''
   }
 

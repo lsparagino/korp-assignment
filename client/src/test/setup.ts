@@ -30,22 +30,25 @@ const i18n = createI18n({
 })
 
 export function mountWithPlugins (component: any, options: any = {}) {
+  const { piniaOptions, ...mountOptions } = options
+
   return mount(component, {
-    ...options,
+    ...mountOptions,
     global: {
-      ...options.global,
+      ...mountOptions.global,
       plugins: [
         vuetify,
         i18n,
         createTestingPinia({
           createSpy: vi.fn,
           stubActions: false,
+          ...piniaOptions,
         }),
-        ...(options.global?.plugins || []),
+        ...(mountOptions.global?.plugins || []),
       ],
       stubs: {
         RouterLink: true,
-        ...options.global?.stubs,
+        ...mountOptions.global?.stubs,
       },
     },
   })

@@ -1,1 +1,1 @@
-export function definePage() { }
+export function definePage () {}

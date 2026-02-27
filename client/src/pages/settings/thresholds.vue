@@ -1,6 +1,6 @@
 <script lang="ts" setup>
   import type { CompanyThreshold } from '@/api/settings'
-  import { onMounted, reactive, ref, computed } from 'vue'
+  import { computed, onMounted, reactive, ref } from 'vue'
   import { useI18n } from 'vue-i18n'
   import { deleteCompanyThreshold, fetchCompanyThresholds, upsertCompanyThreshold } from '@/api/settings'
   import { fetchCurrencies } from '@/api/wallets'
@@ -58,8 +58,8 @@
       ])
       thresholds.value = thresholdsRes.data.data
       currencyOptions.value = currenciesRes.data
-    } catch (err) {
-      notifyError(err)
+    } catch (error) {
+      notifyError(error)
     } finally {
       loading.value = false
     }
@@ -87,8 +87,8 @@
       try {
         await deleteCompanyThreshold(threshold.id)
         thresholds.value = thresholds.value.filter(t => t.id !== threshold.id)
-      } catch (err) {
-        notifyError(err)
+      } catch (error) {
+        notifyError(error)
       }
     }
     confirmDialog.show = true
@@ -99,10 +99,10 @@
       const response = await upsertCompanyThreshold(data)
       const saved = response.data.data
       const index = thresholds.value.findIndex(t => t.id === saved.id)
-      if (index >= 0) {
-        thresholds.value[index] = saved
-      } else {
+      if (index === -1) {
         thresholds.value.push(saved)
+      } else {
+        thresholds.value[index] = saved
       }
       dialog.value = false
     },

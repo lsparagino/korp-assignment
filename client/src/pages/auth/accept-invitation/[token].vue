@@ -6,7 +6,7 @@
   import { useFormSubmit } from '@/composables/useFormSubmit'
   import { useAuthStore } from '@/stores/auth'
 
-  const { t } = useI18n()
+  useI18n()
   const route = useRoute()
   const router = useRouter()
   const auth = useAuthStore()

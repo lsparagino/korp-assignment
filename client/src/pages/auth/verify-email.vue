@@ -50,8 +50,8 @@
         await authStore.fetchUser()
         status.value = t('auth.verifyEmail.verified')
         setTimeout(() => router.push('/dashboard'), 1500)
-      } catch (err: unknown) {
-        error.value = getErrorMessage(err, t('auth.verifyEmail.verificationFailed'))
+      } catch (error_: unknown) {
+        error.value = getErrorMessage(error_, t('auth.verifyEmail.verificationFailed'))
         isVerificationLink.value = false
       } finally {
         verifying.value = false
@@ -74,8 +74,8 @@
       await sendVerificationEmail()
       status.value = t('auth.verifyEmail.resendLink')
       startCountdown()
-    } catch (err: unknown) {
-      notifyError(err, t('auth.verifyEmail.resendFailed'))
+    } catch (error_: unknown) {
+      notifyError(error_, t('auth.verifyEmail.resendFailed'))
     } finally {
       resending.value = false
     }

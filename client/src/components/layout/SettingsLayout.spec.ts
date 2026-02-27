@@ -1,5 +1,4 @@
-import { createTestingPinia } from '@pinia/testing'
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import en from '@/locales/en.json'
 import { mountWithPlugins } from '@/test/setup'
 import SettingsLayout from './SettingsLayout.vue'
@@ -24,18 +23,12 @@ describe('SettingsLayout.vue', () => {
 
   it('renders thresholds nav item for admin users', () => {
     const wrapper = mountWithPlugins(SettingsLayout, {
-      global: {
-        plugins: [
-          createTestingPinia({
-            createSpy: vi.fn,
-            stubActions: false,
-            initialState: {
-              auth: {
-                user: { id: 1, name: 'Admin', role: 'admin', email: 'a@test.com', email_verified_at: '2024-01-01' },
-              },
-            },
-          }),
-        ],
+      piniaOptions: {
+        initialState: {
+          auth: {
+            user: { id: 1, name: 'Admin', role: 'admin', email: 'a@test.com', email_verified_at: '2024-01-01' },
+          },
+        },
       },
     })
 

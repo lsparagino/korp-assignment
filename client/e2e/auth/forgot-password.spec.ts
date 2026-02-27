@@ -16,7 +16,8 @@ test.describe('Forgot Password', () => {
   test('shows cooldown after submission', async ({ page }) => {
     await page.goto('/auth/forgot-password')
 
-    await page.getByTestId('email-input').locator('input').fill('admin@example.com')
+    // Use a different email to avoid rate limiting from the first test
+    await page.getByTestId('email-input').locator('input').fill('member@example.com')
     await page.getByTestId('submit-btn').click()
 
     // After successful submission, the alert should appear

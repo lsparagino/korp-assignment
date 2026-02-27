@@ -1,6 +1,6 @@
 <script lang="ts" setup>
   import type { Transaction } from '@/api/transactions'
-  import { ref, watch } from 'vue'
+  import { ref } from 'vue'
   import { useI18n } from 'vue-i18n'
   import { fetchTransactions, reviewTransfer } from '@/api/transactions'
   import TransactionTable from '@/components/features/TransactionTable.vue'
@@ -127,7 +127,7 @@
 </script>
 
 <template>
-  <v-dialog max-width="560" :model-value="modelValue" @update:model-value="emit('update:modelValue', $event)" @after-leave="resetState">
+  <v-dialog max-width="560" :model-value="modelValue" @after-leave="resetState" @update:model-value="emit('update:modelValue', $event)">
     <v-card v-if="transaction" rounded="lg">
       <v-card-title class="d-flex align-center justify-space-between pa-5 border-b">
         <span class="text-h6 font-weight-bold">{{ $t('transactions.transactionDetails') }}</span>

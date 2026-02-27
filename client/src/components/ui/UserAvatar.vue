@@ -4,7 +4,7 @@
 
   const authStore = useAuthStore()
 
-  const props = withDefaults(defineProps<{
+  withDefaults(defineProps<{
     size?: number | string
     showInfo?: boolean
   }>(), {

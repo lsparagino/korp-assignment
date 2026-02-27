@@ -5,7 +5,7 @@
   import { computed } from 'vue'
   import TransactionTable from '@/components/features/TransactionTable.vue'
   import PageHeader from '@/components/layout/PageHeader.vue'
-  import { dashboardQuery, DASHBOARD_QUERY_KEYS } from '@/queries/dashboard'
+  import { DASHBOARD_QUERY_KEYS, dashboardQuery } from '@/queries/dashboard'
   import { useAuthStore } from '@/stores/auth'
   import { useCompanyStore } from '@/stores/company'
   import { formatCurrency, getAmountColor, getCurrencyIcon } from '@/utils/formatters'
@@ -45,7 +45,6 @@
     queryCache.invalidateQueries({ key: DASHBOARD_QUERY_KEYS.byCompany(companyId) })
   }
 
-
 </script>
 
 <template>
@@ -60,18 +59,18 @@
     type="warning"
     variant="tonal"
   >
-  <div class="d-flex align-center justify-space-between">
-    <span>{{ $t('dashboard.missingThresholds') }}</span>
-    <v-btn
-      color="warning"
-      density="compact"
-      to="/settings/thresholds"
-      variant="text"
-    >
-      {{ $t('dashboard.configureThresholds') }}
-    </v-btn>
+    <div class="d-flex align-center justify-space-between">
+      <span>{{ $t('dashboard.missingThresholds') }}</span>
+      <v-btn
+        color="warning"
+        density="compact"
+        to="/settings/thresholds"
+        variant="text"
+      >
+        {{ $t('dashboard.configureThresholds') }}
+      </v-btn>
     </div>
-    
+
   </v-alert>
 
   <v-progress-linear v-if="loading" color="primary" indeterminate />
@@ -181,7 +180,7 @@
       </v-card>
     </div>
 
-        <!-- Pending Approval (Admin/Manager only) -->
+    <!-- Pending Approval (Admin/Manager only) -->
     <div
       v-if="authStore.isManagerOrAdmin && pendingTransactions.length > 0"
       class="mb-8"

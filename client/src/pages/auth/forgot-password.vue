@@ -5,7 +5,7 @@
   import { forgotPassword } from '@/api/auth'
   import { useFormSubmit } from '@/composables/useFormSubmit'
 
-  const { t } = useI18n()
+  useI18n()
 
   const form = reactive({
     email: '',

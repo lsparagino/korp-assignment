@@ -6,7 +6,7 @@
   import { createAddressBookEntry, deleteAddressBookEntry } from '@/api/address-book'
   import { ADDRESS_BOOK_QUERY_KEYS, addressBookListQuery } from '@/queries/address-book'
 
-  const { t } = useI18n()
+  useI18n()
   const queryCache = useQueryCache()
 
   const props = defineProps<{
@@ -41,12 +41,12 @@
     )
   })
 
-  function selectEntry(entry: AddressBookEntry) {
+  function selectEntry (entry: AddressBookEntry) {
     emit('select', entry)
     dialog.value = false
   }
 
-  async function saveNewEntry() {
+  async function saveNewEntry () {
     if (!newEntry.value.name || !newEntry.value.address) return
     savingAddress.value = true
     try {
@@ -61,7 +61,7 @@
     }
   }
 
-  async function confirmDelete() {
+  async function confirmDelete () {
     if (!deleteConfirmId.value) return
     deleting.value = true
     try {
@@ -75,7 +75,7 @@
     }
   }
 
-  watch(dialog, (val) => {
+  watch(dialog, val => {
     if (!val) {
       search.value = ''
       showAddForm.value = false
@@ -131,7 +131,13 @@
         </v-btn>
 
         <v-expand-transition>
-          <v-card v-if="showAddForm" class="mb-3 pa-3" color="grey-lighten-5" flat rounded="lg">
+          <v-card
+            v-if="showAddForm"
+            class="mb-3 pa-3"
+            color="grey-lighten-5"
+            flat
+            rounded="lg"
+          >
             <div class="text-caption font-weight-bold text-grey-darken-2 mb-2">
               {{ $t('addressBook.addNew') }}
             </div>
@@ -226,7 +232,7 @@
     </v-card>
 
     <!-- Delete Confirmation -->
-    <v-dialog :model-value="deleteConfirmId !== null" max-width="360" persistent @update:model-value="deleteConfirmId = null">
+    <v-dialog max-width="360" :model-value="deleteConfirmId !== null" persistent @update:model-value="deleteConfirmId = null">
       <v-card rounded="lg">
         <v-card-title class="text-h6">
           {{ $t('common.confirm') }}

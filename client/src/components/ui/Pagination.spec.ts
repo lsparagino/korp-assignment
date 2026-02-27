@@ -54,7 +54,7 @@ describe('Pagination.vue', () => {
     expect(wrapper.emitted('update:page')?.[0]).toEqual([3])
   })
 
-  it('emits update:perPage when v-select value changes', async () => {
+  it('emits update:per-page when v-select value changes', async () => {
     const wrapper = mountWithPlugins(Pagination, {
       props: {
         meta: defaultMeta,
@@ -64,7 +64,7 @@ describe('Pagination.vue', () => {
     const vSelect = wrapper.findComponent({ name: 'v-select' })
     await vSelect.vm.$emit('update:modelValue', 50)
 
-    expect(wrapper.emitted('update:perPage')).toBeTruthy()
-    expect(wrapper.emitted('update:perPage')?.[0]).toEqual([50])
+    expect(wrapper.emitted('update:per-page')).toBeTruthy()
+    expect(wrapper.emitted('update:per-page')?.[0]).toEqual([50])
   })
 })

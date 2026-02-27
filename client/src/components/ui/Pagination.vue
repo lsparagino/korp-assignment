@@ -7,7 +7,7 @@
     perPageOptions?: number[]
   }>()
 
-  const emit = defineEmits(['update:page', 'update:perPage'])
+  const emit = defineEmits(['update:page', 'update:per-page'])
 
   const page = computed({
     get: () => props.meta.current_page,
@@ -16,7 +16,7 @@
 
   const perPageModel = computed({
     get: () => props.meta.per_page,
-    set: value => emit('update:perPage', value),
+    set: value => emit('update:per-page', value),
   })
 
   const itemsPerPageOptions = props.perPageOptions || [

@@ -9,14 +9,14 @@ interface FormSubmitOptions<T> {
   resetForm?: () => void
 }
 
-export function useFormSubmit<T>(options: FormSubmitOptions<T>) {
+export function useFormSubmit<T> (options: FormSubmitOptions<T>) {
   const processing = ref(false)
   const errors = ref<Record<string, string[]>>({})
   const serverError = ref('')
   const recentlySuccessful = ref(false)
   const { notifyError } = useAppNotification()
 
-  async function submit(form: T) {
+  async function submit (form: T) {
     processing.value = true
     errors.value = {}
     serverError.value = ''

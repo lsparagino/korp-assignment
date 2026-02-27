@@ -52,34 +52,39 @@ test.describe('Wallet Edit', () => {
     await expect(page.locator('tr').filter({ hasText: renamedName })).toBeVisible({ timeout: 10_000 })
   })
 
-  test('admin can freeze and unfreeze a wallet from list', async ({ page }) => {
+  test('admin can freeze and unfreeze a wallet via edit page', async ({ page }) => {
     const freezeWallet = `Freeze Test ${Date.now()}`
     await createWallet(page, freezeWallet)
 
-    // Click the freeze (snowflake) icon
+    // Navigate to the edit page for the wallet
     const row = page.locator('tr').filter({ hasText: freezeWallet })
-    await row.locator('[class*="mdi-snowflake"]').click()
+    await row.locator('[class*="mdi-pencil"]').click()
+    await expect(page).toHaveURL(/\/wallets\/\d+\/edit/, { timeout: 10_000 })
+    await expect(page.getByTestId('page-heading')).toBeVisible({ timeout: 10_000 })
+
+    // Click the freeze button
+    const freezeBtn = page.locator('button').filter({ hasText: 'Freeze Wallet' })
+    await expect(freezeBtn).toBeVisible({ timeout: 5000 })
+    await freezeBtn.click()
 
     // Confirmation dialog should appear
     const dialog = page.getByTestId('confirm-dialog')
     await expect(dialog).toBeVisible({ timeout: 5000 })
-
-    // Confirm the freeze
     await dialog.getByTestId('confirm-btn').click()
     await expect(dialog).not.toBeVisible({ timeout: 10_000 })
 
-    // Status should change to frozen (chip in the row)
-    await expect(row.locator('.v-chip').filter({ hasText: /frozen/i })).toBeVisible({ timeout: 10_000 })
+    // Button should now say "Unfreeze Wallet"
+    const unfreezeBtn = page.locator('button').filter({ hasText: 'Unfreeze Wallet' })
+    await expect(unfreezeBtn).toBeVisible({ timeout: 10_000 })
 
-    // Now unfreeze — the icon changes to mdi-fire
-    await row.locator('[class*="mdi-fire"]').click()
-
+    // Unfreeze
+    await unfreezeBtn.click()
     const unfreezeDialog = page.getByTestId('confirm-dialog')
     await expect(unfreezeDialog).toBeVisible({ timeout: 5000 })
     await unfreezeDialog.getByTestId('confirm-btn').click()
     await expect(unfreezeDialog).not.toBeVisible({ timeout: 10_000 })
 
-    // Status should change back to active
-    await expect(row.locator('.v-chip').filter({ hasText: /active/i })).toBeVisible({ timeout: 10_000 })
+    // Button should be back to "Freeze Wallet"
+    await expect(freezeBtn).toBeVisible({ timeout: 10_000 })
   })
 })
