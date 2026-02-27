@@ -49,20 +49,7 @@
 </script>
 
 <template>
-  <PageHeader :title="$t('dashboard.title')">
-    <v-btn
-      v-if="authStore.isAdmin"
-      class="text-none font-weight-bold"
-      color="primary"
-      data-testid="create-wallet-btn"
-      prepend-icon="mdi-plus"
-      rounded="lg"
-      to="/wallets/create"
-      variant="flat"
-    >
-      {{ $t('wallets.createWallet') }}
-    </v-btn>
-  </PageHeader>
+  <PageHeader :title="$t('dashboard.title')" />
 
   <v-alert
     v-if="authStore.isAdmin && data?.missing_thresholds"

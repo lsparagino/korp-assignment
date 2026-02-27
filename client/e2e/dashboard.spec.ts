@@ -18,10 +18,4 @@ test.describe('Dashboard', () => {
 
     await expect(page.getByTestId('recent-transactions-section')).toBeVisible({ timeout: 15_000 })
   })
-
-  test('admin sees create wallet button', async ({ page }) => {
-    await page.goto('/dashboard')
-
-    await expect(page.getByTestId('create-wallet-btn')).toBeVisible({ timeout: 10_000 })
-  })
 })
