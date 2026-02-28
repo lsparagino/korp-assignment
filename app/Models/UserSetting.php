@@ -17,6 +17,7 @@ class UserSetting extends Model
         'date_format',
         'number_format',
         'daily_transaction_limit',
+        'security_threshold',
     ];
 
     public function user(): BelongsTo
@@ -33,6 +34,7 @@ class UserSetting extends Model
             'notify_transaction_rejected' => 'boolean',
             'notify_approval_needed' => 'boolean',
             'daily_transaction_limit' => 'decimal:2',
+            'security_threshold' => 'decimal:2',
         ];
     }
 }

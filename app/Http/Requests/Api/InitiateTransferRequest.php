@@ -2,11 +2,14 @@
 
 namespace App\Http\Requests\Api;
 
+use App\Http\Requests\Concerns\VerifiesIdentity;
 use App\Models\Wallet;
 use Illuminate\Foundation\Http\FormRequest;
 
 class InitiateTransferRequest extends FormRequest
 {
+    use VerifiesIdentity;
+
     public function authorize(): bool
     {
         $senderWallet = Wallet::find($this->input('sender_wallet_id'));
@@ -28,7 +31,7 @@ class InitiateTransferRequest extends FormRequest
 
     public function rules(): array
     {
-        return [
+        $rules = [
             'sender_wallet_id' => ['required', 'integer', 'exists:wallets,id'],
             'receiver_wallet_id' => ['nullable', 'integer', 'exists:wallets,id', 'required_if:external,false'],
             'amount' => ['required', 'numeric', 'gt:0'],
@@ -37,6 +40,29 @@ class InitiateTransferRequest extends FormRequest
             'external_name' => ['nullable', 'required_if:external,true', 'string', 'max:255'],
             'reference' => ['required', 'string', 'max:255'],
             'notes' => ['nullable', 'string', 'max:1000'],
+            'password' => ['nullable', 'string'],
+            'code' => ['nullable', 'string'],
         ];
+
+        return $rules;
+    }
+
+    protected function passedValidation(): void
+    {
+        $setting = $this->user()->setting;
+
+        if (! $setting || $setting->security_threshold === null) {
+            return;
+        }
+
+        if ((float) $this->input('amount') > (float) $setting->security_threshold) {
+            if (! $this->filled('password') && ! $this->filled('code')) {
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    'identity' => ['Identity verification is required for this transfer amount.'],
+                ]);
+            }
+
+            $this->verifyIdentity();
+        }
     }
 }

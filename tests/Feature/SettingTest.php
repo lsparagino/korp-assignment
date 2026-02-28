@@ -40,6 +40,7 @@ describe('User Preferences', function () {
                 'notify_money_received' => false,
                 'date_format' => 'de-DE',
                 'daily_transaction_limit' => 5000,
+                'password' => 'password',
             ]);
 
         $response->assertOk();
@@ -51,6 +52,89 @@ describe('User Preferences', function () {
     it('requires authentication', function () {
         $this->getJson('/api/v0/settings/preferences')
             ->assertUnauthorized();
+    });
+
+    it('rejects daily limit change without password', function () {
+        $this->actingAs($this->admin, 'sanctum')
+            ->putJson('/api/v0/settings/preferences', [
+                'daily_transaction_limit' => 5000,
+            ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['password']);
+    });
+
+    it('rejects daily limit change with wrong password', function () {
+        $this->actingAs($this->admin, 'sanctum')
+            ->putJson('/api/v0/settings/preferences', [
+                'daily_transaction_limit' => 5000,
+                'password' => 'wrong-password',
+            ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['password']);
+    });
+
+    it('allows non-limit settings without password', function () {
+        $response = $this->actingAs($this->admin, 'sanctum')
+            ->putJson('/api/v0/settings/preferences', [
+                'notify_money_received' => false,
+                'date_format' => 'de-DE',
+            ]);
+
+        $response->assertOk();
+        expect($response->json('data.notify_money_received'))->toBeFalse();
+    });
+
+    it('clears daily limit with password', function () {
+        $this->actingAs($this->admin, 'sanctum')
+            ->putJson('/api/v0/settings/preferences', [
+                'daily_transaction_limit' => 5000,
+                'password' => 'password',
+            ])
+            ->assertOk();
+
+        $response = $this->actingAs($this->admin, 'sanctum')
+            ->putJson('/api/v0/settings/preferences', [
+                'daily_transaction_limit' => null,
+                'password' => 'password',
+            ]);
+
+        $response->assertOk();
+        expect($response->json('data.daily_transaction_limit'))->toBeNull();
+    });
+
+    it('updates security threshold with password', function () {
+        $response = $this->actingAs($this->admin, 'sanctum')
+            ->putJson('/api/v0/settings/preferences', [
+                'security_threshold' => 2000,
+                'password' => 'password',
+            ]);
+
+        $response->assertOk();
+        expect($response->json('data.security_threshold'))->toBe('2000.00');
+    });
+
+    it('rejects security threshold change without password', function () {
+        $this->actingAs($this->admin, 'sanctum')
+            ->putJson('/api/v0/settings/preferences', [
+                'security_threshold' => 2000,
+            ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['password']);
+    });
+
+    it('rejects security threshold higher than daily limit', function () {
+        \App\Models\UserSetting::create([
+            'user_id' => $this->admin->id,
+            'daily_transaction_limit' => 5000,
+        ]);
+
+        $this->actingAs($this->admin, 'sanctum')
+            ->putJson('/api/v0/settings/preferences', [
+                'security_threshold' => 6000,
+                'password' => 'password',
+            ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['security_threshold']);
     });
 });
 

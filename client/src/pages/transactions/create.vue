@@ -6,10 +6,12 @@
   import { computed, onMounted, ref, watch } from 'vue'
   import { useI18n } from 'vue-i18n'
   import { useRouter } from 'vue-router'
-  import { fetchCompanyThresholds } from '@/api/settings'
+  import { fetchCompanyThresholds, fetchUserPreferences } from '@/api/settings'
   import { initiateTransfer } from '@/api/transactions'
   import AddressBookDialog from '@/components/features/AddressBookDialog.vue'
+  import IdentityConfirmDialog from '@/components/ui/IdentityConfirmDialog.vue'
   import { useFormValidation } from '@/composables/useFormValidation'
+  import { useIdentityConfirm } from '@/composables/useIdentityConfirm'
   import { WALLET_QUERY_KEYS, walletsListQuery } from '@/queries/wallets'
   import { useAuthStore } from '@/stores/auth'
   import { getValidationErrors, isApiError } from '@/utils/errors'
@@ -19,6 +21,7 @@
   const router = useRouter()
   const authStore = useAuthStore()
   const queryCache = useQueryCache()
+  const identity = useIdentityConfirm()
 
   const bypassesThreshold = computed(() =>
     authStore.user?.role === 'admin' || authStore.user?.role === 'manager',
@@ -81,6 +84,7 @@
   )
 
   const thresholdsMap = ref<Map<string, number>>(new Map())
+  const securityThreshold = ref<number | null>(null)
 
   async function loadThresholds () {
     try {
@@ -93,6 +97,21 @@
     } catch {
       // If thresholds can't be loaded, no warnings will be shown
     }
+  }
+
+  async function loadSecurityThreshold () {
+    try {
+      const { data } = await fetchUserPreferences()
+      securityThreshold.value = data.data.security_threshold !== null
+        ? Number(data.data.security_threshold)
+        : null
+    } catch {
+      // If preferences can't be loaded, no security check will be applied
+    }
+  }
+
+  function requiresSecurityVerification (): boolean {
+    return securityThreshold.value !== null && form.value.amount > securityThreshold.value
   }
 
   const currentThreshold = computed(() => {
@@ -160,6 +179,7 @@
 
   onMounted(() => {
     loadThresholds()
+    loadSecurityThreshold()
   })
 
   function onAddressBookSelect (entry: AddressBookEntry) {
@@ -178,12 +198,12 @@
     apiError.value = ''
   }
 
-  async function confirmTransfer () {
+  async function executeTransfer (extraFields: Record<string, string> = {}) {
     processing.value = true
     errors.value = {}
     apiError.value = ''
     try {
-      await initiateTransfer(form.value)
+      await initiateTransfer({ ...form.value, ...extraFields })
       await queryCache.invalidateQueries({ key: WALLET_QUERY_KEYS.root })
       router.push('/transactions/')
     } catch (error: unknown) {
@@ -197,6 +217,18 @@
       }
     } finally {
       processing.value = false
+    }
+  }
+
+  function confirmTransfer () {
+    if (requiresSecurityVerification()) {
+      identity.requireConfirmation(async (cred) => {
+        await executeTransfer(cred)
+      }).catch(() => {
+        // cancelled or handled by the dialog
+      })
+    } else {
+      executeTransfer()
     }
   }
 </script>
@@ -621,6 +653,17 @@
   <AddressBookDialog
     v-model="addressBookDialog"
     @select="onAddressBookSelect"
+  />
+
+  <!-- Identity Verification Dialog -->
+  <IdentityConfirmDialog
+    v-model="identity.showDialog.value"
+    v-model:credential="identity.credential.value"
+    :error="identity.error.value"
+    :has-two-factor="identity.hasTwoFactor.value"
+    :is-submitting="identity.isSubmitting.value"
+    @cancel="identity.cancel()"
+    @confirm="identity.confirm()"
   />
 </template>
 

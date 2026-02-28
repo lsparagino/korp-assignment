@@ -484,3 +484,140 @@ test('transaction resource includes initiator and reviewer names', function () {
     expect($reviewed['initiator']['name'])->toBe($this->member->name);
     expect($reviewed['reviewer']['name'])->toBe($this->manager->name);
 });
+
+// ── Daily Transaction Limit Tests ────────────────────────────────
+
+test('transfer rejected when daily limit exceeded', function () {
+    \App\Models\UserSetting::create([
+        'user_id' => $this->member->id,
+        'daily_transaction_limit' => 1000,
+    ]);
+
+    // First transfer at $800 — should work
+    $this->actingAs($this->member, 'sanctum')
+        ->postJson('/api/v0/transfers', [
+            'sender_wallet_id' => $this->senderWallet->id,
+            'receiver_wallet_id' => $this->receiverWallet->id,
+            'amount' => 800,
+            'external' => false,
+            'reference' => 'Under limit',
+            'company_id' => $this->company->id,
+        ])
+        ->assertStatus(201);
+
+    // Second transfer at $300 would make total $1100 — should fail
+    $this->actingAs($this->member, 'sanctum')
+        ->postJson('/api/v0/transfers', [
+            'sender_wallet_id' => $this->senderWallet->id,
+            'receiver_wallet_id' => $this->receiverWallet->id,
+            'amount' => 300,
+            'external' => false,
+            'reference' => 'Over limit',
+            'company_id' => $this->company->id,
+        ])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors(['amount']);
+});
+
+test('transfer allowed when under daily limit', function () {
+    \App\Models\UserSetting::create([
+        'user_id' => $this->member->id,
+        'daily_transaction_limit' => 5000,
+    ]);
+
+    $this->actingAs($this->member, 'sanctum')
+        ->postJson('/api/v0/transfers', [
+            'sender_wallet_id' => $this->senderWallet->id,
+            'receiver_wallet_id' => $this->receiverWallet->id,
+            'amount' => 500,
+            'external' => false,
+            'reference' => 'Under limit',
+            'company_id' => $this->company->id,
+        ])
+        ->assertStatus(201);
+});
+
+test('transfer allowed when no daily limit is set', function () {
+    // No UserSetting → no limit
+    $this->actingAs($this->member, 'sanctum')
+        ->postJson('/api/v0/transfers', [
+            'sender_wallet_id' => $this->senderWallet->id,
+            'receiver_wallet_id' => $this->receiverWallet->id,
+            'amount' => 9999,
+            'external' => false,
+            'reference' => 'No limit set',
+            'company_id' => $this->company->id,
+        ])
+        ->assertStatus(201);
+});
+
+// ── Security Threshold Tests ─────────────────────────────────────
+
+test('transfer above security threshold rejected without password', function () {
+    \App\Models\UserSetting::create([
+        'user_id' => $this->member->id,
+        'security_threshold' => 500,
+    ]);
+
+    $this->actingAs($this->member, 'sanctum')
+        ->postJson('/api/v0/transfers', [
+            'sender_wallet_id' => $this->senderWallet->id,
+            'receiver_wallet_id' => $this->receiverWallet->id,
+            'amount' => 600,
+            'external' => false,
+            'reference' => 'Above threshold',
+            'company_id' => $this->company->id,
+        ])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors(['identity']);
+});
+
+test('transfer above security threshold succeeds with password', function () {
+    \App\Models\UserSetting::create([
+        'user_id' => $this->member->id,
+        'security_threshold' => 500,
+    ]);
+
+    $this->actingAs($this->member, 'sanctum')
+        ->postJson('/api/v0/transfers', [
+            'sender_wallet_id' => $this->senderWallet->id,
+            'receiver_wallet_id' => $this->receiverWallet->id,
+            'amount' => 600,
+            'external' => false,
+            'reference' => 'With password',
+            'password' => 'password',
+            'company_id' => $this->company->id,
+        ])
+        ->assertStatus(201);
+});
+
+test('transfer below security threshold needs no verification', function () {
+    \App\Models\UserSetting::create([
+        'user_id' => $this->member->id,
+        'security_threshold' => 500,
+    ]);
+
+    $this->actingAs($this->member, 'sanctum')
+        ->postJson('/api/v0/transfers', [
+            'sender_wallet_id' => $this->senderWallet->id,
+            'receiver_wallet_id' => $this->receiverWallet->id,
+            'amount' => 400,
+            'external' => false,
+            'reference' => 'Below threshold',
+            'company_id' => $this->company->id,
+        ])
+        ->assertStatus(201);
+});
+
+test('transfer with no security threshold needs no verification', function () {
+    $this->actingAs($this->member, 'sanctum')
+        ->postJson('/api/v0/transfers', [
+            'sender_wallet_id' => $this->senderWallet->id,
+            'receiver_wallet_id' => $this->receiverWallet->id,
+            'amount' => 9000,
+            'external' => false,
+            'reference' => 'No threshold',
+            'company_id' => $this->company->id,
+        ])
+        ->assertStatus(201);
+});

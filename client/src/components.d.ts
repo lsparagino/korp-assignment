@@ -20,6 +20,7 @@ declare module 'vue' {
     DataTable: typeof import('./components/ui/DataTable.vue')['default']
     DeleteUser: typeof import('./components/features/DeleteUser.vue')['default']
     Heading: typeof import('./components/ui/Heading.vue')['default']
+    IdentityConfirmDialog: typeof import('./components/ui/IdentityConfirmDialog.vue')['default']
     PageHeader: typeof import('./components/layout/PageHeader.vue')['default']
     Pagination: typeof import('./components/ui/Pagination.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']

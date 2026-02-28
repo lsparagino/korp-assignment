@@ -19,6 +19,7 @@ class UserSettingResource extends JsonResource
             'date_format' => $this->date_format,
             'number_format' => $this->number_format,
             'daily_transaction_limit' => $this->daily_transaction_limit,
+            'security_threshold' => $this->security_threshold,
         ];
     }
 }

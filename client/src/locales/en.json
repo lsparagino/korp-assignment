@@ -308,7 +308,12 @@
             "dailyTransactionLimit": "Daily transaction limit",
             "dailyTransactionLimitHint": "Leave empty for no limit",
             "limitMustBePositive": "Must be a positive number",
-            "noLimit": "No limit"
+            "noLimit": "No limit",
+            "confirmLimitChange": "Confirm Limit Change",
+            "confirmLimitChangeDescription": "Changing your daily transaction limit requires identity verification. Please enter your password or authentication code.",
+            "authCode": "Authentication Code",
+            "securityThreshold": "Security threshold",
+            "securityThresholdHint": "Transfers above this amount require identity verification. Must be lower than the daily limit."
         },
         "thresholds": {
             "title": "Transaction Thresholds",
@@ -388,5 +393,10 @@
         "duplicateAddress": "This address is already in your address book",
         "searchPlaceholder": "Search contacts...",
         "deleteConfirm": "Are you sure you want to delete this address book entry?"
+    },
+    "identityConfirm": {
+        "title": "Identity Verification",
+        "description": "This action requires identity verification. Please enter your password or authentication code.",
+        "authCode": "Authentication Code"
     }
 }

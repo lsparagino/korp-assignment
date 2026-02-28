@@ -23,6 +23,8 @@ class TransferService
 {
     public function initiateTransfer(User $user, array $data): array
     {
+        $this->enforceDailyLimit($user, (float) $data['amount']);
+
         $result = DB::transaction(function () use ($user, $data) {
             $amount = (float) $data['amount'];
             $isExternal = (bool) $data['external'];
@@ -179,5 +181,29 @@ class TransferService
             : new TransactionRejected($debitTransaction);
 
         $debitTransaction->initiator->notify($notification);
+    }
+
+    private function enforceDailyLimit(User $user, float $amount): void
+    {
+        $setting = $user->setting;
+
+        if (! $setting || $setting->daily_transaction_limit === null) {
+            return;
+        }
+
+        $todayTotal = Transaction::where('initiator_user_id', $user->id)
+            ->where('type', TransactionType::Debit)
+            ->whereIn('status', [
+                TransactionStatus::Completed,
+                TransactionStatus::PendingApproval,
+            ])
+            ->whereDate('created_at', today())
+            ->sum(DB::raw('ABS(amount)'));
+
+        if (((float) $todayTotal + $amount) > (float) $setting->daily_transaction_limit) {
+            throw ValidationException::withMessages([
+                'amount' => ['This transfer would exceed your daily transaction limit.'],
+            ]);
+        }
     }
 }

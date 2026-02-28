@@ -5,8 +5,10 @@
   import { fetchUserPreferences, updateUserPreferences } from '@/api/settings'
   import SettingsLayout from '@/components/layout/SettingsLayout.vue'
   import Heading from '@/components/ui/Heading.vue'
+  import IdentityConfirmDialog from '@/components/ui/IdentityConfirmDialog.vue'
   import { useAppNotification } from '@/composables/useAppNotification'
   import { useFormSubmit } from '@/composables/useFormSubmit'
+  import { useIdentityConfirm } from '@/composables/useIdentityConfirm'
   import { useAuthStore } from '@/stores/auth'
   import { usePreferencesStore } from '@/stores/preferences'
 
@@ -14,6 +16,7 @@
   const authStore = useAuthStore()
   const { notifyError } = useAppNotification()
   const preferencesStore = usePreferencesStore()
+  const identity = useIdentityConfirm()
 
   const loading = ref(true)
   const form = reactive<Omit<UserPreferences, 'id'>>({
@@ -25,7 +28,11 @@
     date_format: 'en-GB',
     number_format: 'en-GB',
     daily_transaction_limit: null,
+    security_threshold: null,
   })
+
+  const originalLimit = ref<string | null>(null)
+  const originalThreshold = ref<string | null>(null)
 
   const isMemberOnly = authStore.user?.role === 'member'
   const isManagerOrAdmin = authStore.user?.role === 'admin' || authStore.user?.role === 'manager'
@@ -59,6 +66,8 @@
     try {
       const response = await fetchUserPreferences()
       Object.assign(form, response.data.data)
+      originalLimit.value = response.data.data.daily_transaction_limit
+      originalThreshold.value = response.data.data.security_threshold
     } catch (error) {
       notifyError(error)
     } finally {
@@ -75,10 +84,39 @@
     },
   ]
 
+  function isSensitiveFieldChanged (): boolean {
+    const currentLimit = form.daily_transaction_limit === '' ? null : form.daily_transaction_limit
+    const currentThreshold = form.security_threshold === '' ? null : form.security_threshold
+    return currentLimit !== originalLimit.value || currentThreshold !== originalThreshold.value
+  }
+
+  function handleSubmit () {
+    if (isSensitiveFieldChanged()) {
+      identity.requireConfirmation(async (cred) => {
+        const payload = { ...form, ...cred }
+        await updateUserPreferences(payload)
+        preferencesStore.update(form.date_format, form.number_format)
+        syncOriginals()
+        recentlySuccessful.value = true
+        setTimeout(() => (recentlySuccessful.value = false), 3000)
+      }).catch(() => {
+        // cancelled or handled by the dialog
+      })
+    } else {
+      submit(form)
+    }
+  }
+
+  function syncOriginals () {
+    originalLimit.value = form.daily_transaction_limit === '' ? null : form.daily_transaction_limit
+    originalThreshold.value = form.security_threshold === '' ? null : form.security_threshold
+  }
+
   const { processing, recentlySuccessful, submit } = useFormSubmit({
     submitFn: async (data: typeof form) => {
       await updateUserPreferences(data)
       preferencesStore.update(data.date_format, data.number_format)
+      syncOriginals()
     },
   })
 </script>
@@ -94,7 +132,7 @@
 
       <v-skeleton-loader v-if="loading" type="article, actions" />
 
-      <v-form v-else @submit.prevent="submit(form)">
+      <v-form v-else @submit.prevent="handleSubmit()">
         <div class="d-flex flex-column ga-6">
           <!-- Email Notifications -->
           <div>
@@ -208,6 +246,20 @@
                   variant="outlined"
                 />
               </v-col>
+              <v-col cols="12" sm="6">
+                <v-text-field
+                  v-model="form.security_threshold"
+                  density="comfortable"
+                  hide-details="auto"
+                  :hint="$t('settings.preferences.securityThresholdHint')"
+                  :label="$t('settings.preferences.securityThreshold')"
+                  min="0"
+                  persistent-hint
+                  :rules="limitRules"
+                  type="number"
+                  variant="outlined"
+                />
+              </v-col>
             </v-row>
           </div>
 
@@ -234,6 +286,17 @@
           </div>
         </div>
       </v-form>
+
+      <IdentityConfirmDialog
+        v-model="identity.showDialog.value"
+        v-model:credential="identity.credential.value"
+        :error="identity.error.value"
+        :has-two-factor="identity.hasTwoFactor.value"
+        :is-submitting="identity.isSubmitting.value"
+        :title="$t('settings.preferences.confirmLimitChange')"
+        @cancel="identity.cancel()"
+        @confirm="identity.confirm()"
+      />
     </div>
   </SettingsLayout>
 </template>
