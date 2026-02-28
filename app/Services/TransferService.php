@@ -9,7 +9,12 @@ use App\Models\CompanySetting;
 use App\Models\Transaction;
 use App\Models\User;
 use App\Models\Wallet;
+use App\Notifications\TransactionApproved;
+use App\Notifications\TransactionCompleted;
+use App\Notifications\TransactionPendingApproval;
+use App\Notifications\TransactionRejected;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
@@ -18,7 +23,7 @@ class TransferService
 {
     public function initiateTransfer(User $user, array $data): array
     {
-        return DB::transaction(function () use ($user, $data) {
+        $result = DB::transaction(function () use ($user, $data) {
             $amount = (float) $data['amount'];
             $isExternal = (bool) $data['external'];
 
@@ -66,13 +71,18 @@ class TransferService
             return [
                 'group_id' => $groupId,
                 'status' => $status->value,
+                'company_id' => $senderWallet->company_id,
             ];
         });
+
+        $this->sendInitiateNotifications($user, $result);
+
+        return $result;
     }
 
     public function reviewTransfer(User $reviewer, string $groupId, string $action, ?string $reason): array
     {
-        return DB::transaction(function () use ($reviewer, $groupId, $action, $reason) {
+        $result = DB::transaction(function () use ($reviewer, $groupId, $action, $reason) {
             $newStatus = $action === 'approve'
                 ? TransactionStatus::Completed
                 : TransactionStatus::Rejected;
@@ -103,6 +113,10 @@ class TransferService
                 'status' => $newStatus->value,
             ];
         });
+
+        $this->sendReviewNotifications($groupId, $action);
+
+        return $result;
     }
 
     private function determineTargetStatus(User $user, float $amount, string $currency, int $companyId): TransactionStatus
@@ -122,5 +136,48 @@ class TransferService
         return $amount > (float) $setting->approval_threshold
             ? TransactionStatus::PendingApproval
             : TransactionStatus::Completed;
+    }
+
+    private function sendInitiateNotifications(User $initiator, array $result): void
+    {
+        $debitTransaction = Transaction::where('group_id', $result['group_id'])
+            ->where('type', TransactionType::Debit)
+            ->with(['wallet', 'initiator'])
+            ->first();
+
+        if (! $debitTransaction) {
+            return;
+        }
+
+        if ($result['status'] === TransactionStatus::Completed->value) {
+            $initiator->notify(new TransactionCompleted($debitTransaction));
+        }
+
+        if ($result['status'] === TransactionStatus::PendingApproval->value) {
+            $approvers = User::forCompany($result['company_id'])
+                ->whereIn('role', [UserRole::Admin, UserRole::Manager])
+                ->with('setting')
+                ->get();
+
+            Notification::send($approvers, new TransactionPendingApproval($debitTransaction));
+        }
+    }
+
+    private function sendReviewNotifications(string $groupId, string $action): void
+    {
+        $debitTransaction = Transaction::where('group_id', $groupId)
+            ->where('type', TransactionType::Debit)
+            ->with(['wallet', 'initiator', 'reviewer'])
+            ->first();
+
+        if (! $debitTransaction || ! $debitTransaction->initiator) {
+            return;
+        }
+
+        $notification = $action === 'approve'
+            ? new TransactionApproved($debitTransaction)
+            : new TransactionRejected($debitTransaction);
+
+        $debitTransaction->initiator->notify($notification);
     }
 }
