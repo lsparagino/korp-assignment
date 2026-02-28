@@ -6,9 +6,44 @@ vi.mock('@/api/companies', () => ({
   fetchCompanies: vi.fn(),
 }))
 
+// Mock @pinia/colada — company store uses queryCache.ensure/refresh
+let mockQueryFn: Function | null = null
+const mockEntry = {
+  state: { value: { data: null as any } },
+}
+const mockInvalidateQueries = vi.fn()
+
+vi.mock('@pinia/colada', () => ({
+  useQueryCache: vi.fn(() => ({
+    ensure: vi.fn((opts: any) => {
+      mockQueryFn = typeof opts === 'function' ? opts().query : opts.query
+      return mockEntry
+    }),
+    fetch: vi.fn(async () => {
+      if (mockQueryFn) {
+        try {
+          mockEntry.state.value.data = await mockQueryFn()
+        } catch {
+          mockEntry.state.value.data = null
+          throw new Error('Query failed')
+        }
+      }
+    }),
+    invalidateQueries: mockInvalidateQueries,
+  })),
+  defineQueryOptions: vi.fn((fn: any) => fn),
+}))
+
+// Mock i18n
+vi.mock('@/plugins/i18n', () => ({
+  i18n: { global: { t: (key: string) => key === 'company.selectCompany' ? 'Select company' : key } },
+}))
+
 describe('useCompanyStore', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
+    mockEntry.state.value.data = null
+    mockQueryFn = null
     vi.clearAllMocks()
   })
 

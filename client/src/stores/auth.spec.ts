@@ -14,6 +14,39 @@ vi.mock('@/api/settings', () => ({
   }),
 }))
 
+// Mock @pinia/colada — stores use queryCache.ensure + refresh + useMutation
+let mockQueryFn: Function | null = null
+const mockEntry = {
+  state: { value: { data: null as any } },
+}
+const mockMutateAsync = vi.fn()
+vi.mock('@pinia/colada', () => ({
+  useQueryCache: vi.fn(() => ({
+    ensure: vi.fn((opts: any) => {
+      mockQueryFn = typeof opts === 'function' ? opts().query : opts.query
+      return mockEntry
+    }),
+    fetch: vi.fn(async () => {
+      if (mockQueryFn) {
+        try {
+          mockEntry.state.value.data = await mockQueryFn()
+        } catch {
+          mockEntry.state.value.data = null
+          throw new Error('Query failed')
+        }
+      }
+    }),
+    invalidateQueries: vi.fn(),
+  })),
+  useMutation: vi.fn(({ mutation }: { mutation: Function }) => ({
+    mutateAsync: (...args: unknown[]) => {
+      mockMutateAsync(...args)
+      return mutation(...args)
+    },
+  })),
+  defineQueryOptions: vi.fn((fn: any) => fn),
+}))
+
 // Mock localStorage
 const localStorageMock = (() => {
   let store: Record<string, string> = {}
@@ -37,6 +70,8 @@ describe('useAuthStore', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
     localStorageMock.clear()
+    mockEntry.state.value.data = null
+    mockQueryFn = null
     vi.clearAllMocks()
   })
 

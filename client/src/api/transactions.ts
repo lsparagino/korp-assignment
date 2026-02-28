@@ -1,4 +1,4 @@
-import type { PaginationParams } from '@/types/pagination'
+import type { PaginationParams } from '@/api/pagination'
 import { api } from '@/plugins/api'
 
 export interface Transaction {
@@ -26,7 +26,7 @@ export interface Transaction {
   created_at: string
 }
 
-type TransactionParams = PaginationParams & {
+interface TransactionParams extends PaginationParams {
   date_from?: string
   date_to?: string
   type?: string
@@ -52,14 +52,14 @@ export interface TransferForm {
   code?: string
 }
 
-export function fetchTransactions(params: TransactionParams) {
+export function fetchTransactions (params: TransactionParams) {
   return api.get('/transactions', { params })
 }
 
-export function initiateTransfer(form: TransferForm) {
+export function initiateTransfer (form: TransferForm) {
   return api.post('/transfers', form)
 }
 
-export function reviewTransfer(groupId: string, payload: { action: 'approve' | 'reject', reason?: string }) {
+export function reviewTransfer (groupId: string, payload: { action: 'approve' | 'reject', reason?: string }) {
   return api.post(`/transfers/${groupId}/review`, payload)
 }

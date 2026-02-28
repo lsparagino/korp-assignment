@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-  import type { PaginationMeta } from '@/types/pagination'
+  import type { PaginationMeta } from '@/api/pagination'
   import { computed } from 'vue'
 
   const props = defineProps<{

@@ -1,4 +1,4 @@
-import type { PaginationMeta } from '@/types/pagination'
+import type { PaginationMeta } from '@/api/pagination'
 import { describe, expect, it } from 'vitest'
 import { mountWithPlugins } from '@/test/setup'
 import Pagination from './Pagination.vue'

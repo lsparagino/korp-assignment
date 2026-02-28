@@ -15,7 +15,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 /**
  * Navigate to the transfer creation page.
  */
-async function goToCreateTransfer (page: Page) {
+async function goToCreateTransfer(page: Page) {
   await page.goto('/transactions/create')
   await expect(page.getByTestId('transfer-type-toggle')).toBeVisible({ timeout: 10_000 })
 }
@@ -26,7 +26,7 @@ async function goToCreateTransfer (page: Page) {
  * The wallet data loads asynchronously via useQuery, so the dropdown may
  * briefly contain no items. This helper retries up to 3 times to handle that.
  */
-async function selectFirstAvailableWallet (page: Page, testId: string) {
+async function selectFirstAvailableWallet(page: Page, testId: string) {
   const select = page.getByTestId(testId)
   const items = page.locator('.v-overlay--active .v-list-item:not([aria-disabled="true"])')
 
@@ -54,7 +54,7 @@ async function selectFirstAvailableWallet (page: Page, testId: string) {
 /**
  * Fill the internal transfer form (sender, receiver, amount, reference).
  */
-async function fillInternalTransfer (page: Page, amount: string, reference: string) {
+async function fillInternalTransfer(page: Page, amount: string, reference: string) {
   await selectFirstAvailableWallet(page, 'transfer-sender-wallet')
   await selectFirstAvailableWallet(page, 'transfer-receiver-wallet')
 
@@ -65,7 +65,7 @@ async function fillInternalTransfer (page: Page, amount: string, reference: stri
 /**
  * Complete the 2-step transfer flow: review → confirm.
  */
-async function submitTransfer (page: Page) {
+async function submitTransfer(page: Page) {
   await page.getByTestId('transfer-submit-btn').click()
   await expect(page.getByTestId('transfer-recap')).toBeVisible({ timeout: 10_000 })
   await page.getByTestId('transfer-confirm-btn').click()
@@ -127,7 +127,7 @@ test.describe('Transfer Approval Flow', () => {
     // Verify the transaction appears as completed
     await page.goto('/transactions?status=completed')
     await expect(page.getByTestId('page-heading')).toBeVisible({ timeout: 10_000 })
-    await expect(page.locator('tr').filter({ hasText: 'US$500' })).toBeVisible({ timeout: 10_000 })
+    await expect(page.locator('tr').filter({ hasText: '$500.00' })).toBeVisible({ timeout: 10_000 })
 
     await page.context().close()
   })
@@ -150,7 +150,7 @@ test.describe('Transfer Approval Flow', () => {
     // Verify the transaction shows as pending
     await page.goto('/transactions?status=pending_approval')
     await expect(page.getByTestId('page-heading')).toBeVisible({ timeout: 10_000 })
-    await expect(page.locator('tr').filter({ hasText: 'US$5,000' })).toBeVisible({ timeout: 10_000 })
+    await expect(page.locator('tr').filter({ hasText: '$5,000.00' })).toBeVisible({ timeout: 10_000 })
 
     await page.context().close()
   })

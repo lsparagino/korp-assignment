@@ -1,7 +1,7 @@
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
-export type { PaginationMeta } from '@/types/pagination'
+export type { PaginationMeta } from '@/api/pagination'
 
 interface UrlPaginationOptions {
   defaultPerPage?: number

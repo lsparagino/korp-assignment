@@ -5,6 +5,32 @@ vi.mock('@/api/settings', () => ({
   fetchUserPreferences: vi.fn(),
 }))
 
+// Mock @pinia/colada — stores use queryCache.ensure + fetch
+let mockQueryFn: Function | null = null
+const mockEntry = {
+  state: { value: { data: null as any } },
+}
+vi.mock('@pinia/colada', () => ({
+  useQueryCache: vi.fn(() => ({
+    ensure: vi.fn((opts: any) => {
+      mockQueryFn = typeof opts === 'function' ? opts().query : opts.query
+      return mockEntry
+    }),
+    fetch: vi.fn(async () => {
+      if (mockQueryFn) {
+        try {
+          mockEntry.state.value.data = await mockQueryFn()
+        } catch {
+          mockEntry.state.value.data = null
+          throw new Error('Query failed')
+        }
+      }
+    }),
+    invalidateQueries: vi.fn(),
+  })),
+  defineQueryOptions: vi.fn((fn: any) => fn),
+}))
+
 // Mock localStorage
 const localStorageMock = (() => {
   let store: Record<string, string> = {}
@@ -28,6 +54,8 @@ describe('usePreferencesStore', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
     localStorageMock.clear()
+    mockEntry.state.value.data = null
+    mockQueryFn = null
     vi.clearAllMocks()
   })
 
@@ -44,7 +72,6 @@ describe('usePreferencesStore', () => {
       localStorageMock.setItem('pref_date_format', 'de-DE')
       localStorageMock.setItem('pref_number_format', 'fr-FR')
 
-      // Force re-import to pick up localStorage values
       vi.resetModules()
       const { usePreferencesStore } = await import('./preferences')
       const store = usePreferencesStore()

@@ -1,4 +1,4 @@
-import type { PaginationParams } from '@/types/pagination'
+import type { PaginationParams } from '@/api/pagination'
 import { api } from '@/plugins/api'
 
 export interface Wallet {

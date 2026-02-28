@@ -92,7 +92,7 @@
 
   function handleSubmit () {
     if (isSensitiveFieldChanged()) {
-      identity.requireConfirmation(async (cred) => {
+      identity.requireConfirmation(async cred => {
         const payload = { ...form, ...cred }
         await updateUserPreferences(payload)
         preferencesStore.update(form.date_format, form.number_format)

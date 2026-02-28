@@ -1,31 +1,43 @@
 import type { Company } from '@/api/companies'
+import { useQueryCache } from '@pinia/colada'
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
-import { fetchCompanies as apiFetchCompanies } from '@/api/companies'
 import { i18n } from '@/plugins/i18n'
+import { companiesQuery, COMPANY_QUERY_KEYS } from '@/queries/companies'
 
 export const useCompanyStore = defineStore('company', () => {
-  const companies = ref<Company[]>([])
   const currentCompany = ref<Company | null>(null)
+  const companiesList = ref<Company[]>([])
+  const queryCache = useQueryCache()
 
+  const companies = computed<Company[]>(() => companiesList.value)
   const hasCompanies = computed(() => companies.value.length > 0)
   const companyLabel = computed(() => currentCompany.value?.name ?? i18n.global.t('company.selectCompany'))
 
-  async function fetchCompanies () {
-    try {
-      const response = await apiFetchCompanies()
-      companies.value = response.data.data
+  function setCurrentCompany(company: Company) {
+    currentCompany.value = company
+  }
 
-      if (companies.value.length > 0 && !currentCompany.value) {
-        currentCompany.value = companies.value[0] ?? null
+  // Imperative fetch for router guards — leverages query cache
+  async function fetchCompanies() {
+    try {
+      const entry = queryCache.ensure(companiesQuery)
+      await queryCache.fetch(entry)
+      const data = entry.state.value.data
+      if (data) {
+        companiesList.value = data
+        // Auto-select first company if none selected yet
+        if (!currentCompany.value && data.length > 0) {
+          currentCompany.value = data[0] ?? null
+        }
       }
     } catch {
-      companies.value = []
+      // Handled gracefully — keep existing data
     }
   }
 
-  function setCurrentCompany (company: Company) {
-    currentCompany.value = company
+  async function invalidateQueries() {
+    await queryCache.invalidateQueries({ key: COMPANY_QUERY_KEYS.root })
   }
 
   return {
@@ -35,5 +47,6 @@ export const useCompanyStore = defineStore('company', () => {
     companyLabel,
     fetchCompanies,
     setCurrentCompany,
+    invalidateQueries,
   }
 })

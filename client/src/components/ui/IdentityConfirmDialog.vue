@@ -14,8 +14,8 @@
   const emit = defineEmits<{
     'update:modelValue': [value: boolean]
     'update:credential': [value: string]
-    confirm: []
-    cancel: []
+    'confirm': []
+    'cancel': []
   }>()
 
   const { t } = useI18n()
@@ -23,8 +23,8 @@
 
 <template>
   <v-dialog
-    :model-value="modelValue"
     max-width="440"
+    :model-value="modelValue"
     persistent
     @update:model-value="emit('update:modelValue', $event)"
   >

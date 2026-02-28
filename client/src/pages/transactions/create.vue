@@ -102,9 +102,9 @@
   async function loadSecurityThreshold () {
     try {
       const { data } = await fetchUserPreferences()
-      securityThreshold.value = data.data.security_threshold !== null
-        ? Number(data.data.security_threshold)
-        : null
+      securityThreshold.value = data.data.security_threshold === null
+        ? null
+        : Number(data.data.security_threshold)
     } catch {
       // If preferences can't be loaded, no security check will be applied
     }
@@ -134,7 +134,7 @@
   const amountRules = [requiredRule, positiveAmountRule, insufficientFundsRule]
   const referenceRules = [requiredRule]
 
-  // Set default wallet when wallets load
+  // Form initialises sender_wallet_id to 0 (no wallet) — auto-select the first unfrozen wallet once available
   watch(
     wallets,
     list => {
@@ -222,7 +222,7 @@
 
   function confirmTransfer () {
     if (requiresSecurityVerification()) {
-      identity.requireConfirmation(async (cred) => {
+      identity.requireConfirmation(async cred => {
         await executeTransfer(cred)
       }).catch(() => {
         // cancelled or handled by the dialog
