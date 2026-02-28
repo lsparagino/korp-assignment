@@ -35,6 +35,7 @@ class TransactionPendingApproval extends Notification
                 'amount' => number_format(abs((float) $this->transaction->amount), 2),
                 'currency' => $this->transaction->currency,
                 'reference' => $this->transaction->reference,
+                'notes' => $this->transaction->notes,
             ]);
     }
 }

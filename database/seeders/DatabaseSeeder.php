@@ -5,6 +5,7 @@ namespace Database\Seeders;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use App\Models\Company;
 use App\Models\User;
+use App\Models\UserSetting;
 use App\Models\Wallet;
 use Illuminate\Database\Seeder;
 
@@ -23,6 +24,7 @@ class DatabaseSeeder extends Seeder
             'role' => 'admin',
         ]);
         $admin->companies()->attach($company);
+        UserSetting::create(['user_id' => $admin->id]);
 
         $member = User::factory()->create([
             'name' => 'Member User',
@@ -30,6 +32,7 @@ class DatabaseSeeder extends Seeder
             'role' => 'member',
         ]);
         $member->companies()->attach($company);
+        UserSetting::create(['user_id' => $member->id]);
 
         $manager = User::factory()->create([
             'name' => 'Manager User',
@@ -37,6 +40,7 @@ class DatabaseSeeder extends Seeder
             'role' => 'manager',
         ]);
         $manager->companies()->attach($company);
+        UserSetting::create(['user_id' => $manager->id]);
 
         $this->call([
             WalletSeeder::class,

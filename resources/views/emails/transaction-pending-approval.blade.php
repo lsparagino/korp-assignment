@@ -14,6 +14,12 @@
 @endif
 </x-mail::table>
 
+@if($notes)
+<x-mail::panel>
+**{{ __('Notes') }}:** {{ $notes }}
+</x-mail::panel>
+@endif
+
 <x-mail::button :url="config('app.client_url', config('app.url')) . '/transactions?status=pending_approval'">
 {{ __('Review Transaction') }}
 </x-mail::button>
