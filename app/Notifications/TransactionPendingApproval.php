@@ -27,11 +27,11 @@ class TransactionPendingApproval extends Notification
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject(__('Transaction Pending Approval'))
+            ->subject(__('messages.notification_transaction_pending_approval'))
             ->markdown('emails.transaction-pending-approval', [
                 'transaction' => $this->transaction,
-                'initiatorName' => $this->transaction->initiator?->name ?? __('Unknown'),
-                'walletName' => $this->transaction->wallet?->name ?? __('Unknown'),
+                'initiatorName' => $this->transaction->initiator?->name ?? __('messages.unknown'),
+                'walletName' => $this->transaction->wallet?->name ?? __('messages.unknown'),
                 'amount' => number_format(abs((float) $this->transaction->amount), 2),
                 'currency' => $this->transaction->currency,
                 'reference' => $this->transaction->reference,

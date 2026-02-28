@@ -10,29 +10,17 @@ use App\Models\Wallet;
 
 class TransactionBuilder
 {
-    private string $groupId;
-
-    private string $currency;
-
-    private TransactionStatus $status;
-
-    private User $initiator;
-
     private ?string $reference;
 
     private ?string $notes;
 
     public function __construct(
-        string $groupId,
-        string $currency,
-        TransactionStatus $status,
-        User $initiator,
+        private string $groupId,
+        private string $currency,
+        private TransactionStatus $status,
+        private User $initiator,
         array $data
     ) {
-        $this->groupId = $groupId;
-        $this->currency = $currency;
-        $this->status = $status;
-        $this->initiator = $initiator;
         $this->reference = $data['reference'] ?? null;
         $this->notes = $data['notes'] ?? null;
     }

@@ -27,11 +27,11 @@ class TransactionRejected extends Notification
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject(__('Transaction Rejected'))
+            ->subject(__('messages.notification_transaction_rejected'))
             ->markdown('emails.transaction-rejected', [
                 'transaction' => $this->transaction,
-                'reviewerName' => $this->transaction->reviewer?->name ?? __('Unknown'),
-                'walletName' => $this->transaction->wallet?->name ?? __('Unknown'),
+                'reviewerName' => $this->transaction->reviewer?->name ?? __('messages.unknown'),
+                'walletName' => $this->transaction->wallet?->name ?? __('messages.unknown'),
                 'amount' => number_format(abs((float) $this->transaction->amount), 2),
                 'currency' => $this->transaction->currency,
                 'reference' => $this->transaction->reference,

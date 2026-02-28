@@ -9,15 +9,18 @@ use App\Http\Resources\CompanySettingResource;
 use App\Http\Resources\UserSettingResource;
 use App\Models\CompanySetting;
 use App\Services\SettingService;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
 class SettingController extends Controller
 {
+    use AuthorizesRequests;
+
     public function __construct(private SettingService $settingService) {}
 
-    public function showUserSettings(Request $request): \Illuminate\Http\JsonResponse
+    public function showUserSettings(Request $request): JsonResponse
     {
         return $this->settingService->getUserSettings($request->user())
             ->response()
@@ -47,11 +50,7 @@ class SettingController extends Controller
 
     public function destroyCompanyThreshold(Request $request, CompanySetting $threshold): Response
     {
-        $company = $request->user()->companies()->findOrFail($request->company_id);
-
-        if ($threshold->company_id !== $company->id) {
-            abort(403);
-        }
+        $this->authorize('delete', $threshold);
 
         $this->settingService->deleteCompanyThreshold($threshold);
 

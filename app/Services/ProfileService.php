@@ -48,7 +48,7 @@ class ProfileService
         Log::info('Pending email cancelled', ['user_id' => $user->id]);
     }
 
-    public function deleteUserAndTokens(User $user, $requestToken = null): void
+    public function deleteUserAndTokens(User $user, mixed $requestToken = null): void
     {
         DB::transaction(function () use ($requestToken, $user) {
             if ($requestToken) {

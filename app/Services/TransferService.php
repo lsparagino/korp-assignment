@@ -34,7 +34,7 @@ class TransferService
             $availableBalance = (float) $senderWallet->balance - (float) $senderWallet->locked_balance;
             if ($availableBalance < $amount) {
                 throw ValidationException::withMessages([
-                    'amount' => ['Insufficient available funds.'],
+                    'amount' => [__('messages.insufficient_funds')],
                 ]);
             }
 
@@ -44,7 +44,7 @@ class TransferService
 
                 if ($senderWallet->currency !== $receiverWallet->currency) {
                     throw ValidationException::withMessages([
-                        'receiver_wallet_id' => ['Cross-currency transfers are not permitted at this stage.'],
+                        'receiver_wallet_id' => [__('messages.cross_currency_not_permitted')],
                     ]);
                 }
             }
@@ -98,7 +98,7 @@ class TransferService
                 ]);
 
             if ($affectedRows === 0) {
-                throw new ConflictHttpException('This transaction has already been reviewed.');
+                throw new ConflictHttpException(__('messages.transfer_already_reviewed'));
             }
 
             $debitTransaction = Transaction::where('group_id', $groupId)
@@ -198,11 +198,12 @@ class TransferService
                 TransactionStatus::PendingApproval,
             ])
             ->whereDate('created_at', today())
-            ->sum(DB::raw('ABS(amount)'));
+            ->selectRaw('SUM(ABS(amount)) as total')
+            ->value('total');
 
         if (((float) $todayTotal + $amount) > (float) $setting->daily_transaction_limit) {
             throw ValidationException::withMessages([
-                'amount' => ['This transfer would exceed your daily transaction limit.'],
+                'amount' => [__('messages.daily_limit_exceeded')],
             ]);
         }
     }

@@ -20,7 +20,7 @@ class TransferController extends Controller
         );
 
         return response()->json([
-            'message' => 'Transfer initiated successfully.',
+            'message' => __('messages.transfer_initiated'),
             'data' => $result,
         ], 201);
     }
@@ -35,7 +35,7 @@ class TransferController extends Controller
         );
 
         return response()->json([
-            'message' => 'Transfer reviewed successfully.',
+            'message' => __('messages.transfer_reviewed'),
             'data' => $result,
         ]);
     }

@@ -75,9 +75,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Company-scoped Routes
     Route::middleware('company')->group(function () {
         Route::get('/companies', [CompanyController::class, 'index']);
-        Route::get('/currencies', fn () => response()->json(
-            array_column(\App\Enums\WalletCurrency::cases(), 'value')
-        ));
+        Route::get('/currencies', [CompanyController::class, 'currencies']);
         Route::get('/dashboard', [DashboardController::class, 'dashboard'])->name('dashboard');
 
         Route::apiResource('transactions', TransactionController::class)->only(['index']);

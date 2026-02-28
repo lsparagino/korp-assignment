@@ -27,10 +27,10 @@ class TransactionCompleted extends Notification
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject(__('Transaction Completed'))
+            ->subject(__('messages.notification_transaction_completed'))
             ->markdown('emails.transaction-completed', [
                 'transaction' => $this->transaction,
-                'walletName' => $this->transaction->wallet?->name ?? __('Unknown'),
+                'walletName' => $this->transaction->wallet?->name ?? __('messages.unknown'),
                 'amount' => number_format(abs((float) $this->transaction->amount), 2),
                 'currency' => $this->transaction->currency,
                 'reference' => $this->transaction->reference,

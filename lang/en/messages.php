@@ -45,4 +45,19 @@ return [
     // Authorization
     'unauthorized_company' => 'Unauthorized access to company.',
 
+    // Transfers
+    'transfer_initiated' => 'Transfer initiated successfully.',
+    'transfer_reviewed' => 'Transfer reviewed successfully.',
+    'insufficient_funds' => 'Insufficient available funds.',
+    'cross_currency_not_permitted' => 'Cross-currency transfers are not permitted at this stage.',
+    'transfer_already_reviewed' => 'This transaction has already been reviewed.',
+    'daily_limit_exceeded' => 'This transfer would exceed your daily transaction limit.',
+
+    // Notifications
+    'notification_transaction_pending_approval' => 'Transaction Pending Approval',
+    'notification_transaction_approved' => 'Transaction Approved',
+    'notification_transaction_rejected' => 'Transaction Rejected',
+    'notification_transaction_completed' => 'Transaction Completed',
+    'unknown' => 'Unknown',
+
 ];
