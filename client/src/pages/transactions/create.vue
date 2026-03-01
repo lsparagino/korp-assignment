@@ -48,7 +48,7 @@
     notes: '',
   })
 
-  const { data: walletsData } = useQuery(
+  const { data: walletsData, isLoading: walletsLoading } = useQuery(
     walletsListQuery,
     () => ({ page: 1, perPage: 500 }),
   )
@@ -300,10 +300,12 @@
             v-model="form.sender_wallet_id"
             data-testid="transfer-sender-wallet"
             density="comfortable"
+            :disabled="walletsLoading"
             :error-messages="errors.sender_wallet_id"
             hide-details="auto"
             item-value="id"
             :items="senderWalletItems"
+            :loading="walletsLoading"
             :rules="[requiredRule]"
             variant="outlined"
           >
@@ -329,7 +331,7 @@
               </v-list-item>
             </template>
             <template #selection="{ item }">
-              {{ item.raw.name }} ({{ formatCurrency(Number(item.raw.available_balance), item.raw.currency) }})
+              <span v-if="item.raw.name">{{ item.raw.name }} ({{ formatCurrency(Number(item.raw.available_balance), item.raw.currency) }})</span>
             </template>
           </v-select>
 
@@ -386,6 +388,7 @@
               hide-details="auto"
               item-value="id"
               :items="receiverWalletOptions"
+              :loading="walletsLoading"
               :rules="[requiredRule]"
               variant="outlined"
             >
@@ -411,7 +414,7 @@
                 </v-list-item>
               </template>
               <template #selection="{ item }">
-                {{ item.raw.name }} ({{ formatCurrency(Number(item.raw.available_balance), item.raw.currency) }})
+                <span v-if="item.raw.name">{{ item.raw.name }} ({{ formatCurrency(Number(item.raw.available_balance), item.raw.currency) }})</span>
               </template>
             </v-select>
           </template>

@@ -55,14 +55,7 @@
     if (isPinValid.value) {
       emit('confirm')
       isDialogVisible.value = false
-      reset()
-    }
-  }
-
-  function reset () {
-    pin.value = ''
-    if (props.requiresPin) {
-      generatePin()
+      pin.value = ''
     }
   }
 
@@ -70,7 +63,10 @@
     () => props.modelValue,
     newVal => {
       if (newVal) {
-        reset()
+        pin.value = ''
+        if (props.requiresPin) {
+          generatePin()
+        }
       }
     },
   )
