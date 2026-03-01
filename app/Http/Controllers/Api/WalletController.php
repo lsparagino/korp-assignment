@@ -51,25 +51,21 @@ class WalletController extends Controller
     {
         $this->authorize('update', $wallet);
 
-        $wallet->toggleFreeze();
-
-        return new WalletResource($wallet);
+        return new WalletResource($this->walletService->toggleFreeze($wallet));
     }
 
     public function update(UpdateWalletRequest $request, Wallet $wallet): WalletResource
     {
         $this->authorize('update', $wallet);
 
-        $wallet->update($request->validated());
-
-        return new WalletResource($wallet);
+        return new WalletResource($this->walletService->update($wallet, $request->validated()));
     }
 
     public function destroy(Wallet $wallet): Response
     {
         $this->authorize('delete', $wallet);
 
-        $wallet->delete();
+        $this->walletService->delete($wallet);
 
         return response()->noContent();
     }

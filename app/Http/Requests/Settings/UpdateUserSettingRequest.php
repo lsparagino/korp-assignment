@@ -58,7 +58,15 @@ class UpdateUserSettingRequest extends FormRequest
 
     private function requiresIdentityVerification(): bool
     {
-        return $this->has('daily_transaction_limit') || $this->has('security_threshold');
+        $setting = $this->user()->setting;
+
+        $limitChanged = $this->has('daily_transaction_limit')
+            && (string) $this->input('daily_transaction_limit') !== (string) $setting?->daily_transaction_limit;
+
+        $thresholdChanged = $this->has('security_threshold')
+            && (string) $this->input('security_threshold') !== (string) $setting?->security_threshold;
+
+        return $limitChanged || $thresholdChanged;
     }
 
     private function validateThresholdRelation(): void

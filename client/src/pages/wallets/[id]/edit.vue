@@ -17,7 +17,7 @@
   const processing = ref(false)
   const errors = ref<ValidationErrors>({})
   const snackbar = ref({ show: false, text: '', color: 'error' })
-  const { confirmDialog, openConfirmDialog } = useConfirmDialog()
+  const { confirmDialog, openConfirmDialog, executeConfirm } = useConfirmDialog()
 
   const walletId = String((route.params as Record<string, string>).id)
 
@@ -306,9 +306,10 @@
   <ConfirmDialog
     v-model="confirmDialog.show"
     :message="confirmDialog.message"
+    :processing="confirmDialog.processing"
     :requires-pin="confirmDialog.requiresPin"
     :title="confirmDialog.title"
-    @confirm="confirmDialog.onConfirm"
+    @confirm="executeConfirm"
   />
 
   <v-snackbar v-model="snackbar.show" :color="snackbar.color" timeout="5000">

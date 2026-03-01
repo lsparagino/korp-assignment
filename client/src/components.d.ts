@@ -30,7 +30,6 @@ declare module 'vue' {
     TransactionDetailModal: typeof import('./components/features/TransactionDetailModal.vue')['default']
     TransactionTable: typeof import('./components/features/TransactionTable.vue')['default']
     TransferButton: typeof import('./components/ui/TransferButton.vue')['default']
-    TransferDialog: typeof import('./components/features/TransferDialog.vue')['default']
     UserAvatar: typeof import('./components/ui/UserAvatar.vue')['default']
   }
 }

@@ -35,17 +35,17 @@ describe('useNotificationStore', () => {
     store.notify({ message: 'Test error' })
 
     expect(store.notifications).toHaveLength(1)
-    expect(store.notifications[0].message).toBe('Test error')
-    expect(store.notifications[0].color).toBe('error')
-    expect(store.notifications[0].timeout).toBe(5000)
+    expect(store.notifications[0]!.message).toBe('Test error')
+    expect(store.notifications[0]!.color).toBe('error')
+    expect(store.notifications[0]!.timeout).toBe(5000)
   })
 
   it('allows custom color and timeout', () => {
     const store = useNotificationStore()
     store.notify({ message: 'Success', color: 'success', timeout: 3000 })
 
-    expect(store.notifications[0].color).toBe('success')
-    expect(store.notifications[0].timeout).toBe(3000)
+    expect(store.notifications[0]!.color).toBe('success')
+    expect(store.notifications[0]!.timeout).toBe(3000)
   })
 
   it('dismisses a notification by id', () => {
@@ -56,7 +56,7 @@ describe('useNotificationStore', () => {
     expect(store.notifications).toHaveLength(2)
     store.dismiss(id)
     expect(store.notifications).toHaveLength(1)
-    expect(store.notifications[0].message).toBe('Error 2')
+    expect(store.notifications[0]!.message).toBe('Error 2')
   })
 
   it('assigns unique ids to notifications', () => {
@@ -89,22 +89,22 @@ describe('useAppNotification', () => {
 
     notifyError(apiError)
     expect(notifications.value).toHaveLength(1)
-    expect(notifications.value[0].message).toBe('Internal Server Error')
-    expect(notifications.value[0].color).toBe('error')
+    expect(notifications.value[0]!.message).toBe('Internal Server Error')
+    expect(notifications.value[0]!.color).toBe('error')
   })
 
   it('notifyError uses fallback when no API message', () => {
     const { notifyError, notifications } = useAppNotification()
 
     notifyError(new Error('network'), 'Custom fallback')
-    expect(notifications.value[0].message).toBe('Custom fallback')
+    expect(notifications.value[0]!.message).toBe('Custom fallback')
   })
 
   it('notifySuccess creates a success notification', () => {
     const { notifySuccess, notifications } = useAppNotification()
 
     notifySuccess('Done!')
-    expect(notifications.value[0].message).toBe('Done!')
-    expect(notifications.value[0].color).toBe('success')
+    expect(notifications.value[0]!.message).toBe('Done!')
+    expect(notifications.value[0]!.color).toBe('success')
   })
 })

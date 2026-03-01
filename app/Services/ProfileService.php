@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Enums\AuditCategory;
+use App\Enums\AuditSeverity;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -9,6 +11,8 @@ use Throwable;
 
 class ProfileService
 {
+    public function __construct(private AuditService $auditService) {}
+
     public function updateProfile(User $user, array $validated): array
     {
         if (isset($validated['email']) && $validated['email'] !== $user->email) {
@@ -33,6 +37,13 @@ class ProfileService
 
         Log::info('Profile updated', ['user_id' => $user->id, 'pending_email' => $user->pending_email]);
 
+        $this->auditService->log(
+            AuditCategory::Settings,
+            AuditSeverity::Normal,
+            'settings.profile_updated',
+            __('messages.audit.profile_updated'),
+        );
+
         return [
             'success' => true,
             'message' => $user->pending_email
@@ -50,6 +61,13 @@ class ProfileService
 
     public function deleteUserAndTokens(User $user, mixed $requestToken = null): void
     {
+        $this->auditService->log(
+            AuditCategory::Settings,
+            AuditSeverity::Critical,
+            'settings.account_deleted',
+            __('messages.audit.account_deleted'),
+        );
+
         DB::transaction(function () use ($requestToken, $user) {
             if ($requestToken) {
                 $requestToken->delete();

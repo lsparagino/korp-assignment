@@ -22,7 +22,7 @@
 
   const { t } = useI18n()
   const authStore = useAuthStore()
-  const { confirmDialog, openConfirmDialog } = useConfirmDialog()
+  const { confirmDialog, openConfirmDialog, executeConfirm } = useConfirmDialog()
   const { idempotencyKey, regenerateKey } = useIdempotencyKey()
   const rejectMode = ref(false)
   const rejectReason = ref('')
@@ -538,8 +538,9 @@
       <ConfirmDialog
         v-model="confirmDialog.show"
         :message="confirmDialog.message"
+        :processing="confirmDialog.processing"
         :title="confirmDialog.title"
-        @confirm="confirmDialog.onConfirm"
+        @confirm="executeConfirm"
       />
     </v-card>
   </v-dialog>

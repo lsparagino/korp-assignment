@@ -26,6 +26,7 @@
         "wallets": "Wallets",
         "transactions": "Transactions",
         "teamMembers": "Team Members",
+        "auditLogs": "Audit Logs",
         "settings": "Settings",
         "disconnect": "Disconnect",
         "createWallet": "Create Wallet"
@@ -343,7 +344,8 @@
         "defaultMessage": "Are you sure you want to proceed?",
         "defaultConfirm": "Yes, Proceed",
         "verificationRequired": "Verification Required",
-        "verificationHint": "Please enter the code above to confirm this action."
+        "verificationHint": "Please enter the code above to confirm this action.",
+        "processing": "Processing your request…"
     },
     "pagination": {
         "showing": "Showing {from} to {to} of {total} entries",
@@ -402,5 +404,42 @@
         "title": "Identity Verification",
         "description": "This action requires identity verification. Please enter your password or authentication code.",
         "authCode": "Authentication Code"
+    },
+    "auditLogs": {
+        "title": "Audit Logs",
+        "filterOptions": "Filter Options",
+        "category": "Category",
+        "severity": "Severity",
+        "dateFrom": "Date from",
+        "dateTo": "Date to",
+        "filter": "Filter",
+        "clear": "Clear",
+        "results": "Results",
+        "loadMore": "Load More",
+        "allLoaded": "All audit logs loaded.",
+        "categories": {
+            "all": "All Categories",
+            "auth": "Authentication",
+            "transaction": "Transactions",
+            "team": "Team Management",
+            "wallet": "Wallets",
+            "settings": "Settings"
+        },
+        "severities": {
+            "all": "All Severities",
+            "normal": "Normal",
+            "medium": "Medium",
+            "high": "High",
+            "critical": "Critical"
+        },
+        "columns": {
+            "date": "Date",
+            "user": "User",
+            "category": "Category",
+            "severity": "Severity",
+            "action": "Action",
+            "description": "Description",
+            "ipAddress": "IP Address"
+        }
     }
 }

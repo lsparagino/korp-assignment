@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Enums\AuditCategory;
+use App\Enums\AuditSeverity;
 use App\Enums\TransactionStatus;
 use App\Enums\TransactionType;
 use App\Enums\UserRole;
@@ -21,6 +23,8 @@ use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
 
 class TransferService
 {
+    public function __construct(private AuditService $auditService) {}
+
     public function initiateTransfer(User $user, array $data): array
     {
         $this->enforceDailyLimit($user, (float) $data['amount']);
@@ -79,6 +83,14 @@ class TransferService
 
         $this->sendInitiateNotifications($user, $result);
 
+        $this->auditService->log(
+            AuditCategory::Transaction,
+            AuditSeverity::Normal,
+            'transfer.initiated',
+            __('messages.audit.transfer_initiated'),
+            ['metadata' => ['group_id' => $result['group_id'], 'amount' => $data['amount']]],
+        );
+
         return $result;
     }
 
@@ -118,12 +130,25 @@ class TransferService
 
         $this->sendReviewNotifications($groupId, $action);
 
+        $auditAction = $action === 'approve' ? 'transfer.approved' : 'transfer.rejected';
+        $auditMessage = $action === 'approve'
+            ? __('messages.audit.transfer_approved')
+            : __('messages.audit.transfer_rejected');
+
+        $this->auditService->log(
+            AuditCategory::Transaction,
+            AuditSeverity::Normal,
+            $auditAction,
+            $auditMessage,
+            ['metadata' => ['group_id' => $groupId, 'reason' => $reason]],
+        );
+
         return $result;
     }
 
     public function cancelTransfer(User $initiator, string $groupId): array
     {
-        return DB::transaction(function () use ($initiator, $groupId) {
+        $result = DB::transaction(function () use ($initiator, $groupId) {
             $affectedRows = Transaction::where('group_id', $groupId)
                 ->where('initiator_user_id', $initiator->id)
                 ->where('status', TransactionStatus::PendingApproval)
@@ -148,6 +173,16 @@ class TransferService
                 'status' => TransactionStatus::Cancelled->value,
             ];
         });
+
+        $this->auditService->log(
+            AuditCategory::Transaction,
+            AuditSeverity::Normal,
+            'transfer.cancelled',
+            __('messages.audit.transfer_cancelled'),
+            ['metadata' => ['group_id' => $groupId]],
+        );
+
+        return $result;
     }
 
     private function determineTargetStatus(User $user, float $amount, string $currency, int $companyId): TransactionStatus

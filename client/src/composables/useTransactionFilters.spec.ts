@@ -112,7 +112,7 @@ describe('useTransactionFilters', () => {
 
     handleFilter()
 
-    const pushCall = mockRouter.push.mock.calls[0][0] as { query: Record<string, string> }
+    const pushCall = mockRouter.push.mock.calls[0]![0] as { query: Record<string, string> }
     expect(pushCall.query.type).toBeUndefined()
     expect(pushCall.query.date_from).toBeUndefined()
   })
@@ -130,7 +130,7 @@ describe('useTransactionFilters', () => {
 
     clearFilters()
 
-    const pushCall = mockRouter.push.mock.calls[0][0] as { query: Record<string, string> }
+    const pushCall = mockRouter.push.mock.calls[0]![0] as { query: Record<string, string> }
     expect(pushCall.query.date_from).toBeUndefined()
     expect(pushCall.query.type).toBeUndefined()
     expect(pushCall.query.amount_min).toBeUndefined()

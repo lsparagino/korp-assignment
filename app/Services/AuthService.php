@@ -2,12 +2,17 @@
 
 namespace App\Services;
 
+use App\Enums\AuditCategory;
+use App\Enums\AuditSeverity;
+use App\Enums\UserRole;
 use App\Models\User;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\ValidationException;
+use Laravel\Fortify\Actions\ConfirmTwoFactorAuthentication;
+use Laravel\Fortify\Actions\DisableTwoFactorAuthentication;
 use Laravel\Fortify\Contracts\CreatesNewUsers;
 use Laravel\Fortify\Contracts\TwoFactorAuthenticationProvider;
 use Laravel\Fortify\Fortify;
@@ -15,6 +20,8 @@ use Throwable;
 
 class AuthService
 {
+    public function __construct(private AuditService $auditService) {}
+
     /**
      * @return array{two_factor?: bool, user_id?: int, access_token?: string, token_type?: string, user?: User}
      */
@@ -31,6 +38,18 @@ class AuthService
 
             Log::info('Failed login attempt', ['username' => $username, 'ip' => $ip]);
 
+            $severity = $user && in_array($user->role, [UserRole::Admin, UserRole::Manager])
+                ? AuditSeverity::High
+                : AuditSeverity::Medium;
+
+            $this->auditService->log(
+                AuditCategory::Auth,
+                $severity,
+                'user.login_failed',
+                __('messages.audit.user_login_failed'),
+                ['user_id' => $user?->id, 'user_name' => $user?->name, 'metadata' => ['username' => $username]],
+            );
+
             throw ValidationException::withMessages([
                 Fortify::username() => [__('auth.failed')],
             ]);
@@ -39,6 +58,14 @@ class AuthService
         RateLimiter::clear($throttleKey);
 
         Log::info('Successful login', ['user_id' => $user->id]);
+
+        $this->auditService->log(
+            AuditCategory::Auth,
+            AuditSeverity::Normal,
+            'user.login',
+            __('messages.audit.user_login'),
+            ['user_id' => $user->id, 'user_name' => $user->name],
+        );
 
         if ($user->two_factor_secret && $user->two_factor_confirmed_at) {
             return [
@@ -88,11 +115,26 @@ class AuthService
             ], 500));
         }
 
+        $this->auditService->log(
+            AuditCategory::Auth,
+            AuditSeverity::Normal,
+            'user.registered',
+            __('messages.audit.user_registered'),
+            ['user_id' => $user->id, 'user_name' => $user->name],
+        );
+
         return $user->createAuthTokenResponse();
     }
 
     public function logout(User $user): void
     {
+        $this->auditService->log(
+            AuditCategory::Auth,
+            AuditSeverity::Normal,
+            'user.logout',
+            __('messages.audit.user_logout'),
+        );
+
         $user->currentAccessToken()?->delete();
     }
 
@@ -103,6 +145,42 @@ class AuthService
                 'password' => [__('auth.password')],
             ]);
         }
+    }
+
+    public function confirmTwoFactor(User $user, string $code, ConfirmTwoFactorAuthentication $confirm): void
+    {
+        $confirm($user, $code);
+
+        $this->auditService->log(
+            AuditCategory::Auth,
+            AuditSeverity::Medium,
+            'user.2fa_enabled',
+            __('messages.audit.user_2fa_enabled'),
+        );
+    }
+
+    public function disableTwoFactor(User $user, DisableTwoFactorAuthentication $disable): void
+    {
+        $disable($user);
+
+        $this->auditService->log(
+            AuditCategory::Auth,
+            AuditSeverity::Medium,
+            'user.2fa_disabled',
+            __('messages.audit.user_2fa_disabled'),
+        );
+    }
+
+    public function changePassword(User $user, string $password): void
+    {
+        $user->update(['password' => $password]);
+
+        $this->auditService->log(
+            AuditCategory::Auth,
+            AuditSeverity::Medium,
+            'user.password_changed',
+            __('messages.audit.user_password_changed'),
+        );
     }
 
     private function checkThrottling(string $throttleKey): void

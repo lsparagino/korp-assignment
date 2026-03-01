@@ -17,7 +17,7 @@
   const { t } = useI18n()
   const authStore = useAuthStore()
   const teamMemberStore = useTeamMemberStore()
-  const { confirmDialog, openConfirmDialog } = useConfirmDialog()
+  const { confirmDialog, openConfirmDialog, executeConfirm } = useConfirmDialog()
   const { page: urlPage, handlePageChange } = useUrlPagination()
 
   const { members, meta, isPending: processing, refetch, page } = useTeamMemberList()
@@ -190,9 +190,10 @@
     v-model="confirmDialog.show"
     confirm-color="error"
     :message="confirmDialog.message"
+    :processing="confirmDialog.processing"
     :requires-pin="confirmDialog.requiresPin"
     :title="confirmDialog.title"
-    @confirm="confirmDialog.onConfirm"
+    @confirm="executeConfirm"
   />
 </template>
 

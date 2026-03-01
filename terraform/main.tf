@@ -62,6 +62,7 @@ resource "time_sleep" "wait_for_apis" {
     google_project_service.compute,
     google_project_service.artifactregistry,
     google_project_service.servicenetworking,
+    google_project_service.firestore,
   ]
 
   create_duration = "60s"

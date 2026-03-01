@@ -1,6 +1,6 @@
 <script lang="ts" setup>
   import type { FunctionalComponent } from 'vue'
-  import { LayoutDashboard, Repeat, Users, Wallet } from 'lucide-vue-next'
+  import { LayoutDashboard, Repeat, ShieldCheck, Users, Wallet } from 'lucide-vue-next'
   import { computed, ref } from 'vue'
   import { useI18n } from 'vue-i18n'
   import { useRoute, useRouter } from 'vue-router'
@@ -49,6 +49,13 @@
       icon: Users,
       to: '/team-members/',
       active: computed(() => route.path.startsWith('/team-members')),
+    },
+    {
+      title: t('nav.auditLogs'),
+      icon: ShieldCheck,
+      to: '/audit-logs/',
+      active: computed(() => route.path.startsWith('/audit-logs')),
+      role: 'admin',
     },
   ]
 

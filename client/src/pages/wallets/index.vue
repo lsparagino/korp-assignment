@@ -19,7 +19,7 @@
   const authStore = useAuthStore()
   const walletStore = useWalletStore()
   const snackbar = ref({ show: false, text: '', color: 'error' })
-  const { confirmDialog, openConfirmDialog } = useConfirmDialog()
+  const { confirmDialog, openConfirmDialog, executeConfirm } = useConfirmDialog()
   const { page: urlPage, perPage: urlPerPage, handlePageChange, handlePerPageChange } = useUrlPagination()
 
   const { wallets, meta, isPending: processing, refetch, page, perPage } = useWalletList()
@@ -176,9 +176,10 @@
   <ConfirmDialog
     v-model="confirmDialog.show"
     :message="confirmDialog.message"
+    :processing="confirmDialog.processing"
     :requires-pin="confirmDialog.requiresPin"
     :title="confirmDialog.title"
-    @confirm="confirmDialog.onConfirm"
+    @confirm="executeConfirm"
   />
 
   <v-snackbar v-model="snackbar.show" :color="snackbar.color" timeout="5000">

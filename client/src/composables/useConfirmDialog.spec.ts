@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { useConfirmDialog } from './useConfirmDialog'
 
 describe('useConfirmDialog', () => {
@@ -7,6 +7,7 @@ describe('useConfirmDialog', () => {
     expect(confirmDialog.value.show).toBe(false)
     expect(confirmDialog.value.title).toBe('')
     expect(confirmDialog.value.message).toBe('')
+    expect(confirmDialog.value.processing).toBe(false)
   })
 
   it('opens the dialog with provided options', () => {
@@ -16,13 +17,14 @@ describe('useConfirmDialog', () => {
       title: 'Delete Item',
       message: 'Are you sure?',
       requiresPin: false,
-      onConfirm: async () => {},
+      onConfirm: async () => { },
     })
 
     expect(confirmDialog.value.show).toBe(true)
     expect(confirmDialog.value.title).toBe('Delete Item')
     expect(confirmDialog.value.message).toBe('Are you sure?')
     expect(confirmDialog.value.requiresPin).toBe(false)
+    expect(confirmDialog.value.processing).toBe(false)
   })
 
   it('opens with pin requirement', () => {
@@ -32,7 +34,7 @@ describe('useConfirmDialog', () => {
       title: 'Sensitive Action',
       message: 'Enter PIN',
       requiresPin: true,
-      onConfirm: async () => {},
+      onConfirm: async () => { },
     })
 
     expect(confirmDialog.value.requiresPin).toBe(true)
@@ -45,11 +47,87 @@ describe('useConfirmDialog', () => {
       title: 'Test',
       message: 'Test',
       requiresPin: false,
-      onConfirm: async () => {},
+      onConfirm: async () => { },
     })
 
     expect(confirmDialog.value.show).toBe(true)
     closeConfirmDialog()
+    expect(confirmDialog.value.show).toBe(false)
+  })
+
+  it('sets processing to true while onConfirm is running', async () => {
+    const { confirmDialog, openConfirmDialog, executeConfirm } = useConfirmDialog()
+    let resolvePromise: () => void
+
+    openConfirmDialog({
+      title: 'Delete',
+      message: 'Confirm?',
+      requiresPin: false,
+      onConfirm: () => new Promise<void>(resolve => { resolvePromise = resolve }),
+    })
+
+    const promise = executeConfirm()
+    expect(confirmDialog.value.processing).toBe(true)
+    expect(confirmDialog.value.show).toBe(true)
+
+    resolvePromise!()
+    await promise
+
+    expect(confirmDialog.value.processing).toBe(false)
+    expect(confirmDialog.value.show).toBe(false)
+  })
+
+  it('closes dialog after executeConfirm succeeds', async () => {
+    const onConfirm = vi.fn()
+    const { confirmDialog, openConfirmDialog, executeConfirm } = useConfirmDialog()
+
+    openConfirmDialog({
+      title: 'Test',
+      message: 'Test',
+      requiresPin: false,
+      onConfirm,
+    })
+
+    await executeConfirm()
+
+    expect(onConfirm).toHaveBeenCalledOnce()
+    expect(confirmDialog.value.show).toBe(false)
+    expect(confirmDialog.value.processing).toBe(false)
+  })
+
+  it('resets processing when onConfirm throws', async () => {
+    const { confirmDialog, openConfirmDialog, executeConfirm } = useConfirmDialog()
+
+    openConfirmDialog({
+      title: 'Fail',
+      message: 'Will error',
+      requiresPin: false,
+      onConfirm: async () => { throw new Error('API Error') },
+    })
+
+    await expect(executeConfirm()).rejects.toThrow('API Error')
+    expect(confirmDialog.value.processing).toBe(false)
+  })
+
+  it('prevents closing while processing', async () => {
+    const { confirmDialog, openConfirmDialog, executeConfirm, closeConfirmDialog } = useConfirmDialog()
+    let resolvePromise: () => void
+
+    openConfirmDialog({
+      title: 'Test',
+      message: 'Test',
+      requiresPin: false,
+      onConfirm: () => new Promise<void>(resolve => { resolvePromise = resolve }),
+    })
+
+    const promise = executeConfirm()
+    expect(confirmDialog.value.processing).toBe(true)
+
+    closeConfirmDialog()
+    expect(confirmDialog.value.show).toBe(true)
+
+    resolvePromise!()
+    await promise
     expect(confirmDialog.value.show).toBe(false)
   })
 })

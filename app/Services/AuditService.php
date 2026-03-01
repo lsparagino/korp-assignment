@@ -1,0 +1,312 @@
+<?php
+
+namespace App\Services;
+
+use App\Enums\AuditCategory;
+use App\Enums\AuditSeverity;
+use Google\Auth\ApplicationDefaultCredentials;
+use Google\Auth\Middleware\AuthTokenMiddleware;
+use GuzzleHttp\Client;
+use GuzzleHttp\HandlerStack;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Request;
+
+class AuditService
+{
+    private ?Client $httpClient = null;
+
+    private ?string $projectId = null;
+
+    private string $database = 'audit-logs';
+
+    public function __construct()
+    {
+        if (app()->runningUnitTests()) {
+            return;
+        }
+
+        $this->projectId = config('services.google.project_id');
+
+        if (empty($this->projectId)) {
+            return;
+        }
+
+        try {
+            $credentials = ApplicationDefaultCredentials::getCredentials(
+                'https://www.googleapis.com/auth/datastore'
+            );
+            $middleware = new AuthTokenMiddleware($credentials);
+            $stack = HandlerStack::create();
+            $stack->push($middleware);
+
+            $this->httpClient = new Client([
+                'handler' => $stack,
+                'auth' => 'google_auth',
+                'base_uri' => 'https://firestore.googleapis.com/',
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('Firestore HTTP client initialization failed', [
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+
+    /**
+     * @param  array{metadata?: array<string, mixed>, user_id?: int, user_name?: string, company_id?: int}  $context
+     */
+    public function log(
+        AuditCategory $category,
+        AuditSeverity $severity,
+        string $action,
+        string $description,
+        array $context = [],
+    ): void {
+        if (! $this->httpClient) {
+            return;
+        }
+
+        $userId = (int) ($context['user_id'] ?? auth()->id() ?? 0);
+        $userName = $context['user_name'] ?? auth()->user()?->name;
+        $companyId = (int) ($context['company_id'] ?? Request::input('company_id') ?? 0);
+        $metadata = $context['metadata'] ?? [];
+
+        // Pre-computed filter tags for ARRAY_CONTAINS queries.
+        // Avoids needing a composite index per filter combination.
+        $cat = $category->value;
+        $sev = $severity->value;
+        $filterTags = ["cat_{$cat}", "sev_{$sev}", "cat_{$cat}_sev_{$sev}"];
+
+        try {
+            $this->httpClient->post(
+                "v1/projects/{$this->projectId}/databases/{$this->database}/documents/audit_logs",
+                [
+                    'json' => [
+                        'fields' => $this->encodeFields([
+                            'user_id' => $userId,
+                            'user_name' => $userName,
+                            'company_id' => $companyId,
+                            'category' => $cat,
+                            'severity' => $sev,
+                            'action' => $action,
+                            'description' => $description,
+                            'metadata' => empty($metadata) ? null : json_encode($metadata),
+                            'ip_address' => Request::ip(),
+                            'created_at' => now()->getTimestamp(),
+                            'filter_tags' => $filterTags,
+                        ]),
+                    ],
+                ]
+            );
+        } catch (\Throwable $e) {
+            Log::error('Audit log write failed', [
+                'action' => $action,
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+
+    /**
+     * @param  array<string, mixed>  $filters
+     * @return array{data: list<array<string, mixed>>, meta: array{next_cursor: ?int}}
+     */
+    public function getFilteredLogs(?int $companyId, array $filters, int $limit = 25): array
+    {
+        if (! $this->httpClient) {
+            return ['data' => [], 'meta' => ['next_cursor' => null]];
+        }
+
+        try {
+            $where = [];
+
+            if ($companyId) {
+                $where[] = $this->fieldFilter('company_id', 'EQUAL', (int) $companyId);
+            }
+
+            // Use ARRAY_CONTAINS on the pre-computed filter_tags field.
+            $filterTag = $this->buildFilterTag($filters);
+            if ($filterTag) {
+                $where[] = $this->fieldFilter('filter_tags', 'ARRAY_CONTAINS', $filterTag);
+            }
+
+            if (! empty($filters['date_from'])) {
+                $where[] = $this->fieldFilter('created_at', 'GREATER_THAN_OR_EQUAL', strtotime($filters['date_from']));
+            }
+
+            if (! empty($filters['date_to'])) {
+                $where[] = $this->fieldFilter('created_at', 'LESS_THAN_OR_EQUAL', strtotime($filters['date_to'].' 23:59:59'));
+            }
+
+            $structuredQuery = [
+                'from' => [['collectionId' => 'audit_logs']],
+                'orderBy' => [['field' => ['fieldPath' => 'created_at'], 'direction' => 'DESCENDING']],
+                'limit' => $limit,
+            ];
+
+            if (count($where) === 1) {
+                $structuredQuery['where'] = $where[0];
+            } elseif (count($where) > 1) {
+                $structuredQuery['where'] = [
+                    'compositeFilter' => [
+                        'op' => 'AND',
+                        'filters' => $where,
+                    ],
+                ];
+            }
+
+            if (! empty($filters['cursor'])) {
+                $structuredQuery['startAt'] = [
+                    'values' => [$this->encodeValue((int) $filters['cursor'])],
+                    'before' => false,
+                ];
+            }
+
+            $response = $this->httpClient->post(
+                "v1/projects/{$this->projectId}/databases/{$this->database}/documents:runQuery",
+                ['json' => ['structuredQuery' => $structuredQuery]]
+            );
+
+            $results = json_decode($response->getBody()->getContents(), true);
+            $logs = [];
+            $lastCursor = null;
+
+            foreach ($results as $result) {
+                if (! isset($result['document'])) {
+                    continue;
+                }
+
+                $doc = $result['document'];
+                $data = $this->decodeFields($doc['fields'] ?? []);
+                $data['id'] = basename($doc['name']);
+                unset($data['filter_tags']); // internal field, not exposed to the client
+                $logs[] = $data;
+                $lastCursor = $data['created_at'] ?? null;
+            }
+
+            return [
+                'data' => $logs,
+                'meta' => [
+                    'next_cursor' => count($logs) === $limit ? $lastCursor : null,
+                ],
+            ];
+        } catch (\Throwable $e) {
+            Log::error('Audit log query failed', ['error' => $e->getMessage()]);
+
+            return ['data' => [], 'meta' => ['next_cursor' => null]];
+        }
+    }
+
+    /**
+     * Build the appropriate filter tag for ARRAY_CONTAINS query.
+     */
+    private function buildFilterTag(array $filters): ?string
+    {
+        $category = $filters['category'] ?? null;
+        $severity = $filters['severity'] ?? null;
+
+        if ($category && $severity) {
+            return "cat_{$category}_sev_{$severity}";
+        }
+
+        if ($category) {
+            return "cat_{$category}";
+        }
+
+        if ($severity) {
+            return "sev_{$severity}";
+        }
+
+        return null;
+    }
+
+    /**
+     * Encode an associative array into Firestore REST API field format.
+     *
+     * @return array<string, array<string, mixed>>
+     */
+    private function encodeFields(array $data): array
+    {
+        $fields = [];
+        foreach ($data as $key => $value) {
+            $fields[$key] = $this->encodeValue($value);
+        }
+
+        return $fields;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function encodeValue(mixed $value): array
+    {
+        if ($value === null) {
+            return ['nullValue' => null];
+        }
+        if (is_bool($value)) {
+            return ['booleanValue' => $value];
+        }
+        if (is_int($value)) {
+            return ['integerValue' => (string) $value];
+        }
+        if (is_float($value)) {
+            return ['doubleValue' => $value];
+        }
+        if (is_array($value)) {
+            return ['arrayValue' => ['values' => array_map([$this, 'encodeValue'], $value)]];
+        }
+
+        return ['stringValue' => (string) $value];
+    }
+
+    /**
+     * Decode Firestore REST API fields back to an associative array.
+     *
+     * @return array<string, mixed>
+     */
+    private function decodeFields(array $fields): array
+    {
+        $data = [];
+        foreach ($fields as $key => $wrapper) {
+            $data[$key] = $this->decodeValue($wrapper);
+        }
+
+        return $data;
+    }
+
+    private function decodeValue(array $wrapper): mixed
+    {
+        if (array_key_exists('nullValue', $wrapper)) {
+            return null;
+        }
+        if (isset($wrapper['booleanValue'])) {
+            return $wrapper['booleanValue'];
+        }
+        if (isset($wrapper['integerValue'])) {
+            return (int) $wrapper['integerValue'];
+        }
+        if (isset($wrapper['doubleValue'])) {
+            return $wrapper['doubleValue'];
+        }
+        if (isset($wrapper['stringValue'])) {
+            return $wrapper['stringValue'];
+        }
+        if (isset($wrapper['arrayValue'])) {
+            return array_map([$this, 'decodeValue'], $wrapper['arrayValue']['values'] ?? []);
+        }
+
+        return null;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function fieldFilter(string $field, string $op, mixed $value): array
+    {
+        return [
+            'fieldFilter' => [
+                'field' => ['fieldPath' => $field],
+                'op' => $op,
+                'value' => $this->encodeValue($value),
+            ],
+        ];
+    }
+}

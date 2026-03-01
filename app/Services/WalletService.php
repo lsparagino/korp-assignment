@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Enums\AuditCategory;
+use App\Enums\AuditSeverity;
 use App\Enums\WalletStatus;
 use App\Http\Resources\WalletResource;
 use App\Models\User;
@@ -12,6 +14,8 @@ use Illuminate\Support\Facades\Log;
 
 class WalletService
 {
+    public function __construct(private AuditService $auditService) {}
+
     public function listForUser(User $user, ?int $companyId, int $perPage): AnonymousResourceCollection
     {
         if (! $companyId) {
@@ -37,6 +41,60 @@ class WalletService
         ]);
 
         Log::info('Wallet created', ['wallet_id' => $wallet->id, 'user_id' => $user->id]);
+
+        $this->auditService->log(
+            AuditCategory::Wallet,
+            AuditSeverity::Normal,
+            'wallet.created',
+            __('messages.audit.wallet_created'),
+            ['metadata' => ['wallet_id' => $wallet->id, 'wallet_name' => $wallet->name]],
+        );
+
+        return $wallet;
+    }
+
+    public function update(Wallet $wallet, array $data): Wallet
+    {
+        $wallet->update($data);
+
+        $this->auditService->log(
+            AuditCategory::Wallet,
+            AuditSeverity::Normal,
+            'wallet.updated',
+            __('messages.audit.wallet_updated'),
+            ['metadata' => ['wallet_id' => $wallet->id, 'wallet_name' => $wallet->name]],
+        );
+
+        return $wallet;
+    }
+
+    public function delete(Wallet $wallet): void
+    {
+        $walletId = $wallet->id;
+        $walletName = $wallet->name;
+
+        $wallet->delete();
+
+        $this->auditService->log(
+            AuditCategory::Wallet,
+            AuditSeverity::Normal,
+            'wallet.deleted',
+            __('messages.audit.wallet_deleted'),
+            ['metadata' => ['wallet_id' => $walletId, 'wallet_name' => $walletName]],
+        );
+    }
+
+    public function toggleFreeze(Wallet $wallet): Wallet
+    {
+        $wallet->toggleFreeze();
+
+        $this->auditService->log(
+            AuditCategory::Wallet,
+            AuditSeverity::Medium,
+            'wallet.freeze_toggled',
+            __('messages.audit.wallet_freeze_toggled'),
+            ['metadata' => ['wallet_id' => $wallet->id, 'status' => $wallet->status->value]],
+        );
 
         return $wallet;
     }

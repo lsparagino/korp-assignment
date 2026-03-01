@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AddressBookEntryController;
+use App\Http\Controllers\Api\AuditLogController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CompanyController;
 use App\Http\Controllers\Api\DashboardController;
@@ -99,6 +100,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::apiResource('address-book', AddressBookEntryController::class)
             ->parameters(['address-book' => 'addressBookEntry'])
             ->except(['show']);
+
+        Route::get('/audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
     });
 });
 

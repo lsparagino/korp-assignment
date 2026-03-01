@@ -27,7 +27,7 @@ describe('useFormSubmit', () => {
 
   it('initializes with default state', () => {
     const { processing, errors, serverError, recentlySuccessful } = useFormSubmit({
-      submitFn: async () => {},
+      submitFn: async () => { },
     })
 
     expect(processing.value).toBe(false)
@@ -56,7 +56,7 @@ describe('useFormSubmit', () => {
 
   it('sets recentlySuccessful on success', async () => {
     const { recentlySuccessful, submit } = useFormSubmit({
-      submitFn: async () => {},
+      submitFn: async () => { },
     })
 
     await submit({ name: 'test' })
@@ -66,7 +66,7 @@ describe('useFormSubmit', () => {
   it('calls onSuccess callback', async () => {
     const onSuccess = vi.fn()
     const { submit } = useFormSubmit({
-      submitFn: async () => {},
+      submitFn: async () => { },
       onSuccess,
     })
 
@@ -77,7 +77,7 @@ describe('useFormSubmit', () => {
   it('calls resetForm callback on success', async () => {
     const resetForm = vi.fn()
     const { submit } = useFormSubmit({
-      submitFn: async () => {},
+      submitFn: async () => { },
       resetForm,
     })
 
@@ -173,7 +173,7 @@ describe('useFormSubmit', () => {
     await submit({})
     const store = useNotificationStore()
     expect(store.notifications).toHaveLength(1)
-    expect(store.notifications[0].message).toBe('Server blew up')
+    expect(store.notifications[0]!.message).toBe('Server blew up')
   })
 
   it('does not auto-notify on non-422 errors when onError is provided', async () => {

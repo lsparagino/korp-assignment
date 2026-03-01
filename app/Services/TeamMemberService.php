@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Enums\AuditCategory;
+use App\Enums\AuditSeverity;
 use App\Enums\UserRole;
 use App\Mail\TeamMemberInvitation;
 use App\Models\User;
@@ -14,6 +16,8 @@ use Illuminate\Support\Str;
 
 class TeamMemberService
 {
+    public function __construct(private AuditService $auditService) {}
+
     public function list(int $companyId): LengthAwarePaginator
     {
         return User::forCompany($companyId)
@@ -54,6 +58,14 @@ class TeamMemberService
 
         Log::info('Team member invited', ['user_id' => $user->id, 'email' => $email, 'company_id' => $companyId]);
 
+        $this->auditService->log(
+            AuditCategory::Team,
+            AuditSeverity::Medium,
+            'team.member_invited',
+            __('messages.audit.team_member_invited'),
+            ['metadata' => ['invited_email' => $email, 'invited_user_id' => $user->id]],
+        );
+
         return $user;
     }
 
@@ -68,6 +80,14 @@ class TeamMemberService
             $member->assignedWallets()->sync($wallets);
         });
 
+        $this->auditService->log(
+            AuditCategory::Team,
+            AuditSeverity::Normal,
+            'team.member_updated',
+            __('messages.audit.team_member_updated'),
+            ['metadata' => ['member_id' => $member->id, 'member_name' => $member->name]],
+        );
+
         return $member;
     }
 
@@ -76,12 +96,31 @@ class TeamMemberService
         $member->update(['role' => $role]);
 
         Log::info('Team member role updated', ['user_id' => $member->id, 'role' => $role->value]);
+
+        $this->auditService->log(
+            AuditCategory::Team,
+            AuditSeverity::High,
+            'team.member_promoted',
+            __('messages.audit.team_member_promoted'),
+            ['metadata' => ['member_id' => $member->id, 'new_role' => $role->value]],
+        );
     }
 
     public function delete(User $member): void
     {
+        $memberId = $member->id;
+        $memberName = $member->name;
+
         $member->delete();
 
-        Log::info('Team member deleted', ['user_id' => $member->id]);
+        Log::info('Team member deleted', ['user_id' => $memberId]);
+
+        $this->auditService->log(
+            AuditCategory::Team,
+            AuditSeverity::High,
+            'team.member_removed',
+            __('messages.audit.team_member_removed'),
+            ['metadata' => ['member_id' => $memberId, 'member_name' => $memberName]],
+        );
     }
 }

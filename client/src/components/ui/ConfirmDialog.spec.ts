@@ -11,7 +11,7 @@ describe('ConfirmDialog.vue', () => {
     document.body.innerHTML = ''
   })
 
-  function mountDialog (props: Record<string, unknown> = {}) {
+  function mountDialog(props: Record<string, unknown> = {}) {
     return mountWithPlugins(ConfirmDialog, {
       props: {
         modelValue: true,
@@ -21,7 +21,7 @@ describe('ConfirmDialog.vue', () => {
     })
   }
 
-  function findByTestId (testId: string) {
+  function findByTestId(testId: string) {
     const el = document.body.querySelector(`[data-testid="${testId}"]`)
     return el ? new DOMWrapper(el as HTMLElement) : null
   }
@@ -58,7 +58,7 @@ describe('ConfirmDialog.vue', () => {
     expect(wrapper.emitted('cancel')).toBeTruthy()
   })
 
-  it('emits confirm and closes dialog on confirm button click without pin', async () => {
+  it('emits confirm on confirm button click without closing the dialog', async () => {
     wrapper = mountDialog()
     await wrapper.vm.$nextTick()
 
@@ -67,7 +67,8 @@ describe('ConfirmDialog.vue', () => {
     await confirmBtn!.trigger('click')
 
     expect(wrapper.emitted('confirm')).toBeTruthy()
-    expect(wrapper.emitted('update:modelValue')?.[0]).toEqual([false])
+    // Dialog no longer self-closes — parent controls closing via executeConfirm
+    expect(wrapper.emitted('update:modelValue')).toBeFalsy()
   })
 
   it('disables confirm button when pin is required', async () => {
@@ -83,4 +84,23 @@ describe('ConfirmDialog.vue', () => {
       || confirmBtn?.element.getAttribute('aria-disabled') === 'true',
     ).toBe(true)
   })
+
+  it('shows processing indicator and hides buttons when processing', async () => {
+    wrapper = mountDialog({ processing: true })
+    await wrapper.vm.$nextTick()
+
+    expect(findByTestId('processing-indicator')).not.toBeNull()
+    expect(findByTestId('confirm-btn')).toBeNull()
+    expect(findByTestId('cancel-btn')).toBeNull()
+  })
+
+  it('prevents cancel while processing', async () => {
+    wrapper = mountDialog({ processing: true })
+    await wrapper.vm.$nextTick()
+
+    // Cancel button is hidden, so cancel event should not be emittable
+    expect(wrapper.emitted('cancel')).toBeFalsy()
+    expect(wrapper.emitted('update:modelValue')).toBeFalsy()
+  })
 })
+

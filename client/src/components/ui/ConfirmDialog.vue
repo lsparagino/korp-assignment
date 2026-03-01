@@ -10,6 +10,7 @@
     cancelText?: string
     requiresPin?: boolean
     confirmColor?: string
+    processing?: boolean
   }
 
   const props = withDefaults(defineProps<Props>(), {
@@ -19,6 +20,7 @@
     cancelText: undefined,
     requiresPin: false,
     confirmColor: 'primary',
+    processing: false,
   })
 
   const { t } = useI18n()
@@ -47,15 +49,14 @@
   })
 
   function handleCancel () {
+    if (props.processing) return
     isDialogVisible.value = false
     emit('cancel')
   }
 
   function handleConfirm () {
-    if (isPinValid.value) {
+    if (isPinValid.value && !props.processing) {
       emit('confirm')
-      isDialogVisible.value = false
-      pin.value = ''
     }
   }
 
@@ -91,7 +92,7 @@
         </p>
 
         <div
-          v-if="requiresPin"
+          v-if="requiresPin && !processing"
           class="bg-grey-lighten-4 pa-6 border-grey-lighten-1 rounded-lg border border-dashed"
           data-testid="pin-section"
         >
@@ -123,9 +124,25 @@
             @keyup.enter="handleConfirm"
           />
         </div>
+
+        <!-- Processing indicator -->
+        <div
+          v-if="processing"
+          class="d-flex flex-column align-center ga-4 py-6"
+          data-testid="processing-indicator"
+        >
+          <v-progress-circular
+            color="primary"
+            indeterminate
+            size="48"
+          />
+          <span class="text-body-2 text-grey-darken-1 font-weight-medium">
+            {{ $t('confirmDialog.processing') }}
+          </span>
+        </div>
       </v-card-text>
 
-      <v-card-actions class="px-4 pb-4">
+      <v-card-actions v-if="!processing" class="px-4 pb-4">
         <v-spacer />
         <v-btn
           class="text-none font-weight-bold px-6"
