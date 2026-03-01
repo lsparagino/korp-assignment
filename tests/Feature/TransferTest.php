@@ -621,3 +621,128 @@ test('transfer with no security threshold needs no verification', function () {
         ])
         ->assertStatus(201);
 });
+
+// ── Cancellation Tests ───────────────────────────────────────────
+
+test('initiator can cancel a pending transfer', function () {
+    $response = $this->actingAs($this->member, 'sanctum')
+        ->postJson('/api/v0/transfers', [
+            'sender_wallet_id' => $this->senderWallet->id,
+            'receiver_wallet_id' => $this->receiverWallet->id,
+            'amount' => 15000,
+            'external' => false,
+            'reference' => 'Cancel me',
+            'company_id' => $this->company->id,
+        ]);
+
+    $groupId = $response->json('data.group_id');
+
+    expect((float) $this->senderWallet->fresh()->locked_balance)->toBe(15000.0);
+
+    $cancelResponse = $this->actingAs($this->member, 'sanctum')
+        ->postJson("/api/v0/transfers/{$groupId}/cancel", [
+            'company_id' => $this->company->id,
+        ]);
+
+    $cancelResponse->assertOk();
+    $cancelResponse->assertJsonPath('data.status', 'cancelled');
+
+    expect($this->senderWallet->fresh()->balance)->toBe(20000.0);
+    expect((float) $this->senderWallet->fresh()->locked_balance)->toBe(0.0);
+
+    $transaction = Transaction::withoutGlobalScopes()->where('group_id', $groupId)->first();
+    expect($transaction->status->value)->toBe('cancelled');
+});
+
+test('non-initiator cannot cancel a transfer', function () {
+    $response = $this->actingAs($this->member, 'sanctum')
+        ->postJson('/api/v0/transfers', [
+            'sender_wallet_id' => $this->senderWallet->id,
+            'receiver_wallet_id' => $this->receiverWallet->id,
+            'amount' => 15000,
+            'external' => false,
+            'reference' => 'Not yours to cancel',
+            'company_id' => $this->company->id,
+        ]);
+
+    $groupId = $response->json('data.group_id');
+
+    $this->actingAs($this->manager, 'sanctum')
+        ->postJson("/api/v0/transfers/{$groupId}/cancel", [
+            'company_id' => $this->company->id,
+        ])
+        ->assertStatus(403);
+
+    expect((float) $this->senderWallet->fresh()->locked_balance)->toBe(15000.0);
+});
+
+test('cannot cancel an already reviewed transfer', function () {
+    $response = $this->actingAs($this->member, 'sanctum')
+        ->postJson('/api/v0/transfers', [
+            'sender_wallet_id' => $this->senderWallet->id,
+            'receiver_wallet_id' => $this->receiverWallet->id,
+            'amount' => 15000,
+            'external' => false,
+            'reference' => 'Already approved',
+            'company_id' => $this->company->id,
+        ]);
+
+    $groupId = $response->json('data.group_id');
+
+    $this->actingAs($this->manager, 'sanctum')
+        ->postJson("/api/v0/transfers/{$groupId}/review", [
+            'action' => 'approve',
+            'company_id' => $this->company->id,
+        ])
+        ->assertOk();
+
+    $this->actingAs($this->member, 'sanctum')
+        ->postJson("/api/v0/transfers/{$groupId}/cancel", [
+            'company_id' => $this->company->id,
+        ])
+        ->assertStatus(409);
+});
+
+test('initiator with any role can cancel their own pending transfer', function () {
+    // Create a scenario where a manager has a pending transfer
+    // (e.g., future feature where even manager transfers require approval)
+    $managerWallet = Wallet::factory()->create([
+        'user_id' => $this->manager->id,
+        'company_id' => $this->company->id,
+        'currency' => \App\Enums\WalletCurrency::USD,
+        'status' => 'active',
+    ]);
+    Transaction::factory()->create([
+        'wallet_id' => $managerWallet->id,
+        'type' => TransactionType::Credit,
+        'amount' => 50000,
+        'external' => true,
+        'status' => 'completed',
+    ]);
+
+    // Manually create a pending transfer to simulate future behaviour
+    $groupId = \Illuminate\Support\Str::uuid()->toString();
+    Transaction::create([
+        'group_id' => $groupId,
+        'wallet_id' => $managerWallet->id,
+        'counterpart_wallet_id' => $this->receiverWallet->id,
+        'type' => TransactionType::Debit,
+        'amount' => -15000,
+        'external' => false,
+        'reference' => 'Manager pending',
+        'status' => 'pending_approval',
+        'currency' => 'USD',
+        'exchange_rate' => 1,
+        'initiator_user_id' => $this->manager->id,
+    ]);
+    $managerWallet->increment('locked_balance', 15000);
+
+    $cancelResponse = $this->actingAs($this->manager, 'sanctum')
+        ->postJson("/api/v0/transfers/{$groupId}/cancel", [
+            'company_id' => $this->company->id,
+        ]);
+
+    $cancelResponse->assertOk();
+    $cancelResponse->assertJsonPath('data.status', 'cancelled');
+    expect((float) $managerWallet->fresh()->locked_balance)->toBe(0.0);
+});

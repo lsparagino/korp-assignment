@@ -16,6 +16,13 @@ class Transaction extends Model
     /** @use HasFactory<TransactionFactory> */
     use HasFactory;
 
+    protected static function booted(): void
+    {
+        static::addGlobalScope('exclude_cancelled', function (Builder $query) {
+            $query->where('status', '!=', TransactionStatus::Cancelled);
+        });
+    }
+
     protected $fillable = [
         'group_id',
         'wallet_id',

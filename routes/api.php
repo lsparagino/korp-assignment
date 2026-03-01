@@ -83,6 +83,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::prefix('transfers')->group(function () {
             Route::post('/', [TransferController::class, 'store']);
             Route::post('/{groupId}/review', [TransferController::class, 'review']);
+            Route::post('/{groupId}/cancel', [TransferController::class, 'cancel']);
         });
 
         Route::prefix('team-members')->group(function () {

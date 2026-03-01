@@ -51,6 +51,8 @@ return [
     'insufficient_funds' => 'Insufficient available funds.',
     'cross_currency_not_permitted' => 'Cross-currency transfers are not permitted at this stage.',
     'transfer_already_reviewed' => 'This transaction has already been reviewed.',
+    'transfer_cancelled' => 'Transfer cancelled successfully.',
+    'transfer_not_pending' => 'This transaction is not pending approval.',
     'daily_limit_exceeded' => 'This transfer would exceed your daily transaction limit.',
 
     // Notifications

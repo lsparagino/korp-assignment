@@ -5,7 +5,7 @@ import en from '@/locales/en.json'
 import { mountWithPlugins } from '@/test/setup'
 import TransactionDetailModal from './TransactionDetailModal.vue'
 
-function createTransaction (overrides: Partial<Transaction> = {}): Transaction {
+function createTransaction(overrides: Partial<Transaction> = {}): Transaction {
   return {
     id: 1,
     group_id: 'grp-1',
@@ -41,13 +41,16 @@ describe('TransactionDetailModal.vue', () => {
     document.body.innerHTML = ''
   })
 
-  async function mountModal (props: Record<string, unknown> = {}) {
+  async function mountModal(options: Record<string, unknown> = {}) {
+    const { piniaOptions, ...props } = options
+
     wrapper = mountWithPlugins(TransactionDetailModal, {
       props: {
         modelValue: true,
         transaction: createTransaction(),
         ...props,
       },
+      piniaOptions,
       attachTo: document.body,
     })
     await flushPromises()
@@ -56,7 +59,7 @@ describe('TransactionDetailModal.vue', () => {
     return wrapper
   }
 
-  function bodyText () {
+  function bodyText() {
     return document.body.textContent || ''
   }
 
@@ -251,5 +254,45 @@ describe('TransactionDetailModal.vue', () => {
 
     const btn = document.body.querySelector('[data-testid="view-recent-btn"]')
     expect(btn).toBeNull()
+  })
+
+  it('shows cancel button for pending transaction when user is initiator', async () => {
+    await mountModal({
+      transaction: createTransaction({
+        status: 'pending_approval',
+        initiator_user_id: 1,
+      }),
+      piniaOptions: { initialState: { auth: { user: { id: 1 } } } },
+    })
+
+    const cancelBtn = document.body.querySelector('[data-testid="cancel-transaction-btn"]')
+    expect(cancelBtn).not.toBeNull()
+    expect(cancelBtn?.textContent).toContain(en.transactions.cancelTransaction)
+  })
+
+  it('hides cancel button for non-pending transactions', async () => {
+    await mountModal({
+      transaction: createTransaction({
+        status: 'completed',
+        initiator_user_id: 1,
+      }),
+      piniaOptions: { initialState: { auth: { user: { id: 1 } } } },
+    })
+
+    const cancelBtn = document.body.querySelector('[data-testid="cancel-transaction-btn"]')
+    expect(cancelBtn).toBeNull()
+  })
+
+  it('hides cancel button when user is not the initiator', async () => {
+    await mountModal({
+      transaction: createTransaction({
+        status: 'pending_approval',
+        initiator_user_id: 1,
+      }),
+      piniaOptions: { initialState: { auth: { user: { id: 99 } } } },
+    })
+
+    const cancelBtn = document.body.querySelector('[data-testid="cancel-transaction-btn"]')
+    expect(cancelBtn).toBeNull()
   })
 })

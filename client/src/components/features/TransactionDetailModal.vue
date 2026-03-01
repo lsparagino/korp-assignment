@@ -2,8 +2,11 @@
   import type { Transaction } from '@/api/transactions'
   import { ref } from 'vue'
   import { useI18n } from 'vue-i18n'
-  import { fetchTransactions, reviewTransfer } from '@/api/transactions'
+  import { cancelTransfer, fetchTransactions, reviewTransfer } from '@/api/transactions'
   import TransactionTable from '@/components/features/TransactionTable.vue'
+  import ConfirmDialog from '@/components/ui/ConfirmDialog.vue'
+  import { useConfirmDialog } from '@/composables/useConfirmDialog'
+  import { useAuthStore } from '@/stores/auth'
   import { getTransactionStatusColors, getTransactionTypeColors } from '@/utils/colors'
   import { formatCurrency, formatDate } from '@/utils/formatters'
 
@@ -17,6 +20,8 @@
   const emit = defineEmits(['update:modelValue', 'reviewed'])
 
   const { t } = useI18n()
+  const authStore = useAuthStore()
+  const { confirmDialog, openConfirmDialog } = useConfirmDialog()
   const rejectMode = ref(false)
   const rejectReason = ref('')
   const submitting = ref(false)
@@ -62,6 +67,25 @@
 
   function canReview () {
     return isPending() && props.isManagerOrAdmin
+  }
+
+  function canCancel () {
+    return isPending() && props.transaction?.initiator_user_id === authStore.user?.id
+  }
+
+  async function handleCancel () {
+    if (!props.transaction) return
+    submitting.value = true
+    error.value = ''
+    try {
+      await cancelTransfer(props.transaction.group_id)
+      emit('reviewed')
+      emit('update:modelValue', false)
+    } catch {
+      error.value = t('common.genericError')
+    } finally {
+      submitting.value = false
+    }
   }
 
   async function handleApprove () {
@@ -437,6 +461,42 @@
                   </div>
                 </template>
               </template>
+
+              <!-- Cancel Action -->
+              <template v-if="canCancel()">
+                <v-divider v-if="!canReview()" class="my-4" />
+
+                <v-alert
+                  v-if="error && !canReview()"
+                  class="mb-4"
+                  color="error"
+                  data-testid="cancel-error"
+                  density="compact"
+                  type="error"
+                  variant="tonal"
+                >
+                  {{ error }}
+                </v-alert>
+
+                <v-btn
+                  block
+                  class="text-none font-weight-bold mt-3"
+                  color="grey-darken-1"
+                  data-testid="cancel-transaction-btn"
+                  :loading="submitting"
+                  prepend-icon="mdi-cancel"
+                  rounded="lg"
+                  variant="outlined"
+                  @click="openConfirmDialog({
+                    title: t('transactions.cancelTransaction'),
+                    message: t('transactions.confirmCancel'),
+                    requiresPin: false,
+                    onConfirm: handleCancel,
+                  })"
+                >
+                  {{ $t('transactions.cancelTransaction') }}
+                </v-btn>
+              </template>
             </v-card-text>
           </div>
 
@@ -470,6 +530,13 @@
           </div>
         </div>
       </div>
+
+      <ConfirmDialog
+        v-model="confirmDialog.show"
+        :message="confirmDialog.message"
+        :title="confirmDialog.title"
+        @confirm="confirmDialog.onConfirm"
+      />
     </v-card>
   </v-dialog>
 </template>

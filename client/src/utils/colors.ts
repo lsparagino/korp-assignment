@@ -35,24 +35,25 @@ const transactionStatusColorMap: Record<string, ColorPair> = {
   pending_approval: { bg: 'amber-lighten-4', text: 'amber-darken-4' },
   completed: { bg: 'green-lighten-4', text: 'green-darken-3' },
   rejected: { bg: 'red-lighten-4', text: 'red-darken-3' },
+  cancelled: { bg: 'grey-lighten-2', text: 'grey-darken-2' },
 }
 
-export function getTransactionTypeColors (type: string): ColorPair {
+export function getTransactionTypeColors(type: string): ColorPair {
   return transactionTypeColorMap[type.toLowerCase()] || defaultColorPair
 }
 
-export function getTransactionStatusColors (status: string): ColorPair {
+export function getTransactionStatusColors(status: string): ColorPair {
   return transactionStatusColorMap[status.toLowerCase()] || defaultColorPair
 }
 
-export function getCurrencyColors (currency: string): ColorPair {
+export function getCurrencyColors(currency: string): ColorPair {
   return currencyColorMap[currency] || defaultColorPair
 }
 
-export function getStatusColors (status: string): ColorPair {
+export function getStatusColors(status: string): ColorPair {
   return statusColorMap[status] || defaultColorPair
 }
 
-export function getRoleColors (role: string): ColorPair {
+export function getRoleColors(role: string): ColorPair {
   return roleColorMap[role.toLowerCase()] || defaultColorPair
 }

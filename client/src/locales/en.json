@@ -221,7 +221,11 @@
         "rejectReasonPlaceholder": "Please explain why this transaction is being rejected...",
         "approveSuccess": "Transaction approved successfully.",
         "rejectSuccess": "Transaction rejected successfully.",
-        "confirmApprove": "Are you sure you want to approve this transaction?"
+        "confirmApprove": "Are you sure you want to approve this transaction?",
+        "cancelTransaction": "Cancel Transaction",
+        "confirmCancel": "Are you sure you want to cancel this transaction? The locked funds will be released back to the wallet.",
+        "cancelSuccess": "Transaction cancelled successfully.",
+        "statusCancelled": "Cancelled"
     },
     "teamMembers": {
         "title": "Team Members",

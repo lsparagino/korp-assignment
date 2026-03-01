@@ -121,6 +121,35 @@ class TransferService
         return $result;
     }
 
+    public function cancelTransfer(User $initiator, string $groupId): array
+    {
+        return DB::transaction(function () use ($initiator, $groupId) {
+            $affectedRows = Transaction::where('group_id', $groupId)
+                ->where('initiator_user_id', $initiator->id)
+                ->where('status', TransactionStatus::PendingApproval)
+                ->update(['status' => TransactionStatus::Cancelled]);
+
+            if ($affectedRows === 0) {
+                throw new ConflictHttpException(__('messages.transfer_not_pending'));
+            }
+
+            $debitTransaction = Transaction::withoutGlobalScopes()
+                ->where('group_id', $groupId)
+                ->where('type', TransactionType::Debit)
+                ->firstOrFail();
+
+            $senderWallet = Wallet::lockForUpdate()->findOrFail($debitTransaction->wallet_id);
+            $amount = abs((float) $debitTransaction->amount);
+
+            $senderWallet->decrement('locked_balance', $amount);
+
+            return [
+                'group_id' => $groupId,
+                'status' => TransactionStatus::Cancelled->value,
+            ];
+        });
+    }
+
     private function determineTargetStatus(User $user, float $amount, string $currency, int $companyId): TransactionStatus
     {
         if (in_array($user->role, [UserRole::Admin, UserRole::Manager])) {
