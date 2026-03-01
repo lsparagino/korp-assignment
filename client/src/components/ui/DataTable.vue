@@ -54,7 +54,7 @@
     </div>
 
     <div class="overflow-x-auto">
-      <v-table density="comfortable">
+      <v-table data-testid="data-table" density="comfortable">
         <thead class="bg-grey-lighten-4">
           <tr>
             <slot name="columns" />

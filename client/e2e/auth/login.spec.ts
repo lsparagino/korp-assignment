@@ -21,8 +21,8 @@ test.describe('Login', () => {
     await page.getByTestId('password-input').locator('input').fill('wrongpassword')
     await page.getByTestId('login-btn').click()
 
-    // Should show an error or stay on login page
-    await page.waitForTimeout(3000)
+    // Should show an error and stay on login page
+    await expect(page.getByTestId('error-alert')).toBeVisible({ timeout: 5000 })
     await expect(page).toHaveURL(/\/auth\/login/)
   })
 

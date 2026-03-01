@@ -11,14 +11,14 @@ test.describe('Team Member Remove', () => {
     })
 
     await page.goto('/team-members')
-    await expect(page.locator('table')).toBeVisible({ timeout: 15_000 })
+    await expect(page.getByTestId('data-table')).toBeVisible({ timeout: 15_000 })
 
     // Find the row
-    const row = page.locator('tr').filter({ hasText: user.name as string })
+    const row = page.getByTestId('data-table').getByRole('row', { name: user.name as string })
     await expect(row).toBeVisible({ timeout: 10_000 })
 
     // Click the delete icon
-    await row.locator('[class*="mdi-delete"]').click()
+    await row.getByTestId('delete-btn').click()
 
     // ConfirmDialog should appear with PIN
     const dialog = page.getByTestId('confirm-dialog')
@@ -26,7 +26,7 @@ test.describe('Team Member Remove', () => {
     await expect(dialog.getByTestId('pin-section')).toBeVisible()
 
     // Read the PIN and enter it
-    const pinText = await dialog.locator('.text-h4').textContent()
+    const pinText = await dialog.getByTestId('confirm-pin').textContent()
     await dialog.getByTestId('pin-input').locator('input').fill(pinText!.trim())
 
     // Click confirm

@@ -1,16 +1,11 @@
-import path from 'node:path'
-import { fileURLToPath } from 'node:url'
 import { expect, test } from '@playwright/test'
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url))
-const memberState = path.join(__dirname, '.auth', 'member.json')
 
 test.describe('Wallets (Admin)', () => {
   test('shows the wallets page', async ({ page }) => {
     await page.goto('/wallets')
 
     await expect(page.getByTestId('page-heading')).toBeVisible({ timeout: 10_000 })
-    await expect(page.locator('table')).toBeVisible({ timeout: 15_000 })
+    await expect(page.getByTestId('data-table')).toBeVisible({ timeout: 15_000 })
   })
 
   test('shows create wallet button for admin', async ({ page }) => {
@@ -30,15 +25,15 @@ test.describe('Wallets (Admin)', () => {
   test('shows wallet table with data', async ({ page }) => {
     await page.goto('/wallets')
 
-    await expect(page.locator('table')).toBeVisible({ timeout: 15_000 })
+    await expect(page.getByTestId('data-table')).toBeVisible({ timeout: 15_000 })
 
     // Table should have rows
-    await expect(page.locator('tbody tr').first()).toBeVisible({ timeout: 10_000 })
+    await expect(page.getByTestId('data-table').getByRole('row').nth(1)).toBeVisible({ timeout: 10_000 })
   })
 })
 
 test.describe('Wallets (Member)', () => {
-  test.use({ storageState: memberState })
+  test.use({ storageState: 'e2e/.auth/member.json' })
 
   test('does not show create wallet button', async ({ page }) => {
     await page.goto('/wallets')
@@ -50,10 +45,10 @@ test.describe('Wallets (Member)', () => {
   test('does not show edit/delete actions', async ({ page }) => {
     await page.goto('/wallets')
 
-    await expect(page.locator('table')).toBeVisible({ timeout: 15_000 })
+    await expect(page.getByTestId('data-table')).toBeVisible({ timeout: 15_000 })
 
     // Member should not see any action icons
-    await expect(page.locator('[class*="mdi-pencil"]')).not.toBeVisible()
-    await expect(page.locator('[class*="mdi-delete"]')).not.toBeVisible()
+    await expect(page.getByTestId('edit-btn')).not.toBeVisible()
+    await expect(page.getByTestId('delete-btn')).not.toBeVisible()
   })
 })

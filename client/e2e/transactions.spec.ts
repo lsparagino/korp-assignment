@@ -25,7 +25,7 @@ test.describe('Transactions', () => {
     // Clear button only appears when filters are active
     // Select a type filter to activate filters, then click Filter
     await page.getByTestId('type-select').click()
-    await page.locator('.v-overlay .v-list-item').filter({ hasText: en.transactions.typeDebit }).click()
+    await page.getByRole('option', { name: en.transactions.typeDebit }).click()
     await page.getByTestId('filter-btn').click()
     await expect(page.getByTestId('clear-btn')).toBeVisible({ timeout: 10_000 })
   })

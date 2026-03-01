@@ -105,6 +105,7 @@
             >{{ $t('confirmDialog.verificationRequired') }}</span>
             <div
               class="text-h4 font-weight-black text-primary my-2 tracking-widest"
+              data-testid="confirm-pin"
             >
               {{ expectedPin }}
             </div>

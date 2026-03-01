@@ -145,7 +145,7 @@
         <v-skeleton-loader v-if="loading" type="table" />
 
         <v-card v-else border flat rounded="lg">
-          <v-table density="comfortable">
+          <v-table data-testid="data-table" density="comfortable">
             <thead class="bg-grey-lighten-4">
               <tr>
                 <th class="text-uppercase text-caption font-weight-bold text-grey-darken-1">
@@ -200,7 +200,7 @@
       </div>
 
       <!-- Add/Edit Dialog -->
-      <v-dialog v-model="dialog" max-width="500">
+      <v-dialog v-model="dialog" data-testid="threshold-dialog" max-width="500">
         <v-card rounded="lg">
           <v-card-title class="pa-4 font-weight-bold">
             {{ editingId ? $t('settings.thresholds.editThreshold') : $t('settings.thresholds.addThreshold') }}

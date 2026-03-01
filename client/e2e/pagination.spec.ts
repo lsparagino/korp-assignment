@@ -1,4 +1,8 @@
+import { createRequire } from 'node:module'
 import { expect, test } from '@playwright/test'
+
+const require = createRequire(import.meta.url)
+const en = require('../src/locales/en.json')
 
 test.describe('Pagination', () => {
   test.describe('Transactions pagination', () => {
@@ -7,8 +11,7 @@ test.describe('Pagination', () => {
       await expect(page.getByTestId('page-heading')).toBeVisible({ timeout: 10_000 })
 
       // Wait for data to load
-      const table = page.locator('table').first()
-      await expect(table).toBeVisible({ timeout: 15_000 })
+      await expect(page.getByTestId('data-table')).toBeVisible({ timeout: 15_000 })
 
       // Pagination should show entry count
       await expect(page.getByTestId('pagination-meta')).toBeVisible({ timeout: 10_000 })
@@ -21,8 +24,7 @@ test.describe('Pagination', () => {
       await page.goto('/transactions')
       await expect(page.getByTestId('page-heading')).toBeVisible({ timeout: 10_000 })
 
-      const table = page.locator('table').first()
-      await expect(table).toBeVisible({ timeout: 15_000 })
+      await expect(page.getByTestId('data-table')).toBeVisible({ timeout: 15_000 })
 
       // Wait for data to be loaded
       await expect(page.getByTestId('pagination-meta')).toBeVisible({ timeout: 10_000 })
@@ -44,14 +46,13 @@ test.describe('Pagination', () => {
       await page.goto('/transactions?per_page=5')
       await expect(page.getByTestId('page-heading')).toBeVisible({ timeout: 10_000 })
 
-      const table = page.locator('table').first()
-      await expect(table).toBeVisible({ timeout: 15_000 })
+      await expect(page.getByTestId('data-table')).toBeVisible({ timeout: 15_000 })
 
       // Pagination controls should be visible
       await expect(page.getByTestId('pagination-nav')).toBeVisible({ timeout: 10_000 })
 
       // Click page 2 button
-      await page.getByTestId('pagination-nav').locator('button').filter({ hasText: '2' }).click()
+      await page.getByTestId('pagination-nav').getByRole('button', { name: '2' }).click()
 
       // URL should contain page=2
       await expect(page).toHaveURL(/page=2/, { timeout: 10_000 })
@@ -67,7 +68,7 @@ test.describe('Pagination', () => {
 
       // Apply a filter — open type select and pick Debit
       await page.getByTestId('type-select').click()
-      await page.locator('.v-overlay .v-list-item').filter({ hasText: 'Debit' }).click()
+      await page.getByRole('option', { name: en.transactions.typeDebit }).click()
       await page.getByTestId('filter-btn').click()
 
       // Page should reset to 1
@@ -80,7 +81,7 @@ test.describe('Pagination', () => {
       await page.goto('/wallets')
       await expect(page.getByTestId('page-heading')).toBeVisible({ timeout: 10_000 })
 
-      await expect(page.locator('table')).toBeVisible({ timeout: 15_000 })
+      await expect(page.getByTestId('data-table')).toBeVisible({ timeout: 15_000 })
 
       // Pagination should show entry count
       await expect(page.getByTestId('pagination-meta')).toBeVisible({ timeout: 10_000 })
@@ -88,7 +89,7 @@ test.describe('Pagination', () => {
 
     test('can change per page on wallets', async ({ page }) => {
       await page.goto('/wallets')
-      await expect(page.locator('table')).toBeVisible({ timeout: 15_000 })
+      await expect(page.getByTestId('data-table')).toBeVisible({ timeout: 15_000 })
 
       // Open per-page dropdown
       await page.getByTestId('per-page-select').click()

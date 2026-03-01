@@ -1,9 +1,4 @@
-import path from 'node:path'
-import { fileURLToPath } from 'node:url'
 import { expect, test } from '@playwright/test'
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url))
-const memberState = path.join(__dirname, '.auth', 'member.json')
 
 test.describe('Authorization - Unauthenticated', () => {
   test.use({ storageState: { cookies: [], origins: [] } })
@@ -46,7 +41,7 @@ test.describe('Authorization - Unauthenticated', () => {
 })
 
 test.describe('Authorization - Member Role', () => {
-  test.use({ storageState: memberState })
+  test.use({ storageState: 'e2e/.auth/member.json' })
 
   test('cannot see create wallet button on dashboard', async ({ page }) => {
     await page.goto('/dashboard')
@@ -59,10 +54,10 @@ test.describe('Authorization - Member Role', () => {
     await page.goto('/wallets')
 
     await expect(page.getByTestId('page-heading')).toBeVisible({ timeout: 15_000 })
-    await expect(page.locator('table')).toBeVisible({ timeout: 15_000 })
+    await expect(page.getByTestId('data-table')).toBeVisible({ timeout: 15_000 })
 
     // Member should not see any edit/delete icons in the table
-    await expect(page.locator('[class*="mdi-pencil"]')).not.toBeVisible()
+    await expect(page.getByTestId('edit-btn')).not.toBeVisible()
   })
 
   test('cannot see add member button on team members page', async ({ page }) => {

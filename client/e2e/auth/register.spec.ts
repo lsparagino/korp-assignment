@@ -28,7 +28,7 @@ test.describe('Register', () => {
     await page.getByTestId('register-btn').click()
 
     // Should show an error about duplicate email
-    await expect(page.locator('.v-alert, .v-messages').first()).toBeVisible({ timeout: 10_000 })
+    await expect(page.getByTestId('error-alert')).toBeVisible({ timeout: 10_000 })
   })
 
   test('can navigate to login page', async ({ page }) => {

@@ -1,14 +1,15 @@
-import path from 'node:path'
-import { fileURLToPath } from 'node:url'
+import { createRequire } from 'node:module'
 import { expect, type Page, test } from '@playwright/test'
+import { loginViaApi } from './helpers/api'
+import { authenticatedPage } from './helpers/auth'
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url))
-const memberState = path.join(__dirname, '.auth', 'member.json')
+const require = createRequire(import.meta.url)
+const en = require('../src/locales/en.json')
 
 /**
  * Helper: navigates to the create wallet page, fills the name, and submits the form.
  */
-async function createWallet (page: Page, name: string) {
+async function createWallet(page: Page, name: string) {
   await page.goto('/wallets/create')
   await expect(page.getByTestId('wallet-name-input').locator('input')).toBeVisible({ timeout: 10_000 })
   await page.getByTestId('wallet-name-input').locator('input').fill(name)
@@ -16,8 +17,8 @@ async function createWallet (page: Page, name: string) {
   await page.getByTestId('wallet-create-btn').click()
 
   // Wait for redirect back to wallets list
-  await expect(page.locator('table')).toBeVisible({ timeout: 15_000 })
-  await expect(page.locator('tr').filter({ hasText: name })).toBeVisible({ timeout: 10_000 })
+  await expect(page.getByTestId('data-table')).toBeVisible({ timeout: 15_000 })
+  await expect(page.getByTestId('data-table').getByRole('row', { name })).toBeVisible({ timeout: 10_000 })
 }
 
 test.describe('Admin Wallet Lifecycle', () => {
@@ -30,9 +31,9 @@ test.describe('Admin Wallet Lifecycle', () => {
 
   test('the new wallet has zero balance', async ({ page }) => {
     await page.goto('/wallets')
-    await expect(page.locator('table')).toBeVisible({ timeout: 15_000 })
+    await expect(page.getByTestId('data-table')).toBeVisible({ timeout: 15_000 })
 
-    const row = page.locator('tr').filter({ hasText: walletName })
+    const row = page.getByTestId('data-table').getByRole('row', { name: walletName })
     await expect(row).toBeVisible({ timeout: 10_000 })
 
     // The balance column should show $0.00 (USD default)
@@ -41,13 +42,13 @@ test.describe('Admin Wallet Lifecycle', () => {
 
   test('the new wallet can be deleted', async ({ page }) => {
     await page.goto('/wallets')
-    await expect(page.locator('table')).toBeVisible({ timeout: 15_000 })
+    await expect(page.getByTestId('data-table')).toBeVisible({ timeout: 15_000 })
 
-    const row = page.locator('tr').filter({ hasText: walletName })
+    const row = page.getByTestId('data-table').getByRole('row', { name: walletName })
     await expect(row).toBeVisible({ timeout: 10_000 })
 
     // Click the delete button
-    await row.locator('[class*="mdi-delete"]').click()
+    await row.getByTestId('delete-btn').click()
 
     // ConfirmDialog should appear with PIN
     const dialog = page.getByTestId('confirm-dialog')
@@ -55,7 +56,7 @@ test.describe('Admin Wallet Lifecycle', () => {
     await expect(dialog.getByTestId('pin-section')).toBeVisible()
 
     // Read the PIN and enter it
-    const pinText = await dialog.locator('.text-h4').textContent()
+    const pinText = await dialog.getByTestId('confirm-pin').textContent()
     await dialog.getByTestId('pin-input').locator('input').fill(pinText!.trim())
 
     // Click confirm
@@ -70,16 +71,15 @@ test.describe('Admin Wallet Lifecycle', () => {
     await createWallet(page, restrictedWallet)
 
     // Check as member
-    const memberContext = await browser.newContext({ storageState: memberState })
-    const memberPage = await memberContext.newPage()
+    const member = await loginViaApi('member@example.com', 'password')
+    const memberPage = await authenticatedPage(browser, member)
     await memberPage.goto('/wallets')
-    await expect(memberPage.locator('table')).toBeVisible({ timeout: 15_000 })
+    await expect(memberPage.getByTestId('data-table')).toBeVisible({ timeout: 15_000 })
 
     // Member should not see the restricted wallet
-    await expect(memberPage.locator('tr').filter({ hasText: restrictedWallet })).not.toBeVisible()
+    await expect(memberPage.getByTestId('data-table').getByRole('row', { name: restrictedWallet })).not.toBeVisible()
 
-    await memberPage.close()
-    await memberContext.close()
+    await memberPage.context().close()
   })
 
   test('admin grants wallet access to member, member can now see it', async ({ page, browser }) => {
@@ -88,33 +88,32 @@ test.describe('Admin Wallet Lifecycle', () => {
 
     // Admin goes to Team Members and edits the member
     await page.goto('/team-members')
-    await expect(page.locator('table')).toBeVisible({ timeout: 15_000 })
+    await expect(page.getByTestId('data-table')).toBeVisible({ timeout: 15_000 })
 
     // Find the member row and click edit
-    const memberRow = page.locator('tr').filter({ hasText: 'Member User' })
+    const memberRow = page.getByTestId('data-table').getByRole('row', { name: 'Member User' })
     await expect(memberRow).toBeVisible({ timeout: 10_000 })
-    await memberRow.locator('[class*="mdi-pencil"]').click()
+    await memberRow.getByTestId('edit-btn').click()
 
     // Modal should appear
     const modal = page.getByTestId('member-dialog')
     await expect(modal).toBeVisible({ timeout: 5000 })
 
     // Check the new wallet checkbox
-    await modal.locator('.v-checkbox').filter({ hasText: new RegExp(sharedWallet) }).locator('input').check({ force: true })
+    await modal.getByRole('checkbox', { name: new RegExp(sharedWallet) }).check({ force: true })
 
     // Click submit
     await page.getByTestId('member-submit-btn').click()
     await expect(page.getByTestId('member-dialog')).not.toBeVisible({ timeout: 10_000 })
 
     // Switch to member and verify
-    const memberContext = await browser.newContext({ storageState: memberState })
-    const memberPage = await memberContext.newPage()
+    const member = await loginViaApi('member@example.com', 'password')
+    const memberPage = await authenticatedPage(browser, member)
     await memberPage.goto('/wallets')
-    await expect(memberPage.locator('table')).toBeVisible({ timeout: 15_000 })
+    await expect(memberPage.getByTestId('data-table')).toBeVisible({ timeout: 15_000 })
 
-    await expect(memberPage.locator('tr').filter({ hasText: sharedWallet })).toBeVisible({ timeout: 10_000 })
+    await expect(memberPage.getByTestId('data-table').getByRole('row', { name: sharedWallet })).toBeVisible({ timeout: 10_000 })
 
-    await memberPage.close()
-    await memberContext.close()
+    await memberPage.context().close()
   })
 })

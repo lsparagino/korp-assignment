@@ -28,27 +28,29 @@ async function goToCreateTransfer(page: Page) {
  */
 async function selectFirstAvailableWallet(page: Page, testId: string) {
   const select = page.getByTestId(testId)
-  const items = page.locator('.v-overlay--active .v-list-item:not([aria-disabled="true"])')
 
   for (let attempt = 0; attempt < 3; attempt++) {
     await select.click()
     try {
-      await expect(items.first()).toBeVisible({ timeout: 3000 })
-      await items.first().click()
-      await page.waitForTimeout(300) // let overlay close
+      const option = page.getByRole('option').first()
+      await expect(option).toBeVisible({ timeout: 3000 })
+      await option.click()
+      // Wait for overlay to close
+      await expect(page.locator('.v-overlay--active')).not.toBeVisible({ timeout: 3000 })
       return
     } catch {
       // Dropdown opened but no items yet — close and retry.
       await page.keyboard.press('Escape')
-      await page.waitForTimeout(1000)
+      await expect(page.locator('.v-overlay--active')).not.toBeVisible({ timeout: 3000 })
     }
   }
 
   // Final attempt — fail loudly if no items.
   await select.click()
-  await expect(items.first()).toBeVisible({ timeout: 10_000 })
-  await items.first().click()
-  await page.waitForTimeout(300)
+  const option = page.getByRole('option').first()
+  await expect(option).toBeVisible({ timeout: 10_000 })
+  await option.click()
+  await expect(page.locator('.v-overlay--active')).not.toBeVisible({ timeout: 3000 })
 }
 
 /**
@@ -89,14 +91,14 @@ test.describe('Transfer Approval Flow', () => {
 
     // Admin sets a USD approval threshold of $1,000
     await page.goto('/settings/thresholds')
-    await expect(page.locator('table')).toBeVisible({ timeout: 10_000 })
+    await expect(page.getByTestId('data-table')).toBeVisible({ timeout: 10_000 })
 
     await page.getByTestId('add-threshold-btn').click()
-    const dialog = page.locator('.v-dialog')
+    const dialog = page.getByTestId('threshold-dialog')
     await expect(dialog).toBeVisible({ timeout: 5000 })
 
     await page.getByTestId('threshold-currency-select').click()
-    await page.locator('.v-overlay--active .v-list-item').filter({ hasText: 'USD' }).click()
+    await page.getByRole('option', { name: 'USD' }).click()
 
     await page.getByTestId('threshold-amount-input').locator('input').fill('1000')
 
@@ -104,7 +106,7 @@ test.describe('Transfer Approval Flow', () => {
     await expect(dialog).not.toBeVisible({ timeout: 10_000 })
 
     // Verify
-    const row = page.locator('tr').filter({ hasText: 'USD' })
+    const row = page.getByTestId('data-table').getByRole('row', { name: 'USD' })
     await expect(row).toBeVisible({ timeout: 5000 })
     await expect(row).toContainText('1,000')
   })
@@ -127,7 +129,7 @@ test.describe('Transfer Approval Flow', () => {
     // Verify the transaction appears as completed
     await page.goto('/transactions?status=completed')
     await expect(page.getByTestId('page-heading')).toBeVisible({ timeout: 10_000 })
-    await expect(page.locator('tr').filter({ hasText: '$500.00' })).toBeVisible({ timeout: 10_000 })
+    await expect(page.getByTestId('data-table').getByRole('row', { name: '$500.00' })).toBeVisible({ timeout: 10_000 })
 
     await page.context().close()
   })
@@ -150,7 +152,7 @@ test.describe('Transfer Approval Flow', () => {
     // Verify the transaction shows as pending
     await page.goto('/transactions?status=pending_approval')
     await expect(page.getByTestId('page-heading')).toBeVisible({ timeout: 10_000 })
-    await expect(page.locator('tr').filter({ hasText: '$5,000.00' })).toBeVisible({ timeout: 10_000 })
+    await expect(page.getByTestId('data-table').getByRole('row', { name: '$5,000.00' })).toBeVisible({ timeout: 10_000 })
 
     await page.context().close()
   })
@@ -161,51 +163,50 @@ test.describe('Transfer Approval Flow', () => {
   test('frozen wallets appear as disabled in the sender dropdown', async ({ page }) => {
     // Freeze a wallet as admin via the wallet edit page
     await page.goto('/wallets/')
-    await expect(page.locator('table')).toBeVisible({ timeout: 15_000 })
+    await expect(page.getByTestId('data-table')).toBeVisible({ timeout: 15_000 })
 
-    const firstRow = page.locator('tbody tr').first()
+    const firstRow = page.getByTestId('data-table').getByRole('row').nth(1)
     const walletName = await firstRow.locator('td').first().textContent()
-    await firstRow.locator('.v-btn').first().click()
+    await firstRow.getByTestId('edit-btn').click()
     await expect(page.getByTestId('page-heading')).toBeVisible({ timeout: 10_000 })
 
     // Click freeze
-    const freezeBtn = page.locator('button').filter({ hasText: en.wallets.freezeWallet })
+    const freezeBtn = page.getByTestId('freeze-btn')
     await expect(freezeBtn).toBeVisible({ timeout: 5000 })
     await freezeBtn.click()
 
     // Confirm
-    const confirmBtn = page.locator('.v-dialog .v-btn').filter({ hasText: en.confirmDialog.defaultConfirm })
-    await expect(confirmBtn).toBeVisible({ timeout: 5000 })
-    await confirmBtn.click()
+    const confirmDialog = page.getByTestId('confirm-dialog')
+    await expect(confirmDialog).toBeVisible({ timeout: 5000 })
+    await confirmDialog.getByTestId('confirm-btn').click()
 
-    const unfreezeBtn = page.locator('button').filter({ hasText: en.wallets.unfreezeWallet })
-    await expect(unfreezeBtn).toBeVisible({ timeout: 10_000 })
+    const unfreezeBtn = page.getByTestId('freeze-btn')
+    await expect(unfreezeBtn).toContainText(en.wallets.unfreezeWallet, { timeout: 10_000 })
 
     // Open transfer page and check sender dropdown
     await goToCreateTransfer(page)
     await page.getByTestId('transfer-sender-wallet').click()
 
-    const allItems = page.locator('.v-overlay--active .v-list-item')
-    await expect(allItems.first()).toBeVisible({ timeout: 10_000 })
+    const allOptions = page.getByRole('option')
+    await expect(allOptions.first()).toBeVisible({ timeout: 10_000 })
 
     // The frozen wallet should show "🔒 Frozen" chip text
-    const frozenItem = page.locator('.v-overlay--active .v-list-item').filter({ hasText: 'Frozen' })
-    await expect(frozenItem.first()).toBeVisible({ timeout: 5000 })
+    const frozenOption = page.getByRole('option').filter({ hasText: 'Frozen' })
+    await expect(frozenOption.first()).toBeVisible({ timeout: 5000 })
 
     // Go back to wallets
     await page.keyboard.press('Escape')
 
     // Cleanup: unfreeze the wallet
     await page.goto('/wallets/')
-    await expect(page.locator('table')).toBeVisible({ timeout: 15_000 })
-    const row = page.locator('tbody tr').filter({ hasText: walletName!.trim() })
-    await row.locator('.v-btn').first().click()
+    await expect(page.getByTestId('data-table')).toBeVisible({ timeout: 15_000 })
+    const row = page.getByTestId('data-table').getByRole('row', { name: walletName!.trim() })
+    await row.getByTestId('edit-btn').click()
     await expect(page.getByTestId('page-heading')).toBeVisible({ timeout: 10_000 })
-    await unfreezeBtn.click()
-    const confirmBtn2 = page.locator('.v-dialog .v-btn').filter({ hasText: en.confirmDialog.defaultConfirm })
-    await expect(confirmBtn2).toBeVisible({ timeout: 5000 })
-    await confirmBtn2.click()
-    await expect(freezeBtn).toBeVisible({ timeout: 10_000 })
+    await page.getByTestId('freeze-btn').click()
+    await expect(confirmDialog).toBeVisible({ timeout: 5000 })
+    await confirmDialog.getByTestId('confirm-btn').click()
+    await expect(page.getByTestId('freeze-btn')).toContainText(en.wallets.freezeWallet, { timeout: 10_000 })
   })
 
   // ===========================================================
@@ -226,7 +227,7 @@ test.describe('Transfer Approval Flow', () => {
     await page.getByTestId('transfer-amount').locator('input').blur()
 
     // The insufficient funds error should be visible
-    await expect(page.locator('.v-card').first()).toContainText(en.validation.insufficientFunds, { timeout: 5000 })
+    await expect(page.getByTestId('transfer-amount')).toContainText(en.validation.insufficientFunds, { timeout: 5000 })
 
     // Submit button should be disabled
     await expect(page.getByTestId('transfer-submit-btn')).toBeDisabled()
@@ -264,7 +265,7 @@ test.describe('Transfer Approval Flow', () => {
     // Verify pending
     await page.goto('/transactions?status=pending_approval')
     await expect(page.getByTestId('page-heading')).toBeVisible({ timeout: 10_000 })
-    await expect(page.locator('tr').filter({ hasText: 'John External' })).toBeVisible({ timeout: 10_000 })
+    await expect(page.getByTestId('data-table').getByRole('row', { name: 'John External' })).toBeVisible({ timeout: 10_000 })
 
     await page.context().close()
   })
@@ -279,13 +280,12 @@ test.describe('Transfer Approval Flow', () => {
     await page.goto('/transactions?status=pending_approval')
     await expect(page.getByTestId('page-heading')).toBeVisible({ timeout: 10_000 })
 
-    const table = page.locator('table').first()
-    await expect(table).toBeVisible({ timeout: 10_000 })
-    const firstRow = table.locator('tbody tr').first()
+    await expect(page.getByTestId('data-table')).toBeVisible({ timeout: 10_000 })
+    const firstRow = page.getByTestId('data-table').getByRole('row').nth(1)
     await expect(firstRow).toBeVisible({ timeout: 10_000 })
 
-    // Open detail modal
-    await firstRow.locator('.v-btn').click()
+    // Open detail modal by clicking the row
+    await firstRow.click()
     await expect(page.getByTestId('approve-btn')).toBeVisible({ timeout: 5000 })
     await expect(page.getByTestId('reject-btn')).toBeVisible({ timeout: 5000 })
 
@@ -306,13 +306,12 @@ test.describe('Transfer Approval Flow', () => {
     await page.goto('/transactions?status=pending_approval')
     await expect(page.getByTestId('page-heading')).toBeVisible({ timeout: 10_000 })
 
-    const table = page.locator('table').first()
-    await expect(table).toBeVisible({ timeout: 10_000 })
-    const firstRow = table.locator('tbody tr').first()
+    await expect(page.getByTestId('data-table')).toBeVisible({ timeout: 10_000 })
+    const firstRow = page.getByTestId('data-table').getByRole('row').nth(1)
     await expect(firstRow).toBeVisible({ timeout: 10_000 })
 
-    // Open detail modal
-    await firstRow.locator('.v-btn').click()
+    // Open detail modal by clicking the row
+    await firstRow.click()
     await expect(page.getByTestId('reject-btn')).toBeVisible({ timeout: 5000 })
 
     // Click reject, enter reason, confirm

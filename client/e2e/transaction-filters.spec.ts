@@ -1,4 +1,8 @@
+import { createRequire } from 'node:module'
 import { expect, test } from '@playwright/test'
+
+const require = createRequire(import.meta.url)
+const en = require('../src/locales/en.json')
 
 test.describe('Transaction Filters', () => {
   test('can filter by transaction type', async ({ page }) => {
@@ -7,7 +11,7 @@ test.describe('Transaction Filters', () => {
 
     // Open the Type dropdown and select 'Debit'
     await page.getByTestId('type-select').click()
-    await page.locator('.v-overlay .v-list-item').filter({ hasText: 'Debit' }).click()
+    await page.getByRole('option', { name: en.transactions.typeDebit }).click()
 
     // Click Filter button
     await page.getByTestId('filter-btn').click()
@@ -19,8 +23,7 @@ test.describe('Transaction Filters', () => {
     await expect(page.getByTestId('active-filters-badge')).toBeVisible({ timeout: 5000 })
 
     // Table should be visible with results
-    const table = page.locator('table').first()
-    await expect(table).toBeVisible({ timeout: 15_000 })
+    await expect(page.getByTestId('data-table')).toBeVisible({ timeout: 15_000 })
   })
 
   test('can clear filters', async ({ page }) => {
@@ -45,7 +48,7 @@ test.describe('Transaction Filters', () => {
 
     // Select Credit type
     await page.getByTestId('type-select').click()
-    await page.locator('.v-overlay .v-list-item').filter({ hasText: 'Credit' }).click()
+    await page.getByRole('option', { name: en.transactions.typeCredit }).click()
 
     await page.getByTestId('filter-btn').click()
 
@@ -79,6 +82,6 @@ test.describe('Transaction Filters', () => {
     await expect(page.getByTestId('page-heading')).toBeVisible({ timeout: 10_000 })
 
     // The type dropdown should reflect the filter
-    await expect(page.getByTestId('type-select')).toContainText('Credit')
+    await expect(page.getByTestId('type-select')).toContainText(en.transactions.typeCredit)
   })
 })

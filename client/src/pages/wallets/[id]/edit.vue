@@ -253,6 +253,7 @@
                       ? 'warning'
                       : 'success'
                   "
+                  data-testid="freeze-btn"
                   :prepend-icon="
                     wallet?.status === 'active'
                       ? Snowflake

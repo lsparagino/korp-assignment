@@ -157,6 +157,7 @@
             />
             <v-btn
               color="primary"
+              data-testid="edit-btn"
               density="comfortable"
               icon="mdi-pencil"
               size="small"
@@ -166,6 +167,7 @@
             <v-btn
               v-if="m.id !== authStore.user?.id"
               color="error"
+              data-testid="delete-btn"
               density="comfortable"
               icon="mdi-delete"
               size="small"

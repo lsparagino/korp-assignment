@@ -149,6 +149,7 @@
           <div class="d-flex ga-2 justify-end">
             <v-btn
               color="primary"
+              data-testid="edit-btn"
               density="comfortable"
               icon="mdi-pencil"
               size="small"
@@ -159,6 +160,7 @@
             <v-btn
               v-if="w.can_delete"
               color="error"
+              data-testid="delete-btn"
               density="comfortable"
               icon="mdi-delete"
               size="small"
