@@ -54,6 +54,7 @@ return [
     'transfer_cancelled' => 'Transfer cancelled successfully.',
     'transfer_not_pending' => 'This transaction is not pending approval.',
     'daily_limit_exceeded' => 'This transfer would exceed your daily transaction limit.',
+    'idempotency_key_required' => 'A valid Idempotency-Key header is required.',
 
     // Notifications
     'notification_transaction_pending_approval' => 'Transaction Pending Approval',

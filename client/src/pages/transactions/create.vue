@@ -11,6 +11,7 @@
   import AddressBookDialog from '@/components/features/AddressBookDialog.vue'
   import IdentityConfirmDialog from '@/components/ui/IdentityConfirmDialog.vue'
   import { useFormValidation } from '@/composables/useFormValidation'
+  import { useIdempotencyKey } from '@/composables/useIdempotencyKey'
   import { useIdentityConfirm } from '@/composables/useIdentityConfirm'
   import { WALLET_QUERY_KEYS, walletsListQuery } from '@/queries/wallets'
   import { useAuthStore } from '@/stores/auth'
@@ -22,6 +23,7 @@
   const authStore = useAuthStore()
   const queryCache = useQueryCache()
   const identity = useIdentityConfirm()
+  const { idempotencyKey, regenerateKey } = useIdempotencyKey()
 
   const bypassesThreshold = computed(() =>
     authStore.user?.role === 'admin' || authStore.user?.role === 'manager',
@@ -203,7 +205,8 @@
     errors.value = {}
     apiError.value = ''
     try {
-      await initiateTransfer({ ...form.value, ...extraFields })
+      await initiateTransfer({ ...form.value, ...extraFields }, idempotencyKey.value)
+      regenerateKey()
       await queryCache.invalidateQueries({ key: WALLET_QUERY_KEYS.root })
       router.push('/transactions/')
     } catch (error: unknown) {

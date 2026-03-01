@@ -19,6 +19,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
         $middleware->alias([
             'company' => \App\Http\Middleware\EnsureUserBelongsToCompany::class,
+            'idempotent' => \App\Http\Middleware\EnsureIdempotency::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

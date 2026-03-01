@@ -25,6 +25,10 @@ api.interceptors.request.use(config => {
     }
   }
 
+  if (config.method === 'post') {
+    config.headers['Idempotency-Key'] = config.headers['Idempotency-Key'] ?? crypto.randomUUID()
+  }
+
   return config
 })
 

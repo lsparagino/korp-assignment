@@ -80,7 +80,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
         Route::apiResource('transactions', TransactionController::class)->only(['index']);
 
-        Route::prefix('transfers')->group(function () {
+        Route::prefix('transfers')->middleware('idempotent')->group(function () {
             Route::post('/', [TransferController::class, 'store']);
             Route::post('/{groupId}/review', [TransferController::class, 'review']);
             Route::post('/{groupId}/cancel', [TransferController::class, 'cancel']);

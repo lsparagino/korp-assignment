@@ -1,11 +1,12 @@
 <script lang="ts" setup>
   import type { Transaction } from '@/api/transactions'
-  import { ref } from 'vue'
+  import { ref, watch } from 'vue'
   import { useI18n } from 'vue-i18n'
   import { cancelTransfer, fetchTransactions, reviewTransfer } from '@/api/transactions'
   import TransactionTable from '@/components/features/TransactionTable.vue'
   import ConfirmDialog from '@/components/ui/ConfirmDialog.vue'
   import { useConfirmDialog } from '@/composables/useConfirmDialog'
+  import { useIdempotencyKey } from '@/composables/useIdempotencyKey'
   import { useAuthStore } from '@/stores/auth'
   import { getTransactionStatusColors, getTransactionTypeColors } from '@/utils/colors'
   import { formatCurrency, formatDate } from '@/utils/formatters'
@@ -22,10 +23,13 @@
   const { t } = useI18n()
   const authStore = useAuthStore()
   const { confirmDialog, openConfirmDialog } = useConfirmDialog()
+  const { idempotencyKey, regenerateKey } = useIdempotencyKey()
   const rejectMode = ref(false)
   const rejectReason = ref('')
   const submitting = ref(false)
   const error = ref('')
+
+  watch(() => props.transaction, () => regenerateKey())
 
   // Sliding panel state
   const currentPage = ref<'details' | 'recent'>('details')
@@ -78,7 +82,7 @@
     submitting.value = true
     error.value = ''
     try {
-      await cancelTransfer(props.transaction.group_id)
+      await cancelTransfer(props.transaction.group_id, idempotencyKey.value)
       emit('reviewed')
       emit('update:modelValue', false)
     } catch {
@@ -93,7 +97,7 @@
     submitting.value = true
     error.value = ''
     try {
-      await reviewTransfer(props.transaction.group_id, { action: 'approve' })
+      await reviewTransfer(props.transaction.group_id, { action: 'approve' }, idempotencyKey.value)
       emit('reviewed')
       emit('update:modelValue', false)
     } catch {
@@ -108,7 +112,7 @@
     submitting.value = true
     error.value = ''
     try {
-      await reviewTransfer(props.transaction.group_id, { action: 'reject', reason: rejectReason.value })
+      await reviewTransfer(props.transaction.group_id, { action: 'reject', reason: rejectReason.value }, idempotencyKey.value)
       rejectMode.value = false
       rejectReason.value = ''
       emit('reviewed')

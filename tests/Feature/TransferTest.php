@@ -7,6 +7,12 @@ use App\Models\CompanySetting;
 use App\Models\Transaction;
 use App\Models\User;
 use App\Models\Wallet;
+use Illuminate\Support\Str;
+
+function idempotencyHeaders(): array
+{
+    return ['Idempotency-Key' => Str::uuid()->toString()];
+}
 
 beforeEach(function () {
     $this->company = Company::factory()->create();
@@ -55,6 +61,7 @@ beforeEach(function () {
 
 test('internal transfer auto-approved below threshold', function () {
     $response = $this->actingAs($this->member, 'sanctum')
+        ->withHeaders(idempotencyHeaders())
         ->postJson('/api/v0/transfers', [
             'sender_wallet_id' => $this->senderWallet->id,
             'receiver_wallet_id' => $this->receiverWallet->id,
@@ -74,6 +81,7 @@ test('internal transfer auto-approved below threshold', function () {
 
 test('internal transfer pending above threshold', function () {
     $response = $this->actingAs($this->member, 'sanctum')
+        ->withHeaders(idempotencyHeaders())
         ->postJson('/api/v0/transfers', [
             'sender_wallet_id' => $this->senderWallet->id,
             'receiver_wallet_id' => $this->receiverWallet->id,
@@ -115,6 +123,7 @@ test('transfer completes immediately when no threshold is configured for currenc
 
     // No CompanySetting for EUR — large transfer should complete immediately
     $response = $this->actingAs($this->member, 'sanctum')
+        ->withHeaders(idempotencyHeaders())
         ->postJson('/api/v0/transfers', [
             'sender_wallet_id' => $eurSender->id,
             'receiver_wallet_id' => $eurReceiver->id,
@@ -133,6 +142,7 @@ test('transfer completes immediately when no threshold is configured for currenc
 
 test('external transfer auto-approved creates only debit row', function () {
     $response = $this->actingAs($this->member, 'sanctum')
+        ->withHeaders(idempotencyHeaders())
         ->postJson('/api/v0/transfers', [
             'sender_wallet_id' => $this->senderWallet->id,
             'amount' => 500,
@@ -174,6 +184,7 @@ test('admin bypasses approval threshold', function () {
     ]);
 
     $response = $this->actingAs($this->admin, 'sanctum')
+        ->withHeaders(idempotencyHeaders())
         ->postJson('/api/v0/transfers', [
             'sender_wallet_id' => $adminWallet->id,
             'receiver_wallet_id' => $this->receiverWallet->id,
@@ -203,6 +214,7 @@ test('manager bypasses approval threshold', function () {
     ]);
 
     $response = $this->actingAs($this->manager, 'sanctum')
+        ->withHeaders(idempotencyHeaders())
         ->postJson('/api/v0/transfers', [
             'sender_wallet_id' => $managerWallet->id,
             'receiver_wallet_id' => $this->receiverWallet->id,
@@ -220,6 +232,7 @@ test('manager bypasses approval threshold', function () {
 
 test('insufficient funds returns 422', function () {
     $response = $this->actingAs($this->member, 'sanctum')
+        ->withHeaders(idempotencyHeaders())
         ->postJson('/api/v0/transfers', [
             'sender_wallet_id' => $this->senderWallet->id,
             'receiver_wallet_id' => $this->receiverWallet->id,
@@ -236,6 +249,7 @@ test('insufficient funds returns 422', function () {
 test('insufficient available funds due to locked balance returns 422', function () {
     // Lock most funds via a pending transfer
     $this->actingAs($this->member, 'sanctum')
+        ->withHeaders(idempotencyHeaders())
         ->postJson('/api/v0/transfers', [
             'sender_wallet_id' => $this->senderWallet->id,
             'receiver_wallet_id' => $this->receiverWallet->id,
@@ -247,6 +261,7 @@ test('insufficient available funds due to locked balance returns 422', function 
 
     // Try to send more than available (20000 - 15000 = 5000 available)
     $response = $this->actingAs($this->member, 'sanctum')
+        ->withHeaders(idempotencyHeaders())
         ->postJson('/api/v0/transfers', [
             'sender_wallet_id' => $this->senderWallet->id,
             'receiver_wallet_id' => $this->receiverWallet->id,
@@ -269,6 +284,7 @@ test('cross-currency internal transfer returns 422', function () {
     ]);
 
     $response = $this->actingAs($this->member, 'sanctum')
+        ->withHeaders(idempotencyHeaders())
         ->postJson('/api/v0/transfers', [
             'sender_wallet_id' => $this->senderWallet->id,
             'receiver_wallet_id' => $eurWallet->id,
@@ -286,6 +302,7 @@ test('cross-currency internal transfer returns 422', function () {
 
 test('manager can approve a pending transfer', function () {
     $response = $this->actingAs($this->member, 'sanctum')
+        ->withHeaders(idempotencyHeaders())
         ->postJson('/api/v0/transfers', [
             'sender_wallet_id' => $this->senderWallet->id,
             'receiver_wallet_id' => $this->receiverWallet->id,
@@ -298,6 +315,7 @@ test('manager can approve a pending transfer', function () {
     $groupId = $response->json('data.group_id');
 
     $reviewResponse = $this->actingAs($this->manager, 'sanctum')
+        ->withHeaders(idempotencyHeaders())
         ->postJson("/api/v0/transfers/{$groupId}/review", [
             'action' => 'approve',
             'company_id' => $this->company->id,
@@ -313,6 +331,7 @@ test('manager can approve a pending transfer', function () {
 
 test('manager can reject a pending transfer', function () {
     $response = $this->actingAs($this->member, 'sanctum')
+        ->withHeaders(idempotencyHeaders())
         ->postJson('/api/v0/transfers', [
             'sender_wallet_id' => $this->senderWallet->id,
             'receiver_wallet_id' => $this->receiverWallet->id,
@@ -325,6 +344,7 @@ test('manager can reject a pending transfer', function () {
     $groupId = $response->json('data.group_id');
 
     $reviewResponse = $this->actingAs($this->manager, 'sanctum')
+        ->withHeaders(idempotencyHeaders())
         ->postJson("/api/v0/transfers/{$groupId}/review", [
             'action' => 'reject',
             'reason' => 'Suspicious activity',
@@ -344,6 +364,7 @@ test('manager can reject a pending transfer', function () {
 
 test('double approval returns 409 conflict', function () {
     $response = $this->actingAs($this->member, 'sanctum')
+        ->withHeaders(idempotencyHeaders())
         ->postJson('/api/v0/transfers', [
             'sender_wallet_id' => $this->senderWallet->id,
             'receiver_wallet_id' => $this->receiverWallet->id,
@@ -356,6 +377,7 @@ test('double approval returns 409 conflict', function () {
     $groupId = $response->json('data.group_id');
 
     $this->actingAs($this->manager, 'sanctum')
+        ->withHeaders(idempotencyHeaders())
         ->postJson("/api/v0/transfers/{$groupId}/review", [
             'action' => 'approve',
             'company_id' => $this->company->id,
@@ -366,6 +388,7 @@ test('double approval returns 409 conflict', function () {
     $secondManager->companies()->attach($this->company);
 
     $this->actingAs($secondManager, 'sanctum')
+        ->withHeaders(idempotencyHeaders())
         ->postJson("/api/v0/transfers/{$groupId}/review", [
             'action' => 'approve',
             'company_id' => $this->company->id,
@@ -375,6 +398,7 @@ test('double approval returns 409 conflict', function () {
 
 test('member cannot review a transfer', function () {
     $response = $this->actingAs($this->member, 'sanctum')
+        ->withHeaders(idempotencyHeaders())
         ->postJson('/api/v0/transfers', [
             'sender_wallet_id' => $this->senderWallet->id,
             'receiver_wallet_id' => $this->receiverWallet->id,
@@ -387,6 +411,7 @@ test('member cannot review a transfer', function () {
     $groupId = $response->json('data.group_id');
 
     $this->actingAs($this->member, 'sanctum')
+        ->withHeaders(idempotencyHeaders())
         ->postJson("/api/v0/transfers/{$groupId}/review", [
             'action' => 'approve',
             'company_id' => $this->company->id,
@@ -400,6 +425,7 @@ test('frozen sender wallet returns 403', function () {
     $this->senderWallet->update(['status' => 'frozen']);
 
     $response = $this->actingAs($this->member, 'sanctum')
+        ->withHeaders(idempotencyHeaders())
         ->postJson('/api/v0/transfers', [
             'sender_wallet_id' => $this->senderWallet->id,
             'receiver_wallet_id' => $this->receiverWallet->id,
@@ -417,6 +443,7 @@ test('frozen receiver wallet returns 403', function () {
     $this->receiverWallet->update(['status' => 'frozen']);
 
     $response = $this->actingAs($this->member, 'sanctum')
+        ->withHeaders(idempotencyHeaders())
         ->postJson('/api/v0/transfers', [
             'sender_wallet_id' => $this->senderWallet->id,
             'receiver_wallet_id' => $this->receiverWallet->id,
@@ -435,6 +462,7 @@ test('frozen sender wallet on external transfer returns 403', function () {
     $this->senderWallet->update(['status' => 'frozen']);
 
     $response = $this->actingAs($this->member, 'sanctum')
+        ->withHeaders(idempotencyHeaders())
         ->postJson('/api/v0/transfers', [
             'sender_wallet_id' => $this->senderWallet->id,
             'amount' => 500,
@@ -452,6 +480,7 @@ test('frozen sender wallet on external transfer returns 403', function () {
 test('transaction resource includes initiator and reviewer names', function () {
     // Create a pending transfer as a member
     $response = $this->actingAs($this->member, 'sanctum')
+        ->withHeaders(idempotencyHeaders())
         ->postJson('/api/v0/transfers', [
             'sender_wallet_id' => $this->senderWallet->id,
             'receiver_wallet_id' => $this->receiverWallet->id,
@@ -465,6 +494,7 @@ test('transaction resource includes initiator and reviewer names', function () {
 
     // Approve as manager
     $this->actingAs($this->manager, 'sanctum')
+        ->withHeaders(idempotencyHeaders())
         ->postJson("/api/v0/transfers/{$groupId}/review", [
             'action' => 'approve',
             'company_id' => $this->company->id,
@@ -495,6 +525,7 @@ test('transfer rejected when daily limit exceeded', function () {
 
     // First transfer at $800 — should work
     $this->actingAs($this->member, 'sanctum')
+        ->withHeaders(idempotencyHeaders())
         ->postJson('/api/v0/transfers', [
             'sender_wallet_id' => $this->senderWallet->id,
             'receiver_wallet_id' => $this->receiverWallet->id,
@@ -507,6 +538,7 @@ test('transfer rejected when daily limit exceeded', function () {
 
     // Second transfer at $300 would make total $1100 — should fail
     $this->actingAs($this->member, 'sanctum')
+        ->withHeaders(idempotencyHeaders())
         ->postJson('/api/v0/transfers', [
             'sender_wallet_id' => $this->senderWallet->id,
             'receiver_wallet_id' => $this->receiverWallet->id,
@@ -526,6 +558,7 @@ test('transfer allowed when under daily limit', function () {
     ]);
 
     $this->actingAs($this->member, 'sanctum')
+        ->withHeaders(idempotencyHeaders())
         ->postJson('/api/v0/transfers', [
             'sender_wallet_id' => $this->senderWallet->id,
             'receiver_wallet_id' => $this->receiverWallet->id,
@@ -540,6 +573,7 @@ test('transfer allowed when under daily limit', function () {
 test('transfer allowed when no daily limit is set', function () {
     // No UserSetting → no limit
     $this->actingAs($this->member, 'sanctum')
+        ->withHeaders(idempotencyHeaders())
         ->postJson('/api/v0/transfers', [
             'sender_wallet_id' => $this->senderWallet->id,
             'receiver_wallet_id' => $this->receiverWallet->id,
@@ -560,6 +594,7 @@ test('transfer above security threshold rejected without password', function () 
     ]);
 
     $this->actingAs($this->member, 'sanctum')
+        ->withHeaders(idempotencyHeaders())
         ->postJson('/api/v0/transfers', [
             'sender_wallet_id' => $this->senderWallet->id,
             'receiver_wallet_id' => $this->receiverWallet->id,
@@ -579,6 +614,7 @@ test('transfer above security threshold succeeds with password', function () {
     ]);
 
     $this->actingAs($this->member, 'sanctum')
+        ->withHeaders(idempotencyHeaders())
         ->postJson('/api/v0/transfers', [
             'sender_wallet_id' => $this->senderWallet->id,
             'receiver_wallet_id' => $this->receiverWallet->id,
@@ -598,6 +634,7 @@ test('transfer below security threshold needs no verification', function () {
     ]);
 
     $this->actingAs($this->member, 'sanctum')
+        ->withHeaders(idempotencyHeaders())
         ->postJson('/api/v0/transfers', [
             'sender_wallet_id' => $this->senderWallet->id,
             'receiver_wallet_id' => $this->receiverWallet->id,
@@ -611,6 +648,7 @@ test('transfer below security threshold needs no verification', function () {
 
 test('transfer with no security threshold needs no verification', function () {
     $this->actingAs($this->member, 'sanctum')
+        ->withHeaders(idempotencyHeaders())
         ->postJson('/api/v0/transfers', [
             'sender_wallet_id' => $this->senderWallet->id,
             'receiver_wallet_id' => $this->receiverWallet->id,
@@ -626,6 +664,7 @@ test('transfer with no security threshold needs no verification', function () {
 
 test('initiator can cancel a pending transfer', function () {
     $response = $this->actingAs($this->member, 'sanctum')
+        ->withHeaders(idempotencyHeaders())
         ->postJson('/api/v0/transfers', [
             'sender_wallet_id' => $this->senderWallet->id,
             'receiver_wallet_id' => $this->receiverWallet->id,
@@ -640,6 +679,7 @@ test('initiator can cancel a pending transfer', function () {
     expect((float) $this->senderWallet->fresh()->locked_balance)->toBe(15000.0);
 
     $cancelResponse = $this->actingAs($this->member, 'sanctum')
+        ->withHeaders(idempotencyHeaders())
         ->postJson("/api/v0/transfers/{$groupId}/cancel", [
             'company_id' => $this->company->id,
         ]);
@@ -656,6 +696,7 @@ test('initiator can cancel a pending transfer', function () {
 
 test('non-initiator cannot cancel a transfer', function () {
     $response = $this->actingAs($this->member, 'sanctum')
+        ->withHeaders(idempotencyHeaders())
         ->postJson('/api/v0/transfers', [
             'sender_wallet_id' => $this->senderWallet->id,
             'receiver_wallet_id' => $this->receiverWallet->id,
@@ -668,6 +709,7 @@ test('non-initiator cannot cancel a transfer', function () {
     $groupId = $response->json('data.group_id');
 
     $this->actingAs($this->manager, 'sanctum')
+        ->withHeaders(idempotencyHeaders())
         ->postJson("/api/v0/transfers/{$groupId}/cancel", [
             'company_id' => $this->company->id,
         ])
@@ -678,6 +720,7 @@ test('non-initiator cannot cancel a transfer', function () {
 
 test('cannot cancel an already reviewed transfer', function () {
     $response = $this->actingAs($this->member, 'sanctum')
+        ->withHeaders(idempotencyHeaders())
         ->postJson('/api/v0/transfers', [
             'sender_wallet_id' => $this->senderWallet->id,
             'receiver_wallet_id' => $this->receiverWallet->id,
@@ -690,6 +733,7 @@ test('cannot cancel an already reviewed transfer', function () {
     $groupId = $response->json('data.group_id');
 
     $this->actingAs($this->manager, 'sanctum')
+        ->withHeaders(idempotencyHeaders())
         ->postJson("/api/v0/transfers/{$groupId}/review", [
             'action' => 'approve',
             'company_id' => $this->company->id,
@@ -697,6 +741,7 @@ test('cannot cancel an already reviewed transfer', function () {
         ->assertOk();
 
     $this->actingAs($this->member, 'sanctum')
+        ->withHeaders(idempotencyHeaders())
         ->postJson("/api/v0/transfers/{$groupId}/cancel", [
             'company_id' => $this->company->id,
         ])
@@ -738,6 +783,7 @@ test('initiator with any role can cancel their own pending transfer', function (
     $managerWallet->increment('locked_balance', 15000);
 
     $cancelResponse = $this->actingAs($this->manager, 'sanctum')
+        ->withHeaders(idempotencyHeaders())
         ->postJson("/api/v0/transfers/{$groupId}/cancel", [
             'company_id' => $this->company->id,
         ]);
@@ -745,4 +791,49 @@ test('initiator with any role can cancel their own pending transfer', function (
     $cancelResponse->assertOk();
     $cancelResponse->assertJsonPath('data.status', 'cancelled');
     expect((float) $managerWallet->fresh()->locked_balance)->toBe(0.0);
+});
+
+// ── Idempotency Tests ────────────────────────────────────────────
+
+test('duplicate idempotency key returns cached response without creating duplicate', function () {
+    $idempotencyKey = Str::uuid()->toString();
+    $payload = [
+        'sender_wallet_id' => $this->senderWallet->id,
+        'receiver_wallet_id' => $this->receiverWallet->id,
+        'amount' => 500,
+        'external' => false,
+        'reference' => 'Idempotent transfer',
+        'company_id' => $this->company->id,
+    ];
+
+    $first = $this->actingAs($this->member, 'sanctum')
+        ->withHeaders(['Idempotency-Key' => $idempotencyKey])
+        ->postJson('/api/v0/transfers', $payload);
+
+    $first->assertStatus(201);
+
+    $second = $this->actingAs($this->member, 'sanctum')
+        ->withHeaders(['Idempotency-Key' => $idempotencyKey])
+        ->postJson('/api/v0/transfers', $payload);
+
+    $second->assertStatus(201);
+    expect($second->json())->toBe($first->json());
+
+    $transactionCount = Transaction::where('reference', 'Idempotent transfer')->count();
+    expect($transactionCount)->toBe(2); // debit + credit pair, not doubled
+});
+
+test('transfer without idempotency key returns 400', function () {
+    $response = $this->actingAs($this->member, 'sanctum')
+        ->postJson('/api/v0/transfers', [
+            'sender_wallet_id' => $this->senderWallet->id,
+            'receiver_wallet_id' => $this->receiverWallet->id,
+            'amount' => 500,
+            'external' => false,
+            'reference' => 'Missing key',
+            'company_id' => $this->company->id,
+        ]);
+
+    $response->assertStatus(400);
+    $response->assertJsonPath('message', __('messages.idempotency_key_required'));
 });
