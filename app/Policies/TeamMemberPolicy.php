@@ -12,6 +12,11 @@ class TeamMemberPolicy
         return true;
     }
 
+    public function view(User $user, User $teamMember): bool // NOSONAR - parameter required by Laravel policy contract
+    {
+        return true;
+    }
+
     public function create(User $user): bool
     {
         return $user->isAdmin();

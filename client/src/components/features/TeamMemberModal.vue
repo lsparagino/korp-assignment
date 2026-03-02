@@ -1,139 +1,105 @@
 <script lang="ts" setup>
-  import type { TeamMember } from '@/api/team-members'
-  import type { Wallet } from '@/api/wallets'
-  import { useQuery } from '@pinia/colada'
-  import { computed, ref, watch } from 'vue'
-  import { useI18n } from 'vue-i18n'
-  import { useFormValidation } from '@/composables/useFormValidation'
-  import { walletsListQuery } from '@/queries/wallets'
-  import { useTeamMemberStore } from '@/stores/team-member'
-  import { getValidationErrors, isApiError } from '@/utils/errors'
+import type { Wallet } from '@/api/wallets'
+import { useQuery } from '@pinia/colada'
+import { computed, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { useFormValidation } from '@/composables/useFormValidation'
+import { walletsListQuery } from '@/queries/wallets'
+import { useTeamMemberStore } from '@/stores/team-member'
+import { getValidationErrors, isApiError } from '@/utils/errors'
 
-  const { t } = useI18n()
+const { t } = useI18n()
 
-  const props = defineProps<{
-    user?: TeamMember | null
-    modelValue: boolean
-  }>()
+const props = defineProps<{
+  modelValue: boolean
+}>()
 
-  const emit = defineEmits(['update:modelValue', 'saved'])
+const emit = defineEmits(['update:modelValue', 'saved'])
 
-  const dialog = ref(false)
-  const processing = ref(false)
-  const { formRef, formValid, validate, resetValidation } = useFormValidation()
-  const form = ref({
-    name: '',
-    email: '',
-    wallets: [] as number[],
-  })
-  const errors = ref<Record<string, string[]>>({})
-  const teamMemberStore = useTeamMemberStore()
+const dialog = ref(false)
+const processing = ref(false)
+const { formRef, formValid, validate, resetValidation } = useFormValidation()
+const form = ref({
+  name: '',
+  email: '',
+  wallets: [] as number[],
+})
+const errors = ref<Record<string, string[]>>({})
+const teamMemberStore = useTeamMemberStore()
 
-  const requiredRule = (v: unknown) => !!v || t('validation.required')
+const requiredRule = (v: unknown) => !!v || t('validation.required')
 
-  const { data: walletsData } = useQuery(
-    walletsListQuery,
-    () => ({ page: 1, perPage: 500 }),
-  )
-  const wallets = computed<Wallet[]>(() => walletsData.value?.data ?? [])
+const { data: walletsData } = useQuery(
+  walletsListQuery,
+  () => ({ page: 1, perPage: 500 }),
+)
+const wallets = computed<Wallet[]>(() => walletsData.value?.data ?? [])
 
-  watch(
-    () => props.modelValue,
-    val => {
-      dialog.value = val
-      if (val) {
-        errors.value = {}
-        form.value = props.user
-          ? {
-            name: props.user.name,
-            email: props.user.email,
-            wallets: props.user.assigned_wallets || [],
-          }
-          : { name: '', email: '', wallets: [] }
-        resetValidation()
-      }
-    },
-    { immediate: true },
-  )
-
-  watch(dialog, val => {
-    emit('update:modelValue', val)
-  })
-
-  async function save () {
-    const valid = await validate()
-    if (!valid) return
-
-    processing.value = true
-    errors.value = {}
-    try {
-      await (props.user?.id ? teamMemberStore.updateMember({ id: props.user.id, form: form.value }) : teamMemberStore.createMember(form.value))
-      emit('saved')
-      dialog.value = false
-    } catch (error: unknown) {
-      if (isApiError(error, 422)) {
-        errors.value = getValidationErrors(error)
-      } else {
-        console.error('Error saving member:', error)
-      }
-    } finally {
-      processing.value = false
+watch(
+  () => props.modelValue,
+  val => {
+    dialog.value = val
+    if (val) {
+      errors.value = {}
+      form.value = { name: '', email: '', wallets: [] }
+      resetValidation()
     }
+  },
+  { immediate: true },
+)
+
+watch(dialog, val => {
+  emit('update:modelValue', val)
+})
+
+async function save() {
+  const valid = await validate()
+  if (!valid) return
+
+  processing.value = true
+  errors.value = {}
+  try {
+    await teamMemberStore.createMember(form.value)
+    emit('saved')
+    dialog.value = false
+  } catch (error: unknown) {
+    if (isApiError(error, 422)) {
+      errors.value = getValidationErrors(error)
+    } else {
+      console.error('Error inviting member:', error)
+    }
+  } finally {
+    processing.value = false
   }
+}
 </script>
 
 <template>
   <v-dialog v-model="dialog" data-testid="member-dialog" max-width="600">
     <v-card rounded="lg">
       <v-card-title class="pa-4 font-weight-bold">
-        {{ user ? $t('teamMembers.editMember') : $t('teamMembers.addMember') }}
+        {{ $t('teamMembers.addMember') }}
       </v-card-title>
       <v-divider />
       <v-card-text class="pa-4">
         <v-form ref="formRef" v-model="formValid" @submit.prevent="save">
-          <v-text-field
-            v-model="form.name"
-            data-testid="member-name-input"
-            :error-messages="errors.name"
-            :label="$t('common.fullName')"
-            :placeholder="$t('teamMembers.fullNamePlaceholder')"
-            :rules="[requiredRule]"
-            variant="outlined"
-          />
-          <v-text-field
-            v-model="form.email"
-            data-testid="member-email-input"
-            :error-messages="errors.email"
-            :label="$t('common.emailAddress')"
-            :placeholder="$t('teamMembers.emailPlaceholder')"
-            :rules="[requiredRule]"
-            type="email"
-            variant="outlined"
-          />
+          <v-text-field v-model="form.name" data-testid="member-name-input" :error-messages="errors.name"
+            :label="$t('common.fullName')" :placeholder="$t('teamMembers.fullNamePlaceholder')" :rules="[requiredRule]"
+            variant="outlined" />
+          <v-text-field v-model="form.email" data-testid="member-email-input" :error-messages="errors.email"
+            :label="$t('common.emailAddress')" :placeholder="$t('teamMembers.emailPlaceholder')" :rules="[requiredRule]"
+            type="email" variant="outlined" />
 
           <div class="text-subtitle-1 font-weight-bold mb-2">
             {{ $t('teamMembers.walletAccess') }}
           </div>
-          <div
-            v-if="errors.wallets"
-            class="text-caption text-error mb-2"
-          >
+          <div v-if="errors.wallets" class="text-caption text-error mb-2">
             {{ errors.wallets[0] }}
           </div>
           <v-row dense>
-            <v-col
-              v-for="wallet in wallets"
-              :key="wallet.id"
-              cols="12"
-              sm="6"
-            >
-              <v-checkbox
-                v-model="form.wallets"
-                density="compact"
-                hide-details
-                :label="`${wallet.name} (${wallet.currency})`"
-                :value="wallet.id"
-              />
+            <v-col v-for="wallet in wallets" :key="wallet.id" cols="12" sm="6">
+              <v-checkbox v-model="form.wallets" density="compact" hide-details
+                :label="`${wallet.name} (${wallet.currency})`" :value="wallet.id" />
             </v-col>
           </v-row>
         </v-form>
@@ -141,23 +107,12 @@
       <v-divider />
       <v-card-actions class="pa-4">
         <v-spacer />
-        <v-btn
-          color="grey-darken-1"
-          :disabled="processing"
-          variant="text"
-          @click="dialog = false"
-        >
+        <v-btn color="grey-darken-1" :disabled="processing" variant="text" @click="dialog = false">
           {{ $t('common.cancel') }}
         </v-btn>
-        <v-btn
-          color="primary"
-          data-testid="member-submit-btn"
-          :disabled="!formValid"
-          :loading="processing"
-          variant="flat"
-          @click="save"
-        >
-          {{ user ? $t('teamMembers.updateMember') : $t('teamMembers.inviteMember') }}
+        <v-btn color="primary" data-testid="member-submit-btn" :disabled="!formValid" :loading="processing"
+          variant="flat" @click="save">
+          {{ $t('teamMembers.inviteMember') }}
         </v-btn>
       </v-card-actions>
     </v-card>

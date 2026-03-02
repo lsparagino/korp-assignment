@@ -31,6 +31,11 @@ class TeamMemberService
             ->paginate(10);
     }
 
+    public function find(User $member): User
+    {
+        return $member->loadCount('assignedWallets')->load('assignedWallets');
+    }
+
     public function invite(string $name, string $email, int $companyId, array $wallets = []): User
     {
         $user = DB::transaction(function () use ($name, $email, $companyId, $wallets) {

@@ -7,6 +7,7 @@ import TeamMembersPage from './index.vue'
 
 vi.mock('@/api/team-members', () => ({
     fetchTeamMembers: vi.fn(),
+    fetchTeamMember: vi.fn(),
     createTeamMember: vi.fn(),
     updateTeamMember: vi.fn(),
     deleteTeamMember: vi.fn(),
@@ -17,7 +18,6 @@ vi.mock('@/api/wallets', () => ({
     fetchWallets: vi.fn(),
 }))
 
-// Mock queries module
 vi.mock('@/queries/team-members', () => {
     return {
         TEAM_MEMBER_QUERY_KEYS: { root: ['team-members'] },
@@ -87,22 +87,24 @@ describe('team-members/index.vue', () => {
         expect(wrapper.find('[data-testid="add-member-btn"]').exists()).toBe(false)
     })
 
-    it('shows edit and delete buttons for admin', async () => {
+    it('has clickable rows with data-testid', async () => {
         const wrapper = mountWithPlugins(TeamMembersPage, {
             piniaOptions: { initialState: makeAuthState('admin') },
         })
         await flushPromises()
 
-        expect(wrapper.find('[data-testid="edit-btn"]').exists()).toBe(true)
-        expect(wrapper.find('[data-testid="delete-btn"]').exists()).toBe(true)
+        expect(wrapper.find('[data-testid="member-row-1"]').exists()).toBe(true)
+        expect(wrapper.find('[data-testid="member-row-2"]').exists()).toBe(true)
     })
 
-    it('shows promote button for non-admin members', async () => {
+    it('does not show action buttons in the table', async () => {
         const wrapper = mountWithPlugins(TeamMembersPage, {
             piniaOptions: { initialState: makeAuthState('admin') },
         })
         await flushPromises()
 
-        expect(wrapper.find('[data-testid="promote-btn-2"]').exists()).toBe(true)
+        expect(wrapper.find('[data-testid="edit-btn"]').exists()).toBe(false)
+        expect(wrapper.find('[data-testid="delete-btn"]').exists()).toBe(false)
+        expect(wrapper.find('[data-testid="promote-btn-2"]').exists()).toBe(false)
     })
 })

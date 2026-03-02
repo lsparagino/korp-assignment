@@ -251,7 +251,13 @@
             "role": "Role",
             "walletAccess": "Wallet Access",
             "actions": "Actions"
-        }
+        },
+        "backToTeamMembers": "Back to Team Members",
+        "memberDetails": "Member Details",
+        "recentTransactions": "Recent Transactions",
+        "managementActions": "Management Actions",
+        "managementDescription": "Manage the member's role or remove them from the team.",
+        "noRecentTransactions": "No recent transactions."
     },
     "settings": {
         "nav": {

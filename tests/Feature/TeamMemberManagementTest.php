@@ -51,6 +51,34 @@ test('admins can list team members', function () {
         ->assertJsonPath('company', config('app.name'));
 });
 
+test('admins can view a single team member', function () {
+    $member = User::factory()->create(['role' => UserRole::Member]);
+    $member->companies()->attach($this->company);
+
+    $response = $this->actingAs($this->admin, 'sanctum')
+        ->getJson(TEAM_MEMBERS_ENDPOINT."/{$member->id}?company_id={$this->company->id}");
+
+    $response->assertStatus(200)
+        ->assertJsonPath('id', $member->id)
+        ->assertJsonPath('name', $member->name)
+        ->assertJsonPath('email', $member->email)
+        ->assertJsonPath('role', 'Member');
+});
+
+test('members can view a single team member', function () {
+    $member = User::factory()->create(['role' => UserRole::Member]);
+    $member->companies()->attach($this->company);
+
+    $otherMember = User::factory()->create(['role' => UserRole::Member]);
+    $otherMember->companies()->attach($this->company);
+
+    $response = $this->actingAs($member, 'sanctum')
+        ->getJson(TEAM_MEMBERS_ENDPOINT."/{$otherMember->id}?company_id={$this->company->id}");
+
+    $response->assertStatus(200)
+        ->assertJsonPath('id', $otherMember->id);
+});
+
 test('admins can update team members', function () {
     $member = User::factory()->create(['role' => UserRole::Member]);
     $member->companies()->attach($this->company);

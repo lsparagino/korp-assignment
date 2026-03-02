@@ -2,11 +2,12 @@ import type { TeamMember } from '@/api/team-members'
 import type { PaginationMeta } from '@/composables/useUrlPagination'
 import { defineQuery, defineQueryOptions, useQuery } from '@pinia/colada'
 import { computed, ref } from 'vue'
-import { fetchTeamMembers } from '@/api/team-members'
+import { fetchTeamMember, fetchTeamMembers } from '@/api/team-members'
 
 export const TEAM_MEMBER_QUERY_KEYS = {
   root: ['team-members'] as const,
   list: (page: number) => [...TEAM_MEMBER_QUERY_KEYS.root, page] as const,
+  byId: (id: number) => [...TEAM_MEMBER_QUERY_KEYS.root, 'detail', id] as const,
 }
 
 export const teamMembersListQuery = defineQueryOptions(
@@ -14,6 +15,16 @@ export const teamMembersListQuery = defineQueryOptions(
     key: TEAM_MEMBER_QUERY_KEYS.list(page),
     query: async () => {
       const response = await fetchTeamMembers(page)
+      return response.data
+    },
+  }),
+)
+
+export const teamMemberByIdQuery = defineQueryOptions(
+  (id: number) => ({
+    key: TEAM_MEMBER_QUERY_KEYS.byId(id),
+    query: async () => {
+      const response = await fetchTeamMember(id)
       return response.data
     },
   }),

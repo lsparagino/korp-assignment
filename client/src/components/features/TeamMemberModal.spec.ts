@@ -24,11 +24,10 @@ vi.mock('@/queries/wallets', () => ({
 vi.mock('@/stores/team-member', () => ({
   useTeamMemberStore: () => ({
     createMember: vi.fn().mockResolvedValue({}),
-    updateMember: vi.fn().mockResolvedValue({}),
   }),
 }))
 
-describe('TeamMemberModal.vue', () => {
+describe('TeamMemberModal.vue (invite-only)', () => {
   let wrapper: ReturnType<typeof mountWithPlugins>
 
   afterEach(() => {
@@ -36,7 +35,7 @@ describe('TeamMemberModal.vue', () => {
     document.body.innerHTML = ''
   })
 
-  async function mountModal (props: Record<string, unknown> = {}) {
+  async function mountModal(props: Record<string, unknown> = {}) {
     wrapper = mountWithPlugins(TeamMemberModal, {
       props: {
         modelValue: true,
@@ -44,7 +43,6 @@ describe('TeamMemberModal.vue', () => {
       },
       attachTo: document.body,
     })
-    // Give Vuetify dialog and query time to resolve
     await flushPromises()
     await wrapper.vm.$nextTick()
     await flushPromises()
@@ -53,7 +51,7 @@ describe('TeamMemberModal.vue', () => {
     return wrapper
   }
 
-  it('renders dialog with form fields for new member', async () => {
+  it('renders dialog with form fields', async () => {
     await mountModal()
 
     expect(findByTestId('member-name-input')).not.toBeNull()
@@ -61,32 +59,12 @@ describe('TeamMemberModal.vue', () => {
     expect(findByTestId('member-submit-btn')).not.toBeNull()
   })
 
-  it('shows add member title when no user prop', async () => {
+  it('shows add member title', async () => {
     await mountModal()
 
-    // Dialog title is rendered inside the card
     const title = document.body.querySelector('.v-card-title')
     expect(title).not.toBeNull()
     expect(title!.textContent).toContain(en.teamMembers.addMember)
-  })
-
-  it('shows edit member title when user prop is provided', async () => {
-    await mountModal({
-      user: {
-        id: 1,
-        name: 'John Doe',
-        email: 'john@example.com',
-        role: 'member',
-        wallet_access: 'limited',
-        is_current: false,
-        is_pending: false,
-        assigned_wallets: [1],
-      },
-    })
-
-    const title = document.body.querySelector('.v-card-title')
-    expect(title).not.toBeNull()
-    expect(title!.textContent).toContain(en.teamMembers.editMember)
   })
 
   it('has submit button disabled when form is empty', async () => {
@@ -97,7 +75,7 @@ describe('TeamMemberModal.vue', () => {
     expect((submitBtn!.element as HTMLButtonElement).disabled).toBe(true)
   })
 
-  it('shows invite member label on submit button for new member', async () => {
+  it('shows invite member label on submit button', async () => {
     await mountModal()
 
     const submitBtn = findByTestId('member-submit-btn')

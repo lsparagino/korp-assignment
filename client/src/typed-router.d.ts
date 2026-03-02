@@ -35,6 +35,7 @@ declare module 'vue-router/auto-routes' {
     '/settings/thresholds': RouteRecordInfo<'/settings/thresholds', '/settings/thresholds', Record<never, never>, Record<never, never>>,
     '/settings/two-factor': RouteRecordInfo<'/settings/two-factor', '/settings/two-factor', Record<never, never>, Record<never, never>>,
     '/team-members/': RouteRecordInfo<'/team-members/', '/team-members', Record<never, never>, Record<never, never>>,
+    '/team-members/[memberId]': RouteRecordInfo<'/team-members/[memberId]', '/team-members/:memberId', { memberId: ParamValue<true> }, { memberId: ParamValue<false> }>,
     '/transactions/': RouteRecordInfo<'/transactions/', '/transactions', Record<never, never>, Record<never, never>>,
     '/transactions/create': RouteRecordInfo<'/transactions/create', '/transactions/create', Record<never, never>, Record<never, never>>,
     '/wallets/': RouteRecordInfo<'/wallets/', '/wallets', Record<never, never>, Record<never, never>>,
@@ -119,6 +120,10 @@ declare module 'vue-router/auto-routes' {
     }
     'src/pages/team-members/index.vue': {
       routes: '/team-members/'
+      views: never
+    }
+    'src/pages/team-members/[memberId].vue': {
+      routes: '/team-members/[memberId]'
       views: never
     }
     'src/pages/transactions/index.vue': {

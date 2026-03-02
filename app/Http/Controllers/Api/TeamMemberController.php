@@ -43,6 +43,15 @@ class TeamMemberController extends Controller
         ]);
     }
 
+    public function show(User $teamMember): JsonResponse
+    {
+        $this->authorize('view', $teamMember);
+
+        return response()->json(
+            new TeamMemberResource($this->teamMemberService->find($teamMember))
+        );
+    }
+
     public function store(StoreTeamMemberRequest $request): JsonResponse
     {
         $user = $this->teamMemberService->invite(
