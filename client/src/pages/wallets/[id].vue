@@ -264,6 +264,7 @@
                   <v-btn
                     class="flex-grow-1 text-none"
                     color="error"
+                    data-testid="delete-wallet-btn"
                     :disabled="!wallet?.can_delete || processing"
                     :prepend-icon="Trash2"
                     rounded="lg"

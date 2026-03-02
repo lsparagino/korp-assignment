@@ -7,6 +7,7 @@ use App\Http\Requests\Api\StoreAddressBookEntryRequest;
 use App\Http\Requests\Api\UpdateAddressBookEntryRequest;
 use App\Http\Resources\AddressBookEntryResource;
 use App\Models\AddressBookEntry;
+use App\Services\AddressBookEntryService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -16,23 +17,22 @@ class AddressBookEntryController extends Controller
 {
     use AuthorizesRequests;
 
+    public function __construct(private AddressBookEntryService $addressBookEntryService) {}
+
     public function index(Request $request): AnonymousResourceCollection
     {
-        $entries = AddressBookEntry::query()
-            ->forUserInCompany($request->user()->id, $request->company_id)
-            ->orderBy('name')
-            ->get();
-
-        return AddressBookEntryResource::collection($entries);
+        return AddressBookEntryResource::collection(
+            $this->addressBookEntryService->list($request->user()->id, $request->company_id)
+        );
     }
 
     public function store(StoreAddressBookEntryRequest $request): AddressBookEntryResource
     {
-        $entry = AddressBookEntry::query()->create([
-            ...$request->safe()->only(['name', 'address']),
-            'user_id' => $request->user()->id,
-            'company_id' => $request->company_id,
-        ]);
+        $entry = $this->addressBookEntryService->create(
+            $request->user(),
+            $request->company_id,
+            $request->safe()->only(['name', 'address'])
+        );
 
         return new AddressBookEntryResource($entry);
     }
@@ -41,16 +41,16 @@ class AddressBookEntryController extends Controller
     {
         $this->authorize('update', $addressBookEntry);
 
-        $addressBookEntry->update($request->safe()->only(['name', 'address']));
-
-        return new AddressBookEntryResource($addressBookEntry);
+        return new AddressBookEntryResource(
+            $this->addressBookEntryService->update($addressBookEntry, $request->safe()->only(['name', 'address']))
+        );
     }
 
     public function destroy(Request $request, AddressBookEntry $addressBookEntry): Response
     {
         $this->authorize('delete', $addressBookEntry);
 
-        $addressBookEntry->delete();
+        $this->addressBookEntryService->delete($addressBookEntry);
 
         return response()->noContent();
     }

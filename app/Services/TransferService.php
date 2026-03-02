@@ -283,6 +283,13 @@ class TransferService
         $debitTransaction->initiator->notify($notification);
     }
 
+    /**
+     * Enforce the user's daily transaction limit.
+     *
+     * Uses selectRaw() instead of Eloquent collection aggregation
+     * because calculating the SUM(ABS(amount)) at the database level
+     * avoids loading all daily transactions into memory.
+     */
     private function enforceDailyLimit(User $user, float $amount): void
     {
         $setting = $user->setting;

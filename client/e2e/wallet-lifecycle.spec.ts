@@ -40,11 +40,16 @@ test.describe('Admin Wallet Lifecycle', () => {
     await page.goto('/wallets')
     await expect(page.getByTestId('data-table')).toBeVisible({ timeout: 15_000 })
 
+    // Click the row to navigate to the wallet detail page
     const row = page.getByTestId('data-table').getByRole('row', { name: walletName })
     await expect(row).toBeVisible({ timeout: 10_000 })
+    await row.click()
 
-    // Click the delete button
-    await row.getByTestId('delete-btn').click()
+    // Wait for the detail page to load
+    await expect(page.getByTestId('page-heading')).toBeVisible({ timeout: 10_000 })
+
+    // Click the delete button on the detail page
+    await page.getByTestId('delete-wallet-btn').click()
 
     // ConfirmDialog should appear with PIN
     const dialog = page.getByTestId('confirm-dialog')
@@ -58,8 +63,11 @@ test.describe('Admin Wallet Lifecycle', () => {
     // Click confirm
     await dialog.getByTestId('confirm-btn').click()
 
-    // Wallet should disappear from the list
-    await expect(row).not.toBeVisible({ timeout: 10_000 })
+    // Should be redirected back to the wallets list
+    await expect(page.getByTestId('data-table')).toBeVisible({ timeout: 15_000 })
+
+    // Wallet should no longer appear in the list
+    await expect(page.getByTestId('data-table').getByRole('row', { name: walletName })).not.toBeVisible({ timeout: 10_000 })
   })
 
   test('member cannot see a wallet they have no access to', async ({ page, browser }) => {
@@ -82,25 +90,23 @@ test.describe('Admin Wallet Lifecycle', () => {
     const sharedWallet = `Shared ${Date.now()}`
     await createWallet(page, sharedWallet)
 
-    // Admin goes to Team Members and edits the member
+    // Admin goes to Team Members and navigates to the member detail page
     await page.goto('/team-members')
     await expect(page.getByTestId('data-table')).toBeVisible({ timeout: 15_000 })
 
-    // Find the member row and click edit
+    // Find the member row and click to navigate to the detail page
     const memberRow = page.getByTestId('data-table').getByRole('row', { name: 'Member User' })
     await expect(memberRow).toBeVisible({ timeout: 10_000 })
-    await memberRow.getByTestId('edit-btn').click()
+    await memberRow.click()
 
-    // Modal should appear
-    const modal = page.getByTestId('member-dialog')
-    await expect(modal).toBeVisible({ timeout: 5000 })
+    // Wait for the detail page to load
+    await expect(page.getByTestId('page-heading')).toBeVisible({ timeout: 10_000 })
 
     // Check the new wallet checkbox
-    await modal.getByRole('checkbox', { name: new RegExp(sharedWallet) }).check({ force: true })
+    await page.getByRole('checkbox', { name: new RegExp(sharedWallet) }).check({ force: true })
 
-    // Click submit
-    await page.getByTestId('member-submit-btn').click()
-    await expect(page.getByTestId('member-dialog')).not.toBeVisible({ timeout: 10_000 })
+    // Click save
+    await page.getByTestId('member-save-btn').click()
 
     // Switch to member and verify
     const member = await loginViaApi('member@example.com', 'password')

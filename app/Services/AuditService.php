@@ -4,54 +4,30 @@ namespace App\Services;
 
 use App\Enums\AuditCategory;
 use App\Enums\AuditSeverity;
-use Google\Auth\ApplicationDefaultCredentials;
-use Google\Auth\Middleware\AuthTokenMiddleware;
 use GuzzleHttp\Client;
-use GuzzleHttp\HandlerStack;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Request;
 
 class AuditService
 {
-    private ?Client $httpClient = null;
+    private ?Client $httpClient;
 
-    private ?string $projectId = null;
+    private ?string $projectId;
 
     private string $database = 'audit-logs';
 
     public function __construct()
     {
-        if (app()->runningUnitTests()) {
-            return;
-        }
-
+        $this->httpClient = app('audit.http_client');
         $this->projectId = config('services.google.project_id');
-
-        if (empty($this->projectId)) {
-            return;
-        }
-
-        try {
-            $credentials = ApplicationDefaultCredentials::getCredentials(
-                'https://www.googleapis.com/auth/datastore'
-            );
-            $middleware = new AuthTokenMiddleware($credentials);
-            $stack = HandlerStack::create();
-            $stack->push($middleware);
-
-            $this->httpClient = new Client([
-                'handler' => $stack,
-                'auth' => 'google_auth',
-                'base_uri' => 'https://firestore.googleapis.com/',
-            ]);
-        } catch (\Throwable $e) {
-            Log::error('Firestore HTTP client initialization failed', [
-                'error' => $e->getMessage(),
-            ]);
-        }
     }
 
     /**
+     * Write an audit entry to Firestore.
+     *
+     * Pre-computes filter tags (e.g. "cat_transaction", "sev_normal", "cat_transaction_sev_normal")
+     * to support efficient ARRAY_CONTAINS queries without composite indexes.
+     *
      * @param  array{metadata?: array<string, mixed>, user_id?: int, user_name?: string, company_id?: int}  $context
      */
     public function log(
@@ -70,8 +46,6 @@ class AuditService
         $companyId = (int) ($context['company_id'] ?? Request::input('company_id') ?? 0);
         $metadata = $context['metadata'] ?? [];
 
-        // Pre-computed filter tags for ARRAY_CONTAINS queries.
-        // Avoids needing a composite index per filter combination.
         $cat = $category->value;
         $sev = $severity->value;
         $filterTags = ["cat_{$cat}", "sev_{$sev}", "cat_{$cat}_sev_{$sev}"];
@@ -122,7 +96,6 @@ class AuditService
                 $where[] = $this->fieldFilter('company_id', 'EQUAL', (int) $companyId);
             }
 
-            // Use ARRAY_CONTAINS on the pre-computed filter_tags field.
             $filterTag = $this->buildFilterTag($filters);
             if ($filterTag) {
                 $where[] = $this->fieldFilter('filter_tags', 'ARRAY_CONTAINS', $filterTag);
@@ -177,7 +150,7 @@ class AuditService
                 $doc = $result['document'];
                 $data = $this->decodeFields($doc['fields'] ?? []);
                 $data['id'] = basename($doc['name']);
-                unset($data['filter_tags']); // internal field, not exposed to the client
+                unset($data['filter_tags']);
                 $logs[] = $data;
                 $lastCursor = $data['created_at'] ?? null;
             }

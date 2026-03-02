@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\ConfirmTwoFactorRequest;
 use App\Http\Requests\Settings\TwoFactorAuthenticationRequest;
+use App\Models\User;
 use App\Services\AuthService;
 use Illuminate\Http\JsonResponse;
 use Laravel\Fortify\Actions\ConfirmTwoFactorAuthentication;
@@ -63,7 +64,7 @@ class TwoFactorController extends Controller
         return response()->json(['message' => __('messages.recovery_codes_regenerated')]);
     }
 
-    private function ensureTwoFactorEnabled(mixed $user): void
+    private function ensureTwoFactorEnabled(User $user): void
     {
         if ($user->two_factor_secret === null) {
             abort(400, __('messages.two_factor_not_enabled'));

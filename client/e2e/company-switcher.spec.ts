@@ -31,6 +31,9 @@ test.describe('Company Switcher', () => {
     // Wait for the switch to complete — the selector should now show the second company
     await expect(selectorBtn).toContainText(secondCompany.name, { timeout: 10_000 })
 
+    // Wait for the page to stabilize after company switch (re-render settles)
+    await expect(page.getByTestId('page-heading')).toBeVisible({ timeout: 10_000 })
+
     // Switch back to first company
     await selectorBtn.click()
     const firstCompanyItem = page.getByTestId('company-list-item').filter({ hasText: firstCompany.name })

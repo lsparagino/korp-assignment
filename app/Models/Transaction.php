@@ -78,16 +78,16 @@ class Transaction extends Model
 
     /**
      * De-duplicate internal transfers where the user owns both wallets.
-     * Only keep the debit entry for transfers between the user's own wallets.
+     *
+     * Keeps all entries where the counterpart is NOT one of the user's wallets,
+     * plus only the debit entry for transfers between the user's own wallets.
      */
     public function scopeDeduplicatedForWallets(Builder $query, Collection $walletIds): Builder
     {
         return $query->forWallets($walletIds)
             ->where(function (Builder $q) use ($walletIds) {
-                // Keep all entries where the counterpart is NOT one of the user's wallets
                 $q->whereNull('counterpart_wallet_id')
                     ->orWhereNotIn('counterpart_wallet_id', $walletIds)
-                    // For internal transfers between user's own wallets, keep only the debit entry
                     ->orWhere(function (Builder $inner) use ($walletIds) {
                         $inner->whereIn('counterpart_wallet_id', $walletIds)
                             ->where('type', TransactionType::Debit);
