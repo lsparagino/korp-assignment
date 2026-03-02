@@ -33,7 +33,7 @@ class TransactionRejected extends Notification
                 'reviewerName' => $this->transaction->reviewer?->name ?? __('messages.unknown'),
                 'walletName' => $this->transaction->wallet?->name ?? __('messages.unknown'),
                 'amount' => number_format(abs((float) $this->transaction->amount), 2),
-                'currency' => $this->transaction->currency,
+                'currency' => $this->transaction->source_currency,
                 'reference' => $this->transaction->reference,
                 'rejectReason' => $this->transaction->reject_reason,
             ]);

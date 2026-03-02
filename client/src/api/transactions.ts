@@ -1,12 +1,17 @@
 import type { PaginationParams } from '@/api/pagination'
 import { api } from '@/plugins/api'
 
+export type FilterId = number | string | undefined
+export type FilterNullableId = number | string | null
+export type FilterNumericId = number | undefined
+
 export interface Transaction {
   id: number
   group_id: string
   type: string
   amount: number
-  currency: string
+  source_currency: string
+  destination_currency: string
   status: string
   exchange_rate: number
   reference: string | null
@@ -34,10 +39,10 @@ interface TransactionParams extends PaginationParams {
   amount_min?: string
   amount_max?: string
   reference?: string
-  from_wallet_id?: number | string | null
-  to_wallet_id?: number | string | null
+  from_wallet_id?: FilterNullableId
+  to_wallet_id?: FilterNullableId
   initiator_user_id?: number
-  has_wallet_id?: number | string
+  has_wallet_id?: FilterId
 }
 
 export interface TransferForm {

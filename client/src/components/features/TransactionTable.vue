@@ -154,7 +154,7 @@ function getToLabel(item: Transaction) {
               </span>
             </div>
             <span class="font-weight-black text-body-2" :class="getTransactionColor(item)">
-              {{ formatCurrency(getDisplayAmount(item), item.currency) }}
+              {{ formatCurrency(getDisplayAmount(item), item.source_currency) }}
             </span>
           </div>
           <!-- Row 2: from wallet → to wallet -->
@@ -165,7 +165,7 @@ function getToLabel(item: Transaction) {
             </v-avatar>
             <span class="font-weight-medium text-no-wrap text-truncate"
               :class="isAssigned(getFromWalletId(item)) ? 'text-grey-darken-2' : 'text-grey-lighten-1'">{{
-              getFromLabel(item) }}</span>
+                getFromLabel(item) }}</span>
             <v-icon color="grey" icon="mdi-arrow-right" size="12" />
             <v-avatar class="flex-shrink-0" :color="isAssigned(getToWalletId(item)) ? 'primary' : 'grey-lighten-2'"
               rounded="sm" size="14">
@@ -173,7 +173,7 @@ function getToLabel(item: Transaction) {
             </v-avatar>
             <span class="font-weight-medium text-no-wrap text-truncate"
               :class="isAssigned(getToWalletId(item)) ? 'text-grey-darken-2' : 'text-grey-lighten-1'">{{
-              getToLabel(item) }}</span>
+                getToLabel(item) }}</span>
           </div>
         </td>
 
@@ -210,7 +210,7 @@ function getToLabel(item: Transaction) {
 
           <!-- ── Desktop: Amount ── -->
           <td class="d-none d-sm-table-cell" :class="[getTransactionColor(item), 'font-weight-black']">
-            {{ formatCurrency(getDisplayAmount(item), item.currency) }}
+            {{ formatCurrency(getDisplayAmount(item), item.source_currency) }}
           </td>
 
           <!-- ── Desktop: From Wallet ── -->
@@ -222,7 +222,7 @@ function getToLabel(item: Transaction) {
               </v-avatar>
               <span class="text-caption font-weight-medium"
                 :class="isAssigned(getFromWalletId(item)) ? 'text-grey-darken-2' : 'text-grey-lighten-1'">{{
-                getFromLabel(item) }}</span>
+                  getFromLabel(item) }}</span>
             </div>
           </td>
 
@@ -235,7 +235,7 @@ function getToLabel(item: Transaction) {
               </v-avatar>
               <span class="text-caption font-weight-medium"
                 :class="isAssigned(getToWalletId(item)) ? 'text-grey-darken-2' : 'text-grey-lighten-1'">{{
-                getToLabel(item) }}</span>
+                  getToLabel(item) }}</span>
             </div>
           </td>
 

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { Transaction } from '@/api/transactions'
+import type { Transaction, FilterId, FilterNumericId } from '@/api/transactions'
 import { computed, ref } from 'vue'
 import { useQuery } from '@pinia/colada'
 import TransactionTable from '@/components/features/TransactionTable.vue'
@@ -23,10 +23,10 @@ const authStore = useAuthStore()
 const queryParams = computed(() => ({
     page: 1,
     perPage: props.limit,
-    hasWalletId: (props.filterParams.has_wallet_id as number | string | undefined) ?? undefined,
-    initiatorUserId: (props.filterParams.initiator_user_id as number | undefined) ?? undefined,
-    fromWalletId: (props.filterParams.from_wallet_id as number | string | undefined) ?? undefined,
-    toWalletId: (props.filterParams.to_wallet_id as number | string | undefined) ?? undefined,
+    hasWalletId: (props.filterParams.has_wallet_id as FilterId) ?? undefined,
+    initiatorUserId: (props.filterParams.initiator_user_id as FilterNumericId) ?? undefined,
+    fromWalletId: (props.filterParams.from_wallet_id as FilterId) ?? undefined,
+    toWalletId: (props.filterParams.to_wallet_id as FilterId) ?? undefined,
 }))
 
 const { data: transactionsData, isPending: loading, refetch } = useQuery(

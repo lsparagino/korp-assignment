@@ -33,7 +33,7 @@ class TransactionPendingApproval extends Notification
                 'initiatorName' => $this->transaction->initiator?->name ?? __('messages.unknown'),
                 'walletName' => $this->transaction->wallet?->name ?? __('messages.unknown'),
                 'amount' => number_format(abs((float) $this->transaction->amount), 2),
-                'currency' => $this->transaction->currency,
+                'currency' => $this->transaction->source_currency,
                 'reference' => $this->transaction->reference,
                 'notes' => $this->transaction->notes,
             ]);

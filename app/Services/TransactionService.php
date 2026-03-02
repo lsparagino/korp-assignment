@@ -7,6 +7,8 @@ use App\Models\Transaction;
 use App\Models\User;
 use App\Models\Wallet;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\DB;
 
 class TransactionService
 {
@@ -48,10 +50,44 @@ class TransactionService
             $query->where('amount', '<=', $filters['amount_max']);
         }
 
-        if (! empty($filters['reference'])) {
-            $query->where('reference', 'LIKE', '%'.$filters['reference'].'%');
+        $this->applyReferenceFilter($query, $filters);
+        $this->applyFromWalletFilter($query, $filters);
+        $this->applyToWalletFilter($query, $filters);
+
+        if (! empty($filters['initiator_user_id'])) {
+            $query->where('initiator_user_id', $filters['initiator_user_id']);
         }
 
+        $this->applyHasWalletFilter($query, $filters);
+
+        return $query->with(['wallet', 'counterpartWallet', 'initiator', 'reviewer'])
+            ->latest()
+            ->paginate($perPage);
+    }
+
+    /**
+     * @param  Builder<Transaction>  $query
+     * @param  array<string, mixed>  $filters
+     */
+    private function applyReferenceFilter(Builder $query, array $filters): void
+    {
+        if (empty($filters['reference'])) {
+            return;
+        }
+
+        if (DB::getDriverName() === 'sqlite') {
+            $query->where('reference', 'LIKE', '%'.$filters['reference'].'%');
+        } else {
+            $query->whereFullText('reference', $filters['reference']);
+        }
+    }
+
+    /**
+     * @param  Builder<Transaction>  $query
+     * @param  array<string, mixed>  $filters
+     */
+    private function applyFromWalletFilter(Builder $query, array $filters): void
+    {
         if (($filters['from_wallet_id'] ?? null) === 'external') {
             $query->where('type', TransactionType::Credit)->where('external', true);
         } elseif (! empty($filters['from_wallet_id'])) {
@@ -63,7 +99,14 @@ class TransactionService
                 });
             });
         }
+    }
 
+    /**
+     * @param  Builder<Transaction>  $query
+     * @param  array<string, mixed>  $filters
+     */
+    private function applyToWalletFilter(Builder $query, array $filters): void
+    {
         if (($filters['to_wallet_id'] ?? null) === 'external') {
             $query->where('type', TransactionType::Debit)->where('external', true);
         } elseif (! empty($filters['to_wallet_id'])) {
@@ -75,11 +118,14 @@ class TransactionService
                 });
             });
         }
+    }
 
-        if (! empty($filters['initiator_user_id'])) {
-            $query->where('initiator_user_id', $filters['initiator_user_id']);
-        }
-
+    /**
+     * @param  Builder<Transaction>  $query
+     * @param  array<string, mixed>  $filters
+     */
+    private function applyHasWalletFilter(Builder $query, array $filters): void
+    {
         if (($filters['has_wallet_id'] ?? null) === 'external') {
             $query->where('external', true);
         } elseif (! empty($filters['has_wallet_id'])) {
@@ -88,9 +134,5 @@ class TransactionService
                     ->orWhere('counterpart_wallet_id', $filters['has_wallet_id']);
             });
         }
-
-        return $query->with(['wallet', 'counterpartWallet', 'initiator', 'reviewer'])
-            ->latest()
-            ->paginate($perPage);
     }
 }

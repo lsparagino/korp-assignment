@@ -94,7 +94,8 @@ class TransferService
             ['metadata' => [
                 'group_id' => $result['group_id'],
                 'amount' => $data['amount'],
-                'currency' => $result['currency'],
+                'source_currency' => $result['currency'],
+                'destination_currency' => $result['currency'],
                 'sender_wallet' => $result['sender_wallet_name'],
                 'receiver_wallet' => $result['receiver_wallet_name'],
                 'external' => $data['external'] ?? false,
@@ -160,7 +161,8 @@ class TransferService
                 'group_id' => $groupId,
                 'action' => $action,
                 'amount' => $debitTx ? abs((float) $debitTx->amount) : null,
-                'currency' => $debitTx?->currency,
+                'source_currency' => $debitTx?->source_currency,
+                'destination_currency' => $debitTx?->destination_currency,
                 'wallet_name' => $debitTx?->wallet?->name,
                 'reason' => $reason,
             ]],
@@ -210,7 +212,8 @@ class TransferService
             ['metadata' => [
                 'group_id' => $groupId,
                 'amount' => $debitTx ? abs((float) $debitTx->amount) : null,
-                'currency' => $debitTx?->currency,
+                'source_currency' => $debitTx?->source_currency,
+                'destination_currency' => $debitTx?->destination_currency,
                 'wallet_name' => $debitTx?->wallet?->name,
             ]],
         );

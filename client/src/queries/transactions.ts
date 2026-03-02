@@ -1,5 +1,5 @@
 import { defineQueryOptions } from '@pinia/colada'
-import { fetchTransactions } from '@/api/transactions'
+import { fetchTransactions, type FilterNullableId } from '@/api/transactions'
 
 interface TransactionsQueryParams {
   page: number
@@ -11,9 +11,9 @@ interface TransactionsQueryParams {
   amountMin?: string
   amountMax?: string
   reference?: string
-  fromWalletId?: number | string | null
-  toWalletId?: number | string | null
-  hasWalletId?: number | string | null
+  fromWalletId?: FilterNullableId
+  toWalletId?: FilterNullableId
+  hasWalletId?: FilterNullableId
   initiatorUserId?: number | null
 }
 
@@ -36,8 +36,8 @@ export const transactionsListQuery = defineQueryOptions(
         amount_min: params.amountMin,
         amount_max: params.amountMax,
         reference: params.reference,
-        from_wallet_id: params.fromWalletId as number | null,
-        to_wallet_id: params.toWalletId as number | null,
+        from_wallet_id: params.fromWalletId as FilterNullableId,
+        to_wallet_id: params.toWalletId as FilterNullableId,
         has_wallet_id: params.hasWalletId ?? undefined,
         initiator_user_id: params.initiatorUserId ?? undefined,
       })

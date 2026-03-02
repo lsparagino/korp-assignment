@@ -32,7 +32,7 @@ class TransactionCompleted extends Notification
                 'transaction' => $this->transaction,
                 'walletName' => $this->transaction->wallet?->name ?? __('messages.unknown'),
                 'amount' => number_format(abs((float) $this->transaction->amount), 2),
-                'currency' => $this->transaction->currency,
+                'currency' => $this->transaction->source_currency,
                 'reference' => $this->transaction->reference,
             ]);
     }
