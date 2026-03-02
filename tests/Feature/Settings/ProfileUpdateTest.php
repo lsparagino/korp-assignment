@@ -77,7 +77,6 @@ test('correct password must be provided to delete account', function () {
 
 test('profile email change returns error when verification email fails to send', function () {
     $user = User::factory()->create();
-    $originalEmail = $user->email;
     $newEmail = 'newemail@example.com';
 
     // Create a partial mock of the user that throws on sendEmailVerificationNotification

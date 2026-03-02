@@ -87,15 +87,11 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::post('/{groupId}/cancel', [TransferController::class, 'cancel']);
         });
 
-        Route::prefix('team-members')->group(function () {
-            Route::apiResource('/', TeamMemberController::class)->parameters(['' => 'teamMember']);
-            Route::patch('/{teamMember}/promote', [TeamMemberController::class, 'promote']);
-        });
+        Route::apiResource('team-members', TeamMemberController::class)->parameters(['team-members' => 'teamMember']);
+        Route::patch('/team-members/{teamMember}/promote', [TeamMemberController::class, 'promote']);
 
-        Route::prefix('wallets')->group(function () {
-            Route::apiResource('/', WalletController::class)->parameters(['' => 'wallet']);
-            Route::patch('/{wallet}/toggle-freeze', [WalletController::class, 'toggleFreeze']);
-        });
+        Route::apiResource('wallets', WalletController::class);
+        Route::patch('/wallets/{wallet}/toggle-freeze', [WalletController::class, 'toggleFreeze']);
 
         Route::apiResource('address-book', AddressBookEntryController::class)
             ->parameters(['address-book' => 'addressBookEntry'])

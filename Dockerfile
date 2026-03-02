@@ -42,8 +42,9 @@ COPY deployment/gcp/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh \
     && chown -R www-data:www-data /var/lib/nginx \
     && chown -R www-data:www-data /var/log/nginx \
-    && touch /var/run/nginx.pid \
-    && chown www-data:www-data /var/run/nginx.pid
+    && mkdir -p /run/nginx \
+    && chown -R www-data:www-data /run/nginx \
+    && sed -i '/^user /d' /etc/nginx/nginx.conf
 
 # Run as non-root user
 USER www-data
