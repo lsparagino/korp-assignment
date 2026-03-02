@@ -23,6 +23,9 @@ class TransactionSeeder extends Seeder
                 'type' => TransactionType::Credit,
                 'amount' => self::INITIAL_DEPOSIT,
                 'external' => true,
+                'external_address' => 'DBS005-231289-1',
+                'external_name' => 'DBS Bank Ltd',
+                'reference' => 'Deposit',
             ]);
         });
     }

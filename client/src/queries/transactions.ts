@@ -13,7 +13,7 @@ interface TransactionsQueryParams {
   reference?: string
   fromWalletId?: number | string | null
   toWalletId?: number | string | null
-  hasWalletId?: number | null
+  hasWalletId?: number | string | null
   initiatorUserId?: number | null
 }
 

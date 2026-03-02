@@ -53,7 +53,7 @@ class TransactionService
         }
 
         if (($filters['from_wallet_id'] ?? null) === 'external') {
-            $query->whereNull('counterpart_wallet_id');
+            $query->where('type', TransactionType::Credit)->where('external', true);
         } elseif (! empty($filters['from_wallet_id'])) {
             $query->where(function ($q) use ($filters) {
                 $q->where(function ($sub) use ($filters) {
@@ -65,7 +65,7 @@ class TransactionService
         }
 
         if (($filters['to_wallet_id'] ?? null) === 'external') {
-            $query->whereNull('counterpart_wallet_id');
+            $query->where('type', TransactionType::Debit)->where('external', true);
         } elseif (! empty($filters['to_wallet_id'])) {
             $query->where(function ($q) use ($filters) {
                 $q->where(function ($sub) use ($filters) {
@@ -80,7 +80,9 @@ class TransactionService
             $query->where('initiator_user_id', $filters['initiator_user_id']);
         }
 
-        if (! empty($filters['has_wallet_id'])) {
+        if (($filters['has_wallet_id'] ?? null) === 'external') {
+            $query->where('external', true);
+        } elseif (! empty($filters['has_wallet_id'])) {
             $query->where(function ($q) use ($filters) {
                 $q->where('wallet_id', $filters['has_wallet_id'])
                     ->orWhere('counterpart_wallet_id', $filters['has_wallet_id']);

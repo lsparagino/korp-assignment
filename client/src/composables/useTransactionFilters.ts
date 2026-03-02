@@ -7,7 +7,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useDatePicker } from '@/composables/useDatePicker'
 import { type PaginationMeta, useUrlPagination } from '@/composables/useUrlPagination'
 import { TRANSACTION_QUERY_KEYS, transactionsListQuery } from '@/queries/transactions'
-import { WALLET_QUERY_KEYS, walletsListQuery } from '@/queries/wallets'
+import { walletsListQuery } from '@/queries/wallets'
 
 type WalletParamValue = number | string | null
 
@@ -112,7 +112,7 @@ export function useTransactionFilters() {
       reference: (route.query.reference as string) || undefined,
       fromWalletId: parseWalletParam(route.query.from_wallet_id as string | undefined),
       toWalletId: parseWalletParam(route.query.to_wallet_id as string | undefined),
-      hasWalletId: route.query.has_wallet_id ? Number(route.query.has_wallet_id) : null,
+      hasWalletId: parseWalletParam(route.query.has_wallet_id as string | undefined),
       initiatorUserId: route.query.initiator_user_id ? Number(route.query.initiator_user_id) : null,
     }),
   )
@@ -183,10 +183,7 @@ export function useTransactionFilters() {
   }
 
   async function invalidateQueries() {
-    await Promise.all([
-      queryCache.invalidateQueries({ key: TRANSACTION_QUERY_KEYS.root }),
-      queryCache.invalidateQueries({ key: WALLET_QUERY_KEYS.root }),
-    ])
+    await queryCache.invalidateQueries({ key: TRANSACTION_QUERY_KEYS.root })
   }
 
   return {

@@ -168,15 +168,14 @@ describe('useTransactionFilters', () => {
     expect(activeAdvancedFiltersCount.value).toBe(2)
   })
 
-  it('invalidateQueries calls queryCache for both transactions and wallets', async () => {
+  it('invalidateQueries calls queryCache for transactions', async () => {
     const { useTransactionFilters } = await import('./useTransactionFilters')
     const { invalidateQueries } = useTransactionFilters()
 
     await invalidateQueries()
 
-    expect(mockInvalidateQueries).toHaveBeenCalledTimes(2)
+    expect(mockInvalidateQueries).toHaveBeenCalledTimes(1)
     expect(mockInvalidateQueries).toHaveBeenCalledWith({ key: ['transactions'] })
-    expect(mockInvalidateQueries).toHaveBeenCalledWith({ key: ['wallets'] })
   })
 
   it('defaults to simple wallet filter mode', async () => {

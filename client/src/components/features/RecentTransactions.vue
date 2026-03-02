@@ -1,9 +1,9 @@
 <script lang="ts" setup>
 import type { Transaction } from '@/api/transactions'
-import { ref, watch } from 'vue'
-import { useI18n } from 'vue-i18n'
-import { fetchTransactions } from '@/api/transactions'
+import { computed, ref } from 'vue'
+import { useQuery } from '@pinia/colada'
 import TransactionTable from '@/components/features/TransactionTable.vue'
+import { transactionsListQuery } from '@/queries/transactions'
 import { useAuthStore } from '@/stores/auth'
 
 interface Props {
@@ -18,39 +18,45 @@ const props = withDefaults(defineProps<Props>(), {
     title: 'Recent Transactions',
 })
 
-const { t } = useI18n()
 const authStore = useAuthStore()
 
-const transactions = ref<Transaction[]>([])
-const loading = ref(false)
+const queryParams = computed(() => ({
+    page: 1,
+    perPage: props.limit,
+    hasWalletId: (props.filterParams.has_wallet_id as number | string | undefined) ?? undefined,
+    initiatorUserId: (props.filterParams.initiator_user_id as number | undefined) ?? undefined,
+    fromWalletId: (props.filterParams.from_wallet_id as number | string | undefined) ?? undefined,
+    toWalletId: (props.filterParams.to_wallet_id as number | string | undefined) ?? undefined,
+}))
 
-async function loadTransactions() {
-    loading.value = true
+const { data: transactionsData, isPending: loading, refetch } = useQuery(
+    transactionsListQuery,
+    () => queryParams.value,
+)
+
+const transactions = computed<Transaction[]>(() => {
+    if (!authStore.isManagerOrAdmin) return []
+    return transactionsData.value?.data ?? []
+})
+
+const refreshing = ref(false)
+
+async function refresh() {
+    if (refreshing.value) return
+    refreshing.value = true
     try {
-        const response = await fetchTransactions({
-            ...props.filterParams,
-            per_page: props.limit,
-        })
-        transactions.value = response.data.data
-    } catch {
-        transactions.value = []
+        await refetch()
     } finally {
-        loading.value = false
+        refreshing.value = false
     }
 }
-
-watch(() => authStore.isManagerOrAdmin, isAllowed => {
-    if (isAllowed) {
-        loadTransactions()
-    }
-}, { immediate: true })
 
 const viewAllUrl = `/transactions?${new URLSearchParams(props.viewAllQuery).toString()}`
 </script>
 
 <template>
     <TransactionTable compact :is-admin="authStore.isAdmin" :is-manager-or-admin="authStore.isManagerOrAdmin"
-        :items="transactions" :loading="loading" :title="title">
+        :items="transactions" :loading="loading" :refreshing="refreshing" :title="title" @refresh="refresh">
         <template #footer>
             <div class="d-flex justify-end pa-2">
                 <v-btn class="text-none font-weight-bold" color="primary" data-testid="view-all-link" :to="viewAllUrl"

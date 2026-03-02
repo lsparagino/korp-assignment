@@ -24,7 +24,7 @@ class FilterTransactionsRequest extends FormRequest
             'from_wallet_id' => ['nullable', 'string'],
             'to_wallet_id' => ['nullable', 'string'],
             'initiator_user_id' => ['nullable', 'integer', 'exists:users,id'],
-            'has_wallet_id' => ['nullable', 'integer', 'exists:wallets,id'],
+            'has_wallet_id' => ['nullable', 'string'],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:500'],
         ];
     }

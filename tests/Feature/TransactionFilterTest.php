@@ -278,7 +278,55 @@ class TransactionFilterTest extends TestCase
         $this->assertCount(2, $response->json('data'));
     }
 
-    public function test_external_from_wallet_filter_returns_external_transactions(): void
+    public function test_from_external_filter_returns_only_credits_from_outside(): void
+    {
+        $walletA = Wallet::factory()->create(['user_id' => $this->user->id, 'company_id' => $this->company->id]);
+
+        // External Credit: money FROM external INTO walletA → from=external ✓
+        $externalCredit = Transaction::factory()->create([
+            'wallet_id' => $walletA->id, 'counterpart_wallet_id' => null,
+            'type' => TransactionType::Credit, 'amount' => 200, 'external' => true,
+        ]);
+
+        // External Debit: money FROM walletA TO external → from=walletA, to=external
+        Transaction::factory()->create([
+            'wallet_id' => $walletA->id, 'counterpart_wallet_id' => null,
+            'type' => TransactionType::Debit, 'amount' => -150, 'external' => true,
+        ]);
+
+        $response = $this->actingAs($this->user, 'sanctum')
+            ->getJson(self::TRANSACTIONS_ENDPOINT.'?from_wallet_id=external&company_id='.$this->company->id);
+
+        $response->assertStatus(200);
+        $this->assertCount(1, $response->json('data'));
+        $this->assertEquals($externalCredit->id, $response->json('data.0.id'));
+    }
+
+    public function test_to_external_filter_returns_only_debits_sent_outside(): void
+    {
+        $walletA = Wallet::factory()->create(['user_id' => $this->user->id, 'company_id' => $this->company->id]);
+
+        // External Credit: money FROM external INTO walletA → to=walletA, NOT to=external
+        Transaction::factory()->create([
+            'wallet_id' => $walletA->id, 'counterpart_wallet_id' => null,
+            'type' => TransactionType::Credit, 'amount' => 200, 'external' => true,
+        ]);
+
+        // External Debit: money FROM walletA TO external → to=external ✓
+        $externalDebit = Transaction::factory()->create([
+            'wallet_id' => $walletA->id, 'counterpart_wallet_id' => null,
+            'type' => TransactionType::Debit, 'amount' => -150, 'external' => true,
+        ]);
+
+        $response = $this->actingAs($this->user, 'sanctum')
+            ->getJson(self::TRANSACTIONS_ENDPOINT.'?to_wallet_id=external&company_id='.$this->company->id);
+
+        $response->assertStatus(200);
+        $this->assertCount(1, $response->json('data'));
+        $this->assertEquals($externalDebit->id, $response->json('data.0.id'));
+    }
+
+    public function test_has_wallet_external_filter_returns_all_external_transactions(): void
     {
         $walletA = Wallet::factory()->create(['user_id' => $this->user->id, 'company_id' => $this->company->id]);
         $walletB = Wallet::factory()->create(['user_id' => $this->user->id, 'company_id' => $this->company->id]);
@@ -289,18 +337,23 @@ class TransactionFilterTest extends TestCase
             'type' => TransactionType::Credit, 'amount' => 200, 'external' => true,
         ]);
 
-        // Internal credit (has counterpart)
+        // External debit (no counterpart)
+        Transaction::factory()->create([
+            'wallet_id' => $walletA->id, 'counterpart_wallet_id' => null,
+            'type' => TransactionType::Debit, 'amount' => -100, 'external' => true,
+        ]);
+
+        // Internal transfer (has counterpart) — should NOT match
         Transaction::factory()->create([
             'wallet_id' => $walletA->id, 'counterpart_wallet_id' => $walletB->id,
-            'type' => TransactionType::Credit, 'amount' => 100, 'external' => false,
+            'type' => TransactionType::Debit, 'amount' => -50, 'external' => false,
         ]);
 
         $response = $this->actingAs($this->user, 'sanctum')
-            ->getJson(self::TRANSACTIONS_ENDPOINT.'?from_wallet_id=external&company_id='.$this->company->id);
+            ->getJson(self::TRANSACTIONS_ENDPOINT.'?has_wallet_id=external&company_id='.$this->company->id);
 
         $response->assertStatus(200);
-        $this->assertCount(1, $response->json('data'));
-        $this->assertNull($response->json('data.0.counterpart_wallet_id'));
+        $this->assertCount(2, $response->json('data'));
     }
 
     public function test_guests_are_denied_access_to_transactions(): void

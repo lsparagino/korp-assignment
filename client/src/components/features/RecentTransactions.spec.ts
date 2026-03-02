@@ -98,10 +98,8 @@ describe('RecentTransactions', () => {
         )
     })
 
-    it('does not fetch when user is not manager or admin', async () => {
-        vi.mocked(transactionsApi.fetchTransactions).mockClear()
-
-        mountWithPlugins(RecentTransactions, {
+    it('returns empty transactions when user is not manager or admin', async () => {
+        const wrapper = mountWithPlugins(RecentTransactions, {
             props: {
                 filterParams: { has_wallet_id: 1 },
                 viewAllQuery: { has_wallet_id: '1' },
@@ -110,6 +108,8 @@ describe('RecentTransactions', () => {
         })
         await flushPromises()
 
-        expect(transactionsApi.fetchTransactions).not.toHaveBeenCalled()
+        const rows = wrapper.findAll('tbody tr')
+        const hasData = rows.some(row => row.text().includes('100'))
+        expect(hasData).toBe(false)
     })
 })

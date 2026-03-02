@@ -130,7 +130,7 @@ const { refreshing, refresh } = useRefreshData(() => invalidateQueries())
                   <span class="text-caption text-grey-darken-1 font-weight-bold">
                     {{ walletFilterMode === 'simple' ? $t('transactions.wallet') : $t('transactions.fromWallet') + ' / '
                       +
-                    $t('transactions.toWallet') }}
+                      $t('transactions.toWallet') }}
                   </span>
                   <v-btn class="text-none text-caption" color="primary" data-testid="toggle-wallet-mode" size="x-small"
                     variant="text" @click="toggleWalletFilterMode">

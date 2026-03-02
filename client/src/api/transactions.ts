@@ -37,7 +37,7 @@ interface TransactionParams extends PaginationParams {
   from_wallet_id?: number | string | null
   to_wallet_id?: number | string | null
   initiator_user_id?: number
-  has_wallet_id?: number
+  has_wallet_id?: number | string
 }
 
 export interface TransferForm {
