@@ -8,6 +8,8 @@ use App\Models\User;
 use App\Models\Wallet;
 
 const WALLETS_ENDPOINT = '/api/v0/wallets';
+const NEW_WALLET_NAME = 'New Wallet';
+const UPDATED_WALLET_NAME = 'Updated Wallet Name';
 
 beforeEach(function () {
     $this->company = Company::factory()->create();
@@ -32,17 +34,17 @@ test('admins can create wallets', function () {
     $admin->companies()->attach($this->company);
 
     $response = $this->actingAs($admin, 'sanctum')->postJson(WALLETS_ENDPOINT, [
-        'name' => 'New Wallet',
+        'name' => NEW_WALLET_NAME,
         'currency' => WalletCurrency::USD->value,
         'company_id' => $this->company->id,
     ]);
 
     $response->assertStatus(201)
-        ->assertJsonPath('data.name', 'New Wallet')
+        ->assertJsonPath('data.name', NEW_WALLET_NAME)
         ->assertJsonPath('data.currency', 'USD')
         ->assertJsonPath('data.balance', '0.00');
 
-    $this->assertDatabaseHas('wallets', ['name' => 'New Wallet', 'user_id' => $admin->id]);
+    $this->assertDatabaseHas('wallets', ['name' => NEW_WALLET_NAME, 'user_id' => $admin->id]);
 });
 
 test('members cannot create wallets', function () {
@@ -155,14 +157,14 @@ test('admins can update a wallet', function () {
 
     $response = $this->actingAs($admin, 'sanctum')
         ->putJson(WALLETS_ENDPOINT."/{$wallet->id}?company_id={$this->company->id}", [
-            'name' => 'Updated Wallet Name',
+            'name' => UPDATED_WALLET_NAME,
             'currency' => WalletCurrency::USD->value,
         ]);
 
     $response->assertOk()
-        ->assertJsonPath('data.name', 'Updated Wallet Name');
+        ->assertJsonPath('data.name', UPDATED_WALLET_NAME);
 
-    expect($wallet->fresh()->name)->toBe('Updated Wallet Name');
+    expect($wallet->fresh()->name)->toBe(UPDATED_WALLET_NAME);
 });
 
 test('guests are denied access to wallets', function () {

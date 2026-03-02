@@ -4,6 +4,8 @@ use App\Models\Company;
 use App\Models\User;
 use App\Models\Wallet;
 
+const WALLETS_ENDPOINT = '/api/v0/wallets';
+
 test('requests without company_id return empty data for wallets', function () {
     $user = User::factory()->create();
     $company = Company::factory()->create();
@@ -13,7 +15,7 @@ test('requests without company_id return empty data for wallets', function () {
         'company_id' => $company->id,
     ]);
 
-    $response = $this->actingAs($user, 'sanctum')->getJson('/api/v0/wallets');
+    $response = $this->actingAs($user, 'sanctum')->getJson(WALLETS_ENDPOINT);
 
     $response->assertOk()
         ->assertJsonCount(0, 'data');
@@ -37,7 +39,7 @@ test('requests with unauthorized company_id are forbidden', function () {
     $user->companies()->attach($ownCompany);
 
     $response = $this->actingAs($user, 'sanctum')
-        ->getJson("/api/v0/wallets?company_id={$otherCompany->id}");
+        ->getJson(WALLETS_ENDPOINT . "?company_id={$otherCompany->id}");
 
     $response->assertForbidden();
 });
@@ -49,7 +51,7 @@ test('requests with unauthorized company_id via header are forbidden', function 
     $user->companies()->attach($ownCompany);
 
     $response = $this->actingAs($user, 'sanctum')
-        ->getJson('/api/v0/wallets', ['X-Company-Id' => $otherCompany->id]);
+        ->getJson(WALLETS_ENDPOINT, ['X-Company-Id' => $otherCompany->id]);
 
     $response->assertForbidden();
 });
@@ -64,7 +66,7 @@ test('middleware merges company_id from header into request', function () {
     ]);
 
     $response = $this->actingAs($user, 'sanctum')
-        ->getJson('/api/v0/wallets', ['X-Company-Id' => $company->id]);
+        ->getJson(WALLETS_ENDPOINT, ['X-Company-Id' => $company->id]);
 
     $response->assertOk()
         ->assertJsonCount(2, 'data');

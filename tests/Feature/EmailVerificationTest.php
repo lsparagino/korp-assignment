@@ -64,7 +64,7 @@ test('user can verify email with valid signed link', function () {
     $url = URL::temporarySignedRoute(
         'verification.verify',
         now()->addMinutes(60),
-        ['id' => $user->id, 'hash' => sha1($user->email)]
+        ['id' => $user->id, 'hash' => hash('sha256', $user->email)]
     );
 
     $response = $this->getJson($url);
@@ -78,7 +78,7 @@ test('user can verify email with valid signed link', function () {
 test('verify fails with invalid signature', function () {
     $user = User::factory()->create(['email_verified_at' => null]);
 
-    $response = $this->getJson("/api/v0/email/verify/{$user->id}/".sha1($user->email).'?expires=9999999999&signature=invalid');
+    $response = $this->getJson("/api/v0/email/verify/{$user->id}/".hash('sha256', $user->email).'?expires=9999999999&signature=invalid');
 
     $response->assertStatus(403)
         ->assertJsonPath('message', 'Invalid or expired verification link');
@@ -90,7 +90,7 @@ test('verify fails with invalid hash', function () {
     $url = URL::temporarySignedRoute(
         'verification.verify',
         now()->addMinutes(60),
-        ['id' => $user->id, 'hash' => sha1('wrong@email.com')]
+        ['id' => $user->id, 'hash' => hash('sha256', 'wrong@email.com')]
     );
 
     $response = $this->getJson($url);
@@ -128,7 +128,7 @@ test('verifying pending email swaps it', function () {
     $url = URL::temporarySignedRoute(
         'verification.verify',
         now()->addMinutes(60),
-        ['id' => $user->id, 'hash' => sha1(NEW_EMAIL)]
+        ['id' => $user->id, 'hash' => hash('sha256', NEW_EMAIL)]
     );
 
     $response = $this->getJson($url);
