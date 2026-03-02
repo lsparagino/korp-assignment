@@ -24,7 +24,7 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     root: fileURLToPath(new URL('./', import.meta.url)),
-    setupFiles: ['./src/test/polyfills.ts'],
+    setupFiles: ['./src/test/polyfills.ts', './src/test/vue-router.mock.ts'],
     exclude: ['e2e/**', 'node_modules/**'],
     server: {
       deps: {

@@ -1,1 +1,1 @@
-export function definePage() { /* noop stub */ }
+export function definePage () { /* noop stub */ }

@@ -9,18 +9,17 @@ import {
 import { DASHBOARD_QUERY_KEYS } from '@/queries/dashboard'
 import { WALLET_QUERY_KEYS, walletByIdQuery } from '@/queries/wallets'
 
-export function useWalletById(id: string | number) {
+export function useWalletById (id: string | number) {
   return useQuery(walletByIdQuery, () => id)
 }
 
 export const useWalletStore = defineStore('wallet', () => {
   const queryCache = useQueryCache()
 
-  async function invalidateQueries() {
+  async function invalidateQueries () {
     await queryCache.invalidateQueries({ key: WALLET_QUERY_KEYS.root })
     await queryCache.invalidateQueries({ key: DASHBOARD_QUERY_KEYS.root })
   }
-
 
   const { mutateAsync: createWallet } = useMutation({
     mutation: (form: { name: string, currency: string }) => apiCreateWallet(form),

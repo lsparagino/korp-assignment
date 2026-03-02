@@ -1,6 +1,7 @@
-import { createTestingPinia } from '@pinia/testing'
-import { setActivePinia } from 'pinia'
+import { PiniaColada } from '@pinia/colada'
+import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { createApp } from 'vue'
 import en from '@/locales/en.json'
 import { useNotificationStore } from './useAppNotification'
 import { useFormSubmit } from './useFormSubmit'
@@ -19,10 +20,11 @@ vi.mock('vue-i18n', async importOriginal => {
 
 describe('useFormSubmit', () => {
   beforeEach(() => {
-    setActivePinia(createTestingPinia({
-      createSpy: vi.fn,
-      stubActions: false,
-    }))
+    const app = createApp({})
+    const pinia = createPinia()
+    app.use(pinia)
+    app.use(PiniaColada)
+    setActivePinia(pinia)
   })
 
   it('initializes with default state', () => {

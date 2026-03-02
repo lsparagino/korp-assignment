@@ -7,6 +7,7 @@ use App\Models\User;
 
 const PREFERENCES_ENDPOINT = '/api/v0/settings/preferences';
 const THRESHOLDS_ENDPOINT = '/api/v0/settings/thresholds';
+const COMPANY_ID_QUERY = '?company_id=';
 
 beforeEach(function () {
     $this->company = Company::factory()->create();
@@ -150,7 +151,7 @@ describe('Company Thresholds', function () {
         ]);
 
         $response = $this->actingAs($this->admin, 'sanctum')
-            ->getJson(THRESHOLDS_ENDPOINT.'?company_id='.$this->company->id);
+            ->getJson(THRESHOLDS_ENDPOINT.COMPANY_ID_QUERY.$this->company->id);
 
         $response->assertOk();
         expect($response->json('data'))->toHaveCount(1);
@@ -159,7 +160,7 @@ describe('Company Thresholds', function () {
 
     it('creates a threshold for admin', function () {
         $response = $this->actingAs($this->admin, 'sanctum')
-            ->putJson(THRESHOLDS_ENDPOINT.'?company_id='.$this->company->id, [
+            ->putJson(THRESHOLDS_ENDPOINT.COMPANY_ID_QUERY.$this->company->id, [
                 'currency' => 'USD',
                 'approval_threshold' => 2500,
             ]);
@@ -177,7 +178,7 @@ describe('Company Thresholds', function () {
         ]);
 
         $response = $this->actingAs($this->admin, 'sanctum')
-            ->putJson(THRESHOLDS_ENDPOINT.'?company_id='.$this->company->id, [
+            ->putJson(THRESHOLDS_ENDPOINT.COMPANY_ID_QUERY.$this->company->id, [
                 'currency' => 'EUR',
                 'approval_threshold' => 5000,
             ]);
@@ -195,7 +196,7 @@ describe('Company Thresholds', function () {
         ]);
 
         $response = $this->actingAs($this->admin, 'sanctum')
-            ->deleteJson(THRESHOLDS_ENDPOINT."/{$setting->id}?company_id=".$this->company->id);
+            ->deleteJson(THRESHOLDS_ENDPOINT."/{$setting->id}".COMPANY_ID_QUERY.$this->company->id);
 
         $response->assertNoContent();
         expect(CompanySetting::find($setting->id))->toBeNull();
@@ -203,7 +204,7 @@ describe('Company Thresholds', function () {
 
     it('forbids non-admin from upserting thresholds', function () {
         $this->actingAs($this->member, 'sanctum')
-            ->putJson(THRESHOLDS_ENDPOINT.'?company_id='.$this->company->id, [
+            ->putJson(THRESHOLDS_ENDPOINT.COMPANY_ID_QUERY.$this->company->id, [
                 'currency' => 'EUR',
                 'approval_threshold' => 1000,
             ])

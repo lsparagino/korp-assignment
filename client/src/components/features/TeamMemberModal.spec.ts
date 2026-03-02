@@ -36,7 +36,7 @@ describe('TeamMemberModal.vue', () => {
     document.body.innerHTML = ''
   })
 
-  async function mountModal(props: Record<string, unknown> = {}) {
+  async function mountModal (props: Record<string, unknown> = {}) {
     wrapper = mountWithPlugins(TeamMemberModal, {
       props: {
         modelValue: true,
@@ -52,7 +52,6 @@ describe('TeamMemberModal.vue', () => {
     await flushPromises()
     return wrapper
   }
-
 
   it('renders dialog with form fields for new member', async () => {
     await mountModal()

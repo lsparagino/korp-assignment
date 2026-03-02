@@ -16,7 +16,7 @@ vi.mock('@/stores/company', () => ({
   useCompanyStore: vi.fn(),
 }))
 
-function mockStore(overrides: Record<string, unknown> = {}) {
+function mockStore (overrides: Record<string, unknown> = {}) {
   ; (useCompanyStore as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
     companies: mockCompanies,
     currentCompany: mockCompanies[0],

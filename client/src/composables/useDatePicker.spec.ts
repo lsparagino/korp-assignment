@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { nextTick, reactive } from 'vue'
 import { useDatePicker } from './useDatePicker'
 
-function createForm() {
+function createForm () {
   return reactive({ date_from: '', date_to: '' })
 }
 

@@ -13,12 +13,12 @@ vi.mock('@/composables/useAppNotification', () => ({
   useAppNotification: vi.fn(),
 }))
 
-function mockComposable(notifications: Array<{ id: number, message: string, color: string, timeout: number }> = []) {
+function mockComposable (notifications: Array<{ id: number, message: string, color: string, timeout: number }> = []) {
   mockNotifications.mockReturnValue(notifications)
-    ; (useAppNotification as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
-      notifications: mockNotifications(),
-      dismiss: mockDismiss,
-    })
+  ; (useAppNotification as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
+    notifications: mockNotifications(),
+    dismiss: mockDismiss,
+  })
 }
 
 describe('AppNotification.vue', () => {

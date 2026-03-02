@@ -11,6 +11,16 @@ vi.mock('@/api/wallets', () => ({
   fetchWallets: vi.fn(),
 }))
 
+// Mock query modules to prevent real @pinia/colada initialization at module load
+vi.mock('@/queries/wallets', () => ({
+  WALLET_QUERY_KEYS: { root: ['wallets'] },
+  walletByIdQuery: vi.fn(),
+}))
+
+vi.mock('@/queries/dashboard', () => ({
+  DASHBOARD_QUERY_KEYS: { root: ['dashboard'] },
+}))
+
 // Mock @pinia/colada
 const mockInvalidateQueries = vi.fn()
 const mockMutateAsync = vi.fn()

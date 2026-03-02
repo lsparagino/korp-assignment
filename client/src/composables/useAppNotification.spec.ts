@@ -1,6 +1,7 @@
-import { createTestingPinia } from '@pinia/testing'
-import { setActivePinia } from 'pinia'
+import { PiniaColada } from '@pinia/colada'
+import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { createApp } from 'vue'
 import en from '@/locales/en.json'
 import { useAppNotification, useNotificationStore } from './useAppNotification'
 
@@ -17,12 +18,17 @@ vi.mock('vue-i18n', async importOriginal => {
   }
 })
 
+function setupPinia () {
+  const app = createApp({})
+  const pinia = createPinia()
+  app.use(pinia)
+  app.use(PiniaColada)
+  setActivePinia(pinia)
+}
+
 describe('useNotificationStore', () => {
   beforeEach(() => {
-    setActivePinia(createTestingPinia({
-      createSpy: vi.fn,
-      stubActions: false,
-    }))
+    setupPinia()
   })
 
   it('starts with an empty notifications list', () => {
@@ -70,10 +76,7 @@ describe('useNotificationStore', () => {
 
 describe('useAppNotification', () => {
   beforeEach(() => {
-    setActivePinia(createTestingPinia({
-      createSpy: vi.fn,
-      stubActions: false,
-    }))
+    setupPinia()
   })
 
   it('notifyError extracts message from API error', () => {

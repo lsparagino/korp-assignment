@@ -11,7 +11,7 @@ describe('IdentityConfirmDialog.vue', () => {
     document.body.innerHTML = ''
   })
 
-  function mountDialog(props: Record<string, unknown> = {}) {
+  function mountDialog (props: Record<string, unknown> = {}) {
     return mountWithPlugins(IdentityConfirmDialog, {
       props: {
         modelValue: true,
@@ -24,7 +24,6 @@ describe('IdentityConfirmDialog.vue', () => {
       attachTo: document.body,
     })
   }
-
 
   it('renders with password label when no 2FA', async () => {
     wrapper = mountDialog()

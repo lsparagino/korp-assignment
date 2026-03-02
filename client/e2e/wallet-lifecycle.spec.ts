@@ -1,10 +1,6 @@
-import { createRequire } from 'node:module'
 import { expect, type Page, test } from '@playwright/test'
 import { loginViaApi } from './helpers/api'
 import { authenticatedPage } from './helpers/auth'
-
-const require = createRequire(import.meta.url)
-const en = require('../src/locales/en.json')
 
 /**
  * Helper: navigates to the create wallet page, fills the name, and submits the form.

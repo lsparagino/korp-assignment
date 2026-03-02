@@ -24,7 +24,7 @@ describe('DeleteUser.vue', () => {
     document.body.innerHTML = ''
   })
 
-  async function mount() {
+  async function mount () {
     wrapper = mountWithPlugins(DeleteUser, { attachTo: document.body })
     await flushPromises()
     return wrapper

@@ -1,6 +1,5 @@
 import { flushPromises } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { createMemoryHistory, createRouter } from 'vue-router'
 import TransferCreatePage from '@/pages/transactions/create.vue'
 import { findByTestId } from '@/test/helpers'
 import { mountWithPlugins } from '@/test/setup'
@@ -48,16 +47,6 @@ vi.mock('@/queries/address-book', () => ({
   }),
 }))
 
-const router = createRouter({
-  history: createMemoryHistory(),
-  routes: [
-    { path: '/', component: { template: '<div />' } },
-    { path: '/transactions', component: { template: '<div />' } },
-    { path: '/transactions/', component: { template: '<div />' } },
-    { path: '/transactions/create', component: { template: '<div />' } },
-  ],
-})
-
 describe('TransferCreatePage', () => {
   let wrapper: ReturnType<typeof mountWithPlugins>
 
@@ -66,21 +55,16 @@ describe('TransferCreatePage', () => {
     document.body.innerHTML = ''
   })
 
-  async function mountPage(props: Record<string, unknown> = {}) {
+  async function mountPage (props: Record<string, unknown> = {}) {
     const w = mountWithPlugins(TransferCreatePage, {
       props,
       attachTo: document.body,
-      global: {
-        plugins: [router],
-        stubs: {},
-      },
     })
     await flushPromises()
     await w.vm.$nextTick()
     await flushPromises()
     return w
   }
-
 
   it('renders page with all key elements', async () => {
     wrapper = await mountPage()

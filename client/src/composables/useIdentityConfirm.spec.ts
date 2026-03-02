@@ -1,6 +1,7 @@
-import { createTestingPinia } from '@pinia/testing'
-import { setActivePinia } from 'pinia'
+import { PiniaColada } from '@pinia/colada'
+import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { createApp } from 'vue'
 import { useIdentityConfirm } from './useIdentityConfirm'
 
 vi.mock('@/utils/errors', () => ({
@@ -10,17 +11,22 @@ vi.mock('@/utils/errors', () => ({
   getValidationErrors: (err: unknown) => (err as any).response?.data?.errors ?? {},
 }))
 
+function setupPinia (initialState: Record<string, any> = {}) {
+  const app = createApp({})
+  const pinia = createPinia()
+  app.use(pinia)
+  app.use(PiniaColada)
+  setActivePinia(pinia)
+  pinia.state.value = initialState
+}
+
 describe('useIdentityConfirm', () => {
   beforeEach(() => {
-    setActivePinia(createTestingPinia({
-      createSpy: vi.fn,
-      stubActions: false,
-      initialState: {
-        auth: {
-          user: { id: 1, name: 'Test', email: 'test@test.com', two_factor_confirmed_at: null },
-        },
+    setupPinia({
+      auth: {
+        user: { id: 1, name: 'Test', email: 'test@test.com', two_factor_confirmed_at: null },
       },
-    }))
+    })
   })
 
   it('starts with dialog hidden and no error', () => {
@@ -64,15 +70,11 @@ describe('useIdentityConfirm', () => {
   })
 
   it('confirm calls pending action with code payload when 2FA is enabled', async () => {
-    setActivePinia(createTestingPinia({
-      createSpy: vi.fn,
-      stubActions: false,
-      initialState: {
-        auth: {
-          user: { id: 1, name: 'Test', email: 'test@test.com', two_factor_confirmed_at: '2024-01-01' },
-        },
+    setupPinia({
+      auth: {
+        user: { id: 1, name: 'Test', email: 'test@test.com', two_factor_confirmed_at: '2024-01-01' },
       },
-    }))
+    })
 
     const action = vi.fn().mockResolvedValue(undefined)
     const { credential, hasTwoFactor, requireConfirmation, confirm } = useIdentityConfirm()

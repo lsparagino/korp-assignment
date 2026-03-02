@@ -3,6 +3,7 @@ import { mountWithPlugins } from '@/test/setup'
 import TransferButton from './TransferButton.vue'
 
 vi.mock('@pinia/colada', () => ({
+  PiniaColada: { install: vi.fn() },
   useQuery: vi.fn(() => ({
     data: { value: { data: [{ id: 1, name: 'Wallet 1' }] } },
     status: { value: 'success' },

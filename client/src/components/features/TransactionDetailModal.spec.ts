@@ -6,7 +6,7 @@ import { bodyText } from '@/test/helpers'
 import { mountWithPlugins } from '@/test/setup'
 import TransactionDetailModal from './TransactionDetailModal.vue'
 
-function createTransaction(overrides: Partial<Transaction> = {}): Transaction {
+function createTransaction (overrides: Partial<Transaction> = {}): Transaction {
   return {
     id: 1,
     group_id: 'grp-1',
@@ -42,7 +42,7 @@ describe('TransactionDetailModal.vue', () => {
     document.body.innerHTML = ''
   })
 
-  async function mountModal(options: Record<string, unknown> = {}) {
+  async function mountModal (options: Record<string, unknown> = {}) {
     const { piniaOptions, ...props } = options
 
     wrapper = mountWithPlugins(TransactionDetailModal, {

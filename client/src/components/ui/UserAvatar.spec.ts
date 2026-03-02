@@ -8,7 +8,7 @@ vi.mock('@/stores/auth', () => ({
   useAuthStore: vi.fn(),
 }))
 
-function mockAuthStore(overrides: Record<string, unknown> = {}) {
+function mockAuthStore (overrides: Record<string, unknown> = {}) {
   ; (useAuthStore as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
     user: {
       id: 1,

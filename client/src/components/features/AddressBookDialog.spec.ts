@@ -27,7 +27,7 @@ describe('AddressBookDialog.vue', () => {
     document.body.innerHTML = ''
   })
 
-  async function mountDialog(props: Record<string, unknown> = {}) {
+  async function mountDialog (props: Record<string, unknown> = {}) {
     wrapper = mountWithPlugins(AddressBookDialog, {
       props: {
         modelValue: true,

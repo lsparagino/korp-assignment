@@ -11,7 +11,7 @@ describe('ConfirmDialog.vue', () => {
     document.body.innerHTML = ''
   })
 
-  function mountDialog(props: Record<string, unknown> = {}) {
+  function mountDialog (props: Record<string, unknown> = {}) {
     return mountWithPlugins(ConfirmDialog, {
       props: {
         modelValue: true,
@@ -20,7 +20,6 @@ describe('ConfirmDialog.vue', () => {
       attachTo: document.body,
     })
   }
-
 
   it('renders with default props', async () => {
     wrapper = mountDialog()
