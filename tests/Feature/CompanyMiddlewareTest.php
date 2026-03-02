@@ -41,7 +41,7 @@ test('requests with unauthorized company_id are forbidden', function () {
     $user->companies()->attach($ownCompany);
 
     $response = $this->actingAs($user, 'sanctum')
-        ->getJson(WALLETS_ENDPOINT . "?company_id={$otherCompany->id}");
+        ->getJson(WALLETS_ENDPOINT."?company_id={$otherCompany->id}");
 
     $response->assertForbidden();
 });

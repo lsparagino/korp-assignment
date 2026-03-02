@@ -4,7 +4,7 @@ import { expect, type Page, test } from '@playwright/test'
 const require = createRequire(import.meta.url)
 const en = require('../src/locales/en.json')
 
-async function createWallet(page: Page, name: string) {
+async function createWallet (page: Page, name: string) {
   await page.goto('/wallets/create')
   const nameField = page.getByTestId('wallet-name-input').locator('input')
   await expect(nameField).toBeVisible({ timeout: 10_000 })

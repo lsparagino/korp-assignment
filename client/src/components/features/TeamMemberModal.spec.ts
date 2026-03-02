@@ -35,7 +35,7 @@ describe('TeamMemberModal.vue (invite-only)', () => {
     document.body.innerHTML = ''
   })
 
-  async function mountModal(props: Record<string, unknown> = {}) {
+  async function mountModal (props: Record<string, unknown> = {}) {
     wrapper = mountWithPlugins(TeamMemberModal, {
       props: {
         modelValue: true,

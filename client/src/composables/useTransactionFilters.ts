@@ -17,7 +17,7 @@ const FILTER_KEYS = [
   'has_wallet_id', 'from_wallet_id', 'to_wallet_id',
 ] as const
 
-function parseWalletParam(value: string | undefined): WalletParamValue {
+function parseWalletParam (value: string | undefined): WalletParamValue {
   if (!value) {
     return null
   }
@@ -27,7 +27,7 @@ function parseWalletParam(value: string | undefined): WalletParamValue {
   return Number(value)
 }
 
-export function useTransactionFilters() {
+export function useTransactionFilters () {
   const route = useRoute()
   const router = useRouter()
   const { t } = useI18n()
@@ -88,11 +88,7 @@ export function useTransactionFilters() {
       filterForm.to_wallet_id = parseWalletParam(route.query.to_wallet_id as string | undefined)
 
       // Determine wallet filter mode from URL params
-      if (route.query.from_wallet_id || route.query.to_wallet_id) {
-        walletFilterMode.value = 'specific'
-      } else {
-        walletFilterMode.value = 'simple'
-      }
+      walletFilterMode.value = route.query.from_wallet_id || route.query.to_wallet_id ? 'specific' : 'simple'
     },
     { immediate: true },
   )
@@ -133,7 +129,7 @@ export function useTransactionFilters() {
     + ['date_from', 'date_to', 'type', 'status'].filter(k => route.query[k]).length,
   )
 
-  function toggleWalletFilterMode() {
+  function toggleWalletFilterMode () {
     if (walletFilterMode.value === 'simple') {
       walletFilterMode.value = 'specific'
       filterForm.has_wallet_id = null
@@ -144,7 +140,7 @@ export function useTransactionFilters() {
     }
   }
 
-  function handleFilter() {
+  function handleFilter () {
     const raw: Record<string, string | undefined> = {
       ...route.query,
       page: '1',
@@ -172,7 +168,7 @@ export function useTransactionFilters() {
     router.push({ query })
   }
 
-  function clearFilters() {
+  function clearFilters () {
     const query = { ...route.query }
     for (const key of FILTER_KEYS) {
       delete query[key]
@@ -182,7 +178,7 @@ export function useTransactionFilters() {
     router.push({ query })
   }
 
-  async function invalidateQueries() {
+  async function invalidateQueries () {
     await queryCache.invalidateQueries({ key: TRANSACTION_QUERY_KEYS.root })
   }
 
