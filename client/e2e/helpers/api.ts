@@ -86,3 +86,17 @@ export async function createWallet (attrs: {
   await ctx.dispose()
   return data as { wallet: Record<string, unknown> }
 }
+
+export async function createTransactions (attrs: {
+  email: string
+  count: number
+}) {
+  const ctx = await request.newContext()
+  const response = await ctx.post(`${API_BASE}/test/create-transactions`, { data: attrs })
+  if (!response.ok()) {
+    throw new Error(`Failed to create transactions: ${response.status()} ${await response.text()}`)
+  }
+  const data = await response.json()
+  await ctx.dispose()
+  return data as { count: number }
+}

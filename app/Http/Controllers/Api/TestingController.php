@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Enums\TransactionType;
 use App\Enums\WalletStatus;
 use App\Models\Company;
+use App\Models\Transaction;
 use App\Models\User;
 use App\Models\Wallet;
 use Illuminate\Http\JsonResponse;
@@ -161,5 +162,26 @@ class TestingController
         }
 
         return response()->json(['wallet' => $wallet]);
+    }
+
+    public function createTransactions(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'email' => 'required|email|exists:users,email',
+            'count' => 'required|integer|min:1|max:100',
+        ]);
+
+        $user = User::where('email', $validated['email'])->firstOrFail();
+        $wallet = Wallet::where('user_id', $user->id)->firstOrFail();
+
+        $transactions = Transaction::factory()
+            ->count($validated['count'])
+            ->create([
+                'wallet_id' => $wallet->id,
+                'counterpart_wallet_id' => null,
+                'external' => true,
+            ]);
+
+        return response()->json(['count' => $transactions->count()]);
     }
 }

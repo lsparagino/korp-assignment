@@ -114,5 +114,6 @@ if (app()->environment('testing')) {
         Route::post('/create-password-reset-token', [App\Http\Controllers\Api\TestingController::class, 'createPasswordResetToken']);
         Route::post('/create-second-company', [App\Http\Controllers\Api\TestingController::class, 'createSecondCompany']);
         Route::post('/create-wallet', [App\Http\Controllers\Api\TestingController::class, 'createWallet']);
+        Route::post('/create-transactions', [App\Http\Controllers\Api\TestingController::class, 'createTransactions']);
     });
 }

@@ -1,11 +1,17 @@
 import { createRequire } from 'node:module'
 import { expect, test } from '@playwright/test'
+import { createTransactions } from './helpers/api'
 
 const require = createRequire(import.meta.url)
 const en = require('../src/locales/en.json')
 
 test.describe('Pagination', () => {
   test.describe('Transactions pagination', () => {
+    test.beforeAll(async () => {
+      // Ensure enough transactions exist for pagination (per_page=5 needs >5)
+      await createTransactions({ email: 'admin@example.com', count: 10 })
+    })
+
     test('shows pagination info and controls', async ({ page }) => {
       await page.goto('/transactions')
       await expect(page.getByTestId('page-heading')).toBeVisible({ timeout: 10_000 })
