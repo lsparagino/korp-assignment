@@ -36,3 +36,20 @@ test('users only see companies they belong to', function () {
     $response->assertOk()
         ->assertJsonCount(1, 'data');
 });
+
+test('currencies endpoint returns all wallet currencies', function () {
+    $user = User::factory()->create();
+    $company = Company::factory()->create();
+    $user->companies()->attach($company);
+
+    $response = $this->actingAs($user, 'sanctum')
+        ->getJson("/api/v0/currencies?company_id={$company->id}");
+
+    $response->assertOk()
+        ->assertJsonCount(3); // USD, EUR, GBP
+
+    $currencies = $response->json();
+    expect($currencies)->toContain('USD')
+        ->toContain('EUR')
+        ->toContain('GBP');
+});

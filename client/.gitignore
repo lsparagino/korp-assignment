@@ -29,3 +29,4 @@ pnpm-debug.log*
 /playwright/.cache/
 /playwright/.auth/
 /e2e/.auth/
+/coverage/

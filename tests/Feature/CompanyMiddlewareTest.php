@@ -4,7 +4,9 @@ use App\Models\Company;
 use App\Models\User;
 use App\Models\Wallet;
 
-const WALLETS_ENDPOINT = '/api/v0/wallets';
+if (! defined('WALLETS_ENDPOINT')) {
+    define('WALLETS_ENDPOINT', '/api/v0/wallets');
+}
 
 test('requests without company_id return empty data for wallets', function () {
     $user = User::factory()->create();

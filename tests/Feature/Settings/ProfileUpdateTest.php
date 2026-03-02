@@ -74,3 +74,28 @@ test('correct password must be provided to delete account', function () {
 
     expect($user->fresh())->not->toBeNull();
 });
+
+test('profile email change returns error when verification email fails to send', function () {
+    $user = User::factory()->create();
+    $originalEmail = $user->email;
+    $newEmail = 'newemail@example.com';
+
+    // Create a partial mock of the user that throws on sendEmailVerificationNotification
+    $userMock = Mockery::mock($user)->makePartial();
+    $userMock->shouldReceive('sendEmailVerificationNotification')
+        ->once()
+        ->andThrow(new \RuntimeException('Mail server unavailable'));
+
+    $profileService = app(\App\Services\ProfileService::class);
+
+    $result = $profileService->updateProfile($userMock, [
+        'name' => TEST_USER_NAME,
+        'email' => $newEmail,
+    ]);
+
+    expect($result['success'])->toBeFalse();
+    expect($result['message'])->toContain('verification');
+
+    // The pending_email should have been rolled back
+    expect($user->fresh()->pending_email)->toBeNull();
+});

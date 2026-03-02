@@ -7,9 +7,15 @@ use App\Models\Company;
 use App\Models\User;
 use App\Models\Wallet;
 
-const WALLETS_ENDPOINT = '/api/v0/wallets';
-const NEW_WALLET_NAME = 'New Wallet';
-const UPDATED_WALLET_NAME = 'Updated Wallet Name';
+if (! defined('WALLETS_ENDPOINT')) {
+    define('WALLETS_ENDPOINT', '/api/v0/wallets');
+}
+if (! defined('NEW_WALLET_NAME')) {
+    define('NEW_WALLET_NAME', 'New Wallet');
+}
+if (! defined('UPDATED_WALLET_NAME')) {
+    define('UPDATED_WALLET_NAME', 'Updated Wallet Name');
+}
 
 beforeEach(function () {
     $this->company = Company::factory()->create();
