@@ -54,6 +54,7 @@ function navigateToMember(id: number) {
       <th>{{ $t('teamMembers.tableHeaders.email') }}</th>
       <th>{{ $t('teamMembers.tableHeaders.role') }}</th>
       <th>{{ $t('teamMembers.tableHeaders.walletAccess') }}</th>
+      <th class="text-right" style="width: 48px" />
     </template>
 
     <template #body>
@@ -76,6 +77,9 @@ function navigateToMember(id: number) {
         </td>
         <td>
           <span class="text-caption text-grey-darken-2">{{ m.wallet_access }}</span>
+        </td>
+        <td class="text-right">
+          <v-icon color="grey-darken-1" icon="mdi-chevron-right" size="20" />
         </td>
       </tr>
     </template>

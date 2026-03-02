@@ -76,19 +76,19 @@ describe('wallets/index.vue', () => {
         expect(wrapper.find('[data-testid="create-wallet-btn"]').exists()).toBe(false)
     })
 
-    it('shows edit and delete buttons for admin', async () => {
+    it('has clickable rows with data-testid', async () => {
         const wrapper = mountWithPlugins(WalletsPage, {
             piniaOptions: { initialState: makeAuthState('admin') },
         })
         await flushPromises()
 
-        expect(wrapper.find('[data-testid="edit-btn"]').exists()).toBe(true)
-        expect(wrapper.find('[data-testid="delete-btn"]').exists()).toBe(true)
+        expect(wrapper.find('[data-testid="wallet-row-1"]').exists()).toBe(true)
+        expect(wrapper.find('[data-testid="wallet-row-2"]').exists()).toBe(true)
     })
 
-    it('hides action buttons for member', async () => {
+    it('does not show action buttons in the table', async () => {
         const wrapper = mountWithPlugins(WalletsPage, {
-            piniaOptions: { initialState: makeAuthState('member') },
+            piniaOptions: { initialState: makeAuthState('admin') },
         })
         await flushPromises()
 

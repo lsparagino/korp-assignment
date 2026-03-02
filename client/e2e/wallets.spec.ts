@@ -30,6 +30,18 @@ test.describe('Wallets (Admin)', () => {
     // Table should have rows
     await expect(page.getByTestId('data-table').getByRole('row').nth(1)).toBeVisible({ timeout: 10_000 })
   })
+
+  test('can navigate to wallet detail page by clicking a row', async ({ page }) => {
+    await page.goto('/wallets')
+
+    await expect(page.getByTestId('data-table')).toBeVisible({ timeout: 15_000 })
+
+    const firstRow = page.getByTestId('data-table').getByRole('row').nth(1)
+    await firstRow.click()
+
+    await expect(page).toHaveURL(/\/wallets\/\d+$/, { timeout: 10_000 })
+    await expect(page.getByTestId('page-heading')).toBeVisible({ timeout: 10_000 })
+  })
 })
 
 test.describe('Wallets (Member)', () => {
@@ -40,15 +52,5 @@ test.describe('Wallets (Member)', () => {
 
     await expect(page.getByTestId('page-heading')).toBeVisible({ timeout: 10_000 })
     await expect(page.getByTestId('create-wallet-btn')).not.toBeVisible()
-  })
-
-  test('does not show edit/delete actions', async ({ page }) => {
-    await page.goto('/wallets')
-
-    await expect(page.getByTestId('data-table')).toBeVisible({ timeout: 15_000 })
-
-    // Member should not see any action icons
-    await expect(page.getByTestId('edit-btn')).not.toBeVisible()
-    await expect(page.getByTestId('delete-btn')).not.toBeVisible()
   })
 })

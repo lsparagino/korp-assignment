@@ -1,13 +1,11 @@
 <script lang="ts" setup>
 import type { TeamMember } from '@/api/team-members'
-import type { Transaction } from '@/api/transactions'
 import type { Wallet } from '@/api/wallets'
 import { useQuery } from '@pinia/colada'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
-import { fetchTransactions } from '@/api/transactions'
-import TransactionTable from '@/components/features/TransactionTable.vue'
+import RecentTransactions from '@/components/features/RecentTransactions.vue'
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue'
 import { useConfirmDialog } from '@/composables/useConfirmDialog'
 import { useFormValidation } from '@/composables/useFormValidation'
@@ -71,32 +69,6 @@ const canManage = computed(() =>
     && member.value.role !== 'Admin'
     && member.value.id !== authStore.user?.id,
 )
-
-// Recent transactions
-const recentTransactions = ref<Transaction[]>([])
-const loadingTransactions = ref(false)
-
-async function loadRecentTransactions() {
-    loadingTransactions.value = true
-    try {
-        const response = await fetchTransactions({
-            initiator_user_id: memberId,
-            per_page: 5,
-        })
-        recentTransactions.value = response.data.data
-    } catch {
-        recentTransactions.value = []
-    } finally {
-        loadingTransactions.value = false
-    }
-}
-
-// Load transactions when auth user is manager or admin
-watch(() => authStore.isManagerOrAdmin, isAllowed => {
-    if (isAllowed) {
-        loadRecentTransactions()
-    }
-}, { immediate: true })
 
 async function save() {
     const valid = await validate()
@@ -176,7 +148,7 @@ function confirmDelete() {
 
     <template v-else-if="member">
         <v-row>
-            <!-- Edit form -->
+            <!-- Edit form + management actions -->
             <v-col cols="12" lg="7">
                 <v-card border class="pa-6" flat rounded="lg">
                     <v-form ref="formRef" v-model="formValid" @submit.prevent="save">
@@ -220,52 +192,47 @@ function confirmDelete() {
                             </div>
                         </div>
                     </v-form>
+
+                    <!-- Management actions (admin only) -->
+                    <template v-if="canManage">
+                        <v-divider class="my-4" />
+
+                        <div class="pa-6 bg-grey-lighten-4 rounded-lg border">
+                            <div class="text-subtitle-1 font-weight-bold text-grey-darken-3 mb-1">
+                                {{ $t('teamMembers.managementActions') }}
+                            </div>
+                            <p class="text-caption text-grey-darken-1 mb-6">
+                                {{ $t('teamMembers.managementDescription') }}
+                            </p>
+
+                            <div class="d-flex flex-column flex-sm-row ga-3">
+                                <v-btn class="flex-grow-1 text-none font-weight-bold"
+                                    :color="member.role === 'Manager' ? 'grey-darken-1' : 'info'"
+                                    data-testid="promote-demote-btn"
+                                    :prepend-icon="member.role === 'Manager' ? 'mdi-arrow-down' : 'mdi-arrow-up'"
+                                    rounded="lg" variant="flat" @click="confirmPromote">
+                                    {{ member.role === 'Manager' ? $t('teamMembers.demoteToMember') :
+                                        $t('teamMembers.promoteToManager') }}
+                                </v-btn>
+
+                                <v-btn class="flex-grow-1 text-none font-weight-bold" color="error"
+                                    data-testid="delete-member-btn" prepend-icon="mdi-delete" rounded="lg"
+                                    variant="tonal" @click="confirmDelete">
+                                    {{ $t('teamMembers.deleteMember') }}
+                                </v-btn>
+                            </div>
+                        </div>
+                    </template>
                 </v-card>
             </v-col>
 
-            <!-- Recent transactions (right column) -->
+            <!-- Recent transactions (right column, no wrapping card) -->
             <v-col v-if="authStore.isManagerOrAdmin" cols="12" lg="5">
-                <v-card border class="pa-6" flat rounded="lg">
-                    <div class="text-subtitle-1 font-weight-bold mb-4">
-                        {{ $t('teamMembers.recentTransactions') }}
-                    </div>
-
-                    <TransactionTable compact :is-admin="authStore.isAdmin"
-                        :is-manager-or-admin="authStore.isManagerOrAdmin" :items="recentTransactions"
-                        :loading="loadingTransactions" :title="$t('teamMembers.recentTransactions')" />
-
-                    <div v-if="!loadingTransactions && recentTransactions.length === 0"
-                        class="text-body-2 text-grey-darken-1 text-center py-4">
-                        {{ $t('teamMembers.noRecentTransactions') }}
-                    </div>
-                </v-card>
+                <RecentTransactions :filter-params="{ initiator_user_id: memberId }"
+                    :title="$t('teamMembers.recentTransactions')"
+                    :view-all-query="{ initiator_user_id: String(memberId) }" />
             </v-col>
         </v-row>
-
-        <!-- Management actions (admin only, full-width below) -->
-        <v-card v-if="canManage" border class="mt-6 pa-6" flat rounded="lg">
-            <div class="text-subtitle-1 font-weight-bold text-grey-darken-3 mb-1">
-                {{ $t('teamMembers.managementActions') }}
-            </div>
-            <p class="text-caption text-grey-darken-1 mb-6">
-                {{ $t('teamMembers.managementDescription') }}
-            </p>
-
-            <div class="d-flex flex-column flex-sm-row ga-3">
-                <v-btn class="text-none font-weight-bold flex-grow-1"
-                    :color="member.role === 'Manager' ? 'grey-darken-1' : 'info'" data-testid="promote-demote-btn"
-                    :prepend-icon="member.role === 'Manager' ? 'mdi-arrow-down' : 'mdi-arrow-up'" rounded="lg"
-                    variant="flat" @click="confirmPromote">
-                    {{ member.role === 'Manager' ? $t('teamMembers.demoteToMember') :
-                        $t('teamMembers.promoteToManager') }}
-                </v-btn>
-
-                <v-btn class="text-none font-weight-bold flex-grow-1" color="error" data-testid="delete-member-btn"
-                    prepend-icon="mdi-delete" rounded="lg" variant="tonal" @click="confirmDelete">
-                    {{ $t('teamMembers.deleteMember') }}
-                </v-btn>
-            </div>
-        </v-card>
     </template>
 
     <ConfirmDialog v-model="confirmDialog.show" confirm-color="error" :message="confirmDialog.message"

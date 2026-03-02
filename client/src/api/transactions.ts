@@ -34,9 +34,10 @@ interface TransactionParams extends PaginationParams {
   amount_min?: string
   amount_max?: string
   reference?: string
-  wallet_id?: number | null
-  counterpart_wallet_id?: number | null
+  from_wallet_id?: number | string | null
+  to_wallet_id?: number | string | null
   initiator_user_id?: number
+  has_wallet_id?: number
 }
 
 export interface TransferForm {
@@ -52,18 +53,18 @@ export interface TransferForm {
   code?: string
 }
 
-export function fetchTransactions (params: TransactionParams) {
+export function fetchTransactions(params: TransactionParams) {
   return api.get('/transactions', { params })
 }
 
-export function initiateTransfer (form: TransferForm, idempotencyKey: string) {
+export function initiateTransfer(form: TransferForm, idempotencyKey: string) {
   return api.post('/transfers', form, { headers: { 'Idempotency-Key': idempotencyKey } })
 }
 
-export function reviewTransfer (groupId: string, payload: { action: 'approve' | 'reject', reason?: string }, idempotencyKey: string) {
+export function reviewTransfer(groupId: string, payload: { action: 'approve' | 'reject', reason?: string }, idempotencyKey: string) {
   return api.post(`/transfers/${groupId}/review`, payload, { headers: { 'Idempotency-Key': idempotencyKey } })
 }
 
-export function cancelTransfer (groupId: string, idempotencyKey: string) {
+export function cancelTransfer(groupId: string, idempotencyKey: string) {
   return api.post(`/transfers/${groupId}/cancel`, {}, { headers: { 'Idempotency-Key': idempotencyKey } })
 }

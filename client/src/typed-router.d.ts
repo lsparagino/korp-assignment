@@ -39,6 +39,7 @@ declare module 'vue-router/auto-routes' {
     '/transactions/': RouteRecordInfo<'/transactions/', '/transactions', Record<never, never>, Record<never, never>>,
     '/transactions/create': RouteRecordInfo<'/transactions/create', '/transactions/create', Record<never, never>, Record<never, never>>,
     '/wallets/': RouteRecordInfo<'/wallets/', '/wallets', Record<never, never>, Record<never, never>>,
+    '/wallets/[id]': RouteRecordInfo<'/wallets/[id]', '/wallets/:id', { id: ParamValue<true> }, { id: ParamValue<false> }, '/wallets/[id]/edit'>,
     '/wallets/[id]/edit': RouteRecordInfo<'/wallets/[id]/edit', '/wallets/:id/edit', { id: ParamValue<true> }, { id: ParamValue<false> }>,
     '/wallets/create': RouteRecordInfo<'/wallets/create', '/wallets/create', Record<never, never>, Record<never, never>>,
   }
@@ -137,6 +138,10 @@ declare module 'vue-router/auto-routes' {
     'src/pages/wallets/index.vue': {
       routes: '/wallets/'
       views: never
+    }
+    'src/pages/wallets/[id].vue': {
+      routes: '/wallets/[id]' | '/wallets/[id]/edit'
+      views: 'default'
     }
     'src/pages/wallets/[id]/edit.vue': {
       routes: '/wallets/[id]/edit'

@@ -161,7 +161,10 @@
             "availableBalance": "Available",
             "currency": "Currency",
             "status": "Status"
-        }
+        },
+        "walletDetails": "Wallet Details",
+        "recentTransactions": "Recent Transactions",
+        "noRecentTransactions": "No recent transactions."
     },
     "transactions": {
         "title": "Transactions",
@@ -190,12 +193,17 @@
         "rejectReason": "Reject Reason",
         "fromWallet": "From Wallet",
         "toWallet": "To Wallet",
+        "wallet": "Wallet",
+        "selectWallet": "Select wallet",
+        "filterByDirection": "Filter by direction",
+        "simpleWalletFilter": "Simple wallet filter",
         "selectSource": "Select source wallet",
         "selectDestination": "Select destination wallet",
         "clear": "Clear",
         "filter": "Filter",
         "external": "External",
         "noTransactions": "No transactions found.",
+        "viewAll": "View all →",
         "transactionDetails": "Transaction Details",
         "date": "Date",
         "amount": "Amount",

@@ -11,8 +11,10 @@ interface TransactionsQueryParams {
   amountMin?: string
   amountMax?: string
   reference?: string
-  walletId?: number | string | null
-  counterpartWalletId?: number | string | null
+  fromWalletId?: number | string | null
+  toWalletId?: number | string | null
+  hasWalletId?: number | null
+  initiatorUserId?: number | null
 }
 
 export const TRANSACTION_QUERY_KEYS = {
@@ -34,8 +36,10 @@ export const transactionsListQuery = defineQueryOptions(
         amount_min: params.amountMin,
         amount_max: params.amountMax,
         reference: params.reference,
-        wallet_id: params.walletId as number | null,
-        counterpart_wallet_id: params.counterpartWalletId as number | null,
+        from_wallet_id: params.fromWalletId as number | null,
+        to_wallet_id: params.toWalletId as number | null,
+        has_wallet_id: params.hasWalletId ?? undefined,
+        initiator_user_id: params.initiatorUserId ?? undefined,
       })
       return response.data
     },

@@ -58,8 +58,9 @@ describe('useTransactionFilters', () => {
     expect(filterForm.amount_min).toBe('')
     expect(filterForm.amount_max).toBe('')
     expect(filterForm.reference).toBe('')
-    expect(filterForm.wallet_id).toBeNull()
-    expect(filterForm.counterpart_wallet_id).toBeNull()
+    expect(filterForm.has_wallet_id).toBeNull()
+    expect(filterForm.from_wallet_id).toBeNull()
+    expect(filterForm.to_wallet_id).toBeNull()
   })
 
   it('syncs filterForm from route query params', async () => {
@@ -176,5 +177,71 @@ describe('useTransactionFilters', () => {
     expect(mockInvalidateQueries).toHaveBeenCalledTimes(2)
     expect(mockInvalidateQueries).toHaveBeenCalledWith({ key: ['transactions'] })
     expect(mockInvalidateQueries).toHaveBeenCalledWith({ key: ['wallets'] })
+  })
+
+  it('defaults to simple wallet filter mode', async () => {
+    const { useTransactionFilters } = await import('./useTransactionFilters')
+    const { walletFilterMode } = useTransactionFilters()
+
+    expect(walletFilterMode.value).toBe('simple')
+  })
+
+  it('detects specific mode from URL params', async () => {
+    mockRoute.query = { from_wallet_id: '5' }
+    mockRoute.fullPath = '/?from_wallet_id=5'
+
+    const { useTransactionFilters } = await import('./useTransactionFilters')
+    const { walletFilterMode, filterForm } = useTransactionFilters()
+    await nextTick()
+
+    expect(walletFilterMode.value).toBe('specific')
+    expect(filterForm.from_wallet_id).toBe(5)
+  })
+
+  it('toggleWalletFilterMode switches between simple and specific', async () => {
+    const { useTransactionFilters } = await import('./useTransactionFilters')
+    const { walletFilterMode, toggleWalletFilterMode, filterForm } = useTransactionFilters()
+
+    expect(walletFilterMode.value).toBe('simple')
+
+    toggleWalletFilterMode()
+    expect(walletFilterMode.value).toBe('specific')
+    expect(filterForm.has_wallet_id).toBeNull()
+
+    filterForm.from_wallet_id = 3
+    toggleWalletFilterMode()
+    expect(walletFilterMode.value).toBe('simple')
+    expect(filterForm.from_wallet_id).toBeNull()
+    expect(filterForm.to_wallet_id).toBeNull()
+  })
+
+  it('handleFilter sends has_wallet_id in simple mode', async () => {
+    const { useTransactionFilters } = await import('./useTransactionFilters')
+    const { filterForm, handleFilter } = useTransactionFilters()
+
+    filterForm.has_wallet_id = 42
+
+    handleFilter()
+
+    const pushCall = mockRouter.push.mock.calls[0]![0] as { query: Record<string, string> }
+    expect(pushCall.query.has_wallet_id).toBe('42')
+    expect(pushCall.query.from_wallet_id).toBeUndefined()
+    expect(pushCall.query.to_wallet_id).toBeUndefined()
+  })
+
+  it('handleFilter sends from/to in specific mode', async () => {
+    const { useTransactionFilters } = await import('./useTransactionFilters')
+    const { filterForm, walletFilterMode, handleFilter } = useTransactionFilters()
+
+    walletFilterMode.value = 'specific'
+    filterForm.from_wallet_id = 10
+    filterForm.to_wallet_id = 'external'
+
+    handleFilter()
+
+    const pushCall = mockRouter.push.mock.calls[0]![0] as { query: Record<string, string> }
+    expect(pushCall.query.from_wallet_id).toBe('10')
+    expect(pushCall.query.to_wallet_id).toBe('external')
+    expect(pushCall.query.has_wallet_id).toBeUndefined()
   })
 })

@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\TransactionType;
 use App\Models\Transaction;
 use App\Models\User;
 use App\Models\Wallet;
@@ -51,20 +52,39 @@ class TransactionService
             $query->where('reference', 'LIKE', '%'.$filters['reference'].'%');
         }
 
-        if (($filters['wallet_id'] ?? null) === 'external') {
+        if (($filters['from_wallet_id'] ?? null) === 'external') {
             $query->whereNull('counterpart_wallet_id');
-        } elseif (! empty($filters['wallet_id'])) {
-            $query->where('wallet_id', $filters['wallet_id']);
+        } elseif (! empty($filters['from_wallet_id'])) {
+            $query->where(function ($q) use ($filters) {
+                $q->where(function ($sub) use ($filters) {
+                    $sub->where('type', TransactionType::Debit)->where('wallet_id', $filters['from_wallet_id']);
+                })->orWhere(function ($sub) use ($filters) {
+                    $sub->where('type', TransactionType::Credit)->where('counterpart_wallet_id', $filters['from_wallet_id']);
+                });
+            });
         }
 
-        if (($filters['counterpart_wallet_id'] ?? null) === 'external') {
+        if (($filters['to_wallet_id'] ?? null) === 'external') {
             $query->whereNull('counterpart_wallet_id');
-        } elseif (! empty($filters['counterpart_wallet_id'])) {
-            $query->where('counterpart_wallet_id', $filters['counterpart_wallet_id']);
+        } elseif (! empty($filters['to_wallet_id'])) {
+            $query->where(function ($q) use ($filters) {
+                $q->where(function ($sub) use ($filters) {
+                    $sub->where('type', TransactionType::Debit)->where('counterpart_wallet_id', $filters['to_wallet_id']);
+                })->orWhere(function ($sub) use ($filters) {
+                    $sub->where('type', TransactionType::Credit)->where('wallet_id', $filters['to_wallet_id']);
+                });
+            });
         }
 
         if (! empty($filters['initiator_user_id'])) {
             $query->where('initiator_user_id', $filters['initiator_user_id']);
+        }
+
+        if (! empty($filters['has_wallet_id'])) {
+            $query->where(function ($q) use ($filters) {
+                $q->where('wallet_id', $filters['has_wallet_id'])
+                    ->orWhere('counterpart_wallet_id', $filters['has_wallet_id']);
+            });
         }
 
         return $query->with(['wallet', 'counterpartWallet', 'initiator', 'reviewer'])

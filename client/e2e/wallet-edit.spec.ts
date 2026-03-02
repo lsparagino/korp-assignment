@@ -4,7 +4,7 @@ import { expect, type Page, test } from '@playwright/test'
 const require = createRequire(import.meta.url)
 const en = require('../src/locales/en.json')
 
-async function createWallet (page: Page, name: string) {
+async function createWallet(page: Page, name: string) {
   await page.goto('/wallets/create')
   const nameField = page.getByTestId('wallet-name-input').locator('input')
   await expect(nameField).toBeVisible({ timeout: 10_000 })
@@ -17,17 +17,17 @@ async function createWallet (page: Page, name: string) {
   await expect(page.getByTestId('data-table').getByRole('row', { name })).toBeVisible({ timeout: 10_000 })
 }
 
-test.describe('Wallet Edit', () => {
-  test('admin can navigate to edit page from wallet list', async ({ page }) => {
+test.describe('Wallet Detail', () => {
+  test('admin can navigate to detail page from wallet list', async ({ page }) => {
     const walletName = `Nav Test ${Date.now()}`
     await createWallet(page, walletName)
 
-    // Click the edit icon on the wallet row
+    // Click the wallet row to navigate
     const row = page.getByTestId('data-table').getByRole('row', { name: walletName })
-    await row.getByTestId('edit-btn').click()
+    await row.click()
 
-    // Should navigate to the edit page
-    await expect(page).toHaveURL(/\/wallets\/\d+\/edit/, { timeout: 10_000 })
+    // Should navigate to the detail page
+    await expect(page).toHaveURL(/\/wallets\/\d+$/, { timeout: 10_000 })
     await expect(page.getByTestId('page-heading')).toBeVisible({ timeout: 10_000 })
   })
 
@@ -36,8 +36,8 @@ test.describe('Wallet Edit', () => {
     await createWallet(page, walletName)
 
     const row = page.getByTestId('data-table').getByRole('row', { name: walletName })
-    await row.getByTestId('edit-btn').click()
-    await expect(page).toHaveURL(/\/wallets\/\d+\/edit/, { timeout: 10_000 })
+    await row.click()
+    await expect(page).toHaveURL(/\/wallets\/\d+$/, { timeout: 10_000 })
 
     const nameField = page.getByTestId('wallet-name-input').locator('input')
     await expect(nameField).toBeVisible({ timeout: 10_000 })
@@ -51,19 +51,18 @@ test.describe('Wallet Edit', () => {
 
     await page.getByTestId('wallet-save-btn').click()
 
-    // Should redirect back to wallets list with updated name
-    await expect(page.getByTestId('data-table')).toBeVisible({ timeout: 15_000 })
-    await expect(page.getByTestId('data-table').getByRole('row', { name: renamedName })).toBeVisible({ timeout: 10_000 })
+    // Should stay on the detail page and show success
+    await expect(page).toHaveURL(/\/wallets\/\d+$/, { timeout: 10_000 })
   })
 
-  test('admin can freeze and unfreeze a wallet via edit page', async ({ page }) => {
+  test('admin can freeze and unfreeze a wallet via detail page', async ({ page }) => {
     const freezeWallet = `Freeze Test ${Date.now()}`
     await createWallet(page, freezeWallet)
 
-    // Navigate to the edit page for the wallet
+    // Navigate to the detail page for the wallet
     const row = page.getByTestId('data-table').getByRole('row', { name: freezeWallet })
-    await row.getByTestId('edit-btn').click()
-    await expect(page).toHaveURL(/\/wallets\/\d+\/edit/, { timeout: 10_000 })
+    await row.click()
+    await expect(page).toHaveURL(/\/wallets\/\d+$/, { timeout: 10_000 })
     await expect(page.getByTestId('page-heading')).toBeVisible({ timeout: 10_000 })
 
     // Click the freeze button

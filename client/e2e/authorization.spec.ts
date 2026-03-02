@@ -56,8 +56,8 @@ test.describe('Authorization - Member Role', () => {
     await expect(page.getByTestId('page-heading')).toBeVisible({ timeout: 15_000 })
     await expect(page.getByTestId('data-table')).toBeVisible({ timeout: 15_000 })
 
-    // Member should not see any edit/delete icons in the table
-    await expect(page.getByTestId('edit-btn')).not.toBeVisible()
+    // Member should not see create wallet button
+    await expect(page.getByTestId('create-wallet-btn')).not.toBeVisible()
   })
 
   test('cannot see add member button on team members page', async ({ page }) => {

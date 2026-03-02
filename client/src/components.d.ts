@@ -24,6 +24,7 @@ declare module 'vue' {
     IdentityConfirmDialog: typeof import('./components/ui/IdentityConfirmDialog.vue')['default']
     PageHeader: typeof import('./components/layout/PageHeader.vue')['default']
     Pagination: typeof import('./components/ui/Pagination.vue')['default']
+    RecentTransactions: typeof import('./components/features/RecentTransactions.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     SettingsLayout: typeof import('./components/layout/SettingsLayout.vue')['default']
