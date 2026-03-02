@@ -54,6 +54,7 @@
         <v-btn
           class="text-none"
           data-testid="identity-confirm-cancel"
+          :disabled="isSubmitting"
           variant="text"
           @click="emit('cancel')"
         >

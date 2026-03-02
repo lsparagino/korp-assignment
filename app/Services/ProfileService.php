@@ -32,6 +32,13 @@ class ProfileService
             unset($validated['email']);
         }
 
+        $changes = [];
+        foreach ($validated as $key => $value) {
+            if ($user->getAttribute($key) != $value) {
+                $changes[$key] = ['from' => $user->getAttribute($key), 'to' => $value];
+            }
+        }
+
         $user->fill($validated);
         $user->save();
 
@@ -42,6 +49,7 @@ class ProfileService
             AuditSeverity::Normal,
             'settings.profile_updated',
             __('messages.audit.profile_updated'),
+            ['metadata' => ['changes' => $changes]],
         );
 
         return [

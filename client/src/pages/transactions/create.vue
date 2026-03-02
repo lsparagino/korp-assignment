@@ -13,6 +13,7 @@
   import { useFormValidation } from '@/composables/useFormValidation'
   import { useIdempotencyKey } from '@/composables/useIdempotencyKey'
   import { useIdentityConfirm } from '@/composables/useIdentityConfirm'
+  import { TRANSACTION_QUERY_KEYS } from '@/queries/transactions'
   import { WALLET_QUERY_KEYS, walletsListQuery } from '@/queries/wallets'
   import { useAuthStore } from '@/stores/auth'
   import { getValidationErrors, isApiError } from '@/utils/errors'
@@ -208,6 +209,7 @@
       await initiateTransfer({ ...form.value, ...extraFields }, idempotencyKey.value)
       regenerateKey()
       await queryCache.invalidateQueries({ key: WALLET_QUERY_KEYS.root })
+      await queryCache.invalidateQueries({ key: TRANSACTION_QUERY_KEYS.root })
       router.push('/transactions/')
     } catch (error: unknown) {
       if (isApiError(error, 422)) {
@@ -642,6 +644,7 @@
               class="text-none font-weight-bold px-8"
               color="grey-darken-1"
               data-testid="transfer-back-btn"
+              :disabled="processing"
               height="48"
               rounded="lg"
               variant="outlined"

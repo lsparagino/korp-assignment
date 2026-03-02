@@ -63,7 +63,7 @@ class TeamMemberService
             AuditSeverity::Medium,
             'team.member_invited',
             __('messages.audit.team_member_invited'),
-            ['metadata' => ['invited_email' => $email, 'invited_user_id' => $user->id]],
+            ['metadata' => ['invited_user_id' => $user->id, 'member_name' => $name, 'member_email' => $email]],
         );
 
         return $user;
@@ -85,7 +85,7 @@ class TeamMemberService
             AuditSeverity::Normal,
             'team.member_updated',
             __('messages.audit.team_member_updated'),
-            ['metadata' => ['member_id' => $member->id, 'member_name' => $member->name]],
+            ['metadata' => ['member_id' => $member->id, 'member_name' => $member->name, 'member_email' => $member->email]],
         );
 
         return $member;
@@ -93,6 +93,7 @@ class TeamMemberService
 
     public function promote(User $member, UserRole $role): void
     {
+        $previousRole = $member->role->value;
         $member->update(['role' => $role]);
 
         Log::info('Team member role updated', ['user_id' => $member->id, 'role' => $role->value]);
@@ -102,7 +103,16 @@ class TeamMemberService
             AuditSeverity::High,
             'team.member_promoted',
             __('messages.audit.team_member_promoted'),
-            ['metadata' => ['member_id' => $member->id, 'new_role' => $role->value]],
+            ['metadata' => [
+                'member_id' => $member->id,
+                'member_name' => $member->name,
+                'changes' => [
+                    'role' => [
+                        'from' => $previousRole,
+                        'to' => $role->value,
+                    ],
+                ],
+            ]],
         );
     }
 

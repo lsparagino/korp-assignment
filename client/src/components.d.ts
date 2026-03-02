@@ -14,6 +14,7 @@ declare module 'vue' {
     AddressBookDialog: typeof import('./components/features/AddressBookDialog.vue')['default']
     AppLogo: typeof import('./components/ui/AppLogo.vue')['default']
     AppNotification: typeof import('./components/ui/AppNotification.vue')['default']
+    AuditLogDetailModal: typeof import('./components/features/AuditLogDetailModal.vue')['default']
     AuthCard: typeof import('./components/ui/AuthCard.vue')['default']
     CompanySelector: typeof import('./components/features/CompanySelector.vue')['default']
     ConfirmDialog: typeof import('./components/ui/ConfirmDialog.vue')['default']

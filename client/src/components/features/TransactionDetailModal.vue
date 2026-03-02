@@ -416,10 +416,12 @@
                       class="text-none font-weight-bold flex-grow-1"
                       color="error"
                       data-testid="reject-btn"
+                      :disabled="submitting"
                       prepend-icon="mdi-close-circle"
                       rounded="lg"
                       variant="outlined"
                       @click="rejectMode = true"
+                    >
                     >
                       {{ $t('transactions.reject') }}
                     </v-btn>
@@ -456,9 +458,11 @@
                       class="text-none font-weight-bold"
                       color="grey-darken-1"
                       data-testid="cancel-reject-btn"
+                      :disabled="submitting"
                       rounded="lg"
                       variant="outlined"
                       @click="rejectMode = false"
+                    >
                     >
                       {{ $t('common.cancel') }}
                     </v-btn>

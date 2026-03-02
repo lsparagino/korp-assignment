@@ -4,10 +4,12 @@
   import { reactive, ref } from 'vue'
   import { useI18n } from 'vue-i18n'
   import { fetchAuditLogs } from '@/api/audit-logs'
+  import AuditLogDetailModal from '@/components/features/AuditLogDetailModal.vue'
   import PageHeader from '@/components/layout/PageHeader.vue'
   import DataTable from '@/components/ui/DataTable.vue'
   import { useRefreshData } from '@/composables/useRefreshData'
   import { useCompanyStore } from '@/stores/company'
+  import { getAuditCategoryColors, getAuditSeverityColors } from '@/utils/colors'
 
   const { t } = useI18n()
   const companyStore = useCompanyStore()
@@ -18,6 +20,8 @@
   const loadingMore = ref(false)
   const dateFromMenu = ref(false)
   const dateToMenu = ref(false)
+  const selectedLog = ref<AuditLog | null>(null)
+  const detailDialog = ref(false)
 
   const filters = reactive<AuditLogFilters>({
     category: '',
@@ -36,6 +40,14 @@
     { title: t('auditLogs.categories.settings'), value: 'settings' },
   ]
 
+  const categoryLabelMap: Record<string, string> = {
+    auth: t('auditLogs.categories.auth'),
+    transaction: t('auditLogs.categories.transaction'),
+    team: t('auditLogs.categories.team'),
+    wallet: t('auditLogs.categories.wallet'),
+    settings: t('auditLogs.categories.settings'),
+  }
+
   const severities = [
     { title: t('auditLogs.severities.all'), value: '' },
     { title: t('auditLogs.severities.normal'), value: 'normal' },
@@ -44,30 +56,17 @@
     { title: t('auditLogs.severities.critical'), value: 'critical' },
   ]
 
-
-  function severityColor(severity: string): string {
-    const map: Record<string, string> = {
-      normal: 'success',
-      medium: 'info',
-      high: 'warning',
-      critical: 'error',
-    }
-    return map[severity] ?? 'grey'
-  }
-
-  function categoryColor(category: string): string {
-    const map: Record<string, string> = {
-      auth: 'blue',
-      transaction: 'green',
-      team: 'purple',
-      wallet: 'orange',
-      settings: 'teal',
-    }
-    return map[category] ?? 'grey'
+  function categoryLabel(category: string): string {
+    return categoryLabelMap[category] ?? category
   }
 
   function formatDate(timestamp: number): string {
     return new Date(timestamp * 1000).toLocaleString()
+  }
+
+  function openDetail(log: AuditLog) {
+    selectedLog.value = log
+    detailDialog.value = true
   }
 
   function onDateSelected(field: 'from' | 'to', value: unknown) {
@@ -93,7 +92,6 @@
     }
 
     try {
-      // Strip empty values so they aren't sent as query params
       const params: AuditLogFilters = {
         per_page: filters.per_page,
         cursor: append ? (nextCursor.value ?? undefined) : undefined,
@@ -281,9 +279,10 @@
       <th>{{ $t('auditLogs.columns.user') }}</th>
       <th>{{ $t('auditLogs.columns.category') }}</th>
       <th>{{ $t('auditLogs.columns.severity') }}</th>
-      <th>{{ $t('auditLogs.columns.action') }}</th>
       <th>{{ $t('auditLogs.columns.description') }}</th>
-      <th>{{ $t('auditLogs.columns.ipAddress') }}</th>
+      <th class="text-center" style="width: 80px">
+        {{ $t('auditLogs.columns.details') }}
+      </th>
     </template>
 
     <template #body>
@@ -292,25 +291,37 @@
         <td>{{ log.user_name ?? '—' }}</td>
         <td>
           <v-chip
-            :color="categoryColor(log.category)"
+            :color="getAuditCategoryColors(log.category).bg"
             size="small"
-            variant="tonal"
+            :text-color="getAuditCategoryColors(log.category).text"
+            variant="flat"
           >
-            {{ log.category }}
+            <span class="font-weight-bold">{{ categoryLabel(log.category) }}</span>
           </v-chip>
         </td>
         <td>
           <v-chip
-            :color="severityColor(log.severity)"
+            :color="getAuditSeverityColors(log.severity).text"
             size="small"
-            variant="flat"
+            variant="text"
           >
-            {{ log.severity }}
+            <span class="font-weight-bold text-uppercase">{{ log.severity }}</span>
           </v-chip>
         </td>
-        <td><code class="text-caption">{{ log.action }}</code></td>
-        <td>{{ log.description }}</td>
-        <td class="text-caption text-grey-darken-1">{{ log.ip_address ?? '—' }}</td>
+        <td class="text-body-2 text-truncate" style="max-width: 300px">
+          {{ log.description }}
+        </td>
+        <td class="text-center">
+          <v-btn
+            color="primary"
+            data-testid="audit-detail-btn"
+            density="comfortable"
+            icon="mdi-eye-outline"
+            size="small"
+            variant="text"
+            @click="openDetail(log)"
+          />
+        </td>
       </tr>
     </template>
 
@@ -340,6 +351,9 @@
       </div>
     </template>
   </DataTable>
+
+  <!-- Detail Modal -->
+  <AuditLogDetailModal v-model="detailDialog" :log="selectedLog" />
 </template>
 
 <route lang="yaml">

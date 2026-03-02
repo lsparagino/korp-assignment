@@ -217,6 +217,7 @@
               <div class="d-flex ga-3 mt-8 justify-end">
                 <v-btn
                   class="text-none font-weight-bold"
+                  :disabled="deleting"
                   variant="text"
                   @click="deleteDialog = false"
                 >

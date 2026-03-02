@@ -23,6 +23,8 @@ class SettingService
 
     public function updateUserSettings(User $user, array $data): UserSettingResource
     {
+        $existingSetting = $user->setting;
+
         $setting = $user->setting()->updateOrCreate(
             ['user_id' => $user->id],
             $data,
@@ -34,7 +36,31 @@ class SettingService
                 AuditSeverity::High,
                 'settings.security_threshold_changed',
                 __('messages.audit.security_threshold_changed'),
-                ['metadata' => ['new_value' => $data['security_threshold']]],
+                ['metadata' => [
+                    'changes' => [
+                        'security_threshold' => [
+                            'from' => $existingSetting?->security_threshold,
+                            'to' => $data['security_threshold'],
+                        ],
+                    ],
+                ]],
+            );
+        }
+
+        if (array_key_exists('daily_transaction_limit', $data)) {
+            $this->auditService->log(
+                AuditCategory::Settings,
+                AuditSeverity::High,
+                'settings.daily_limit_changed',
+                __('messages.audit.daily_limit_changed'),
+                ['metadata' => [
+                    'changes' => [
+                        'daily_transaction_limit' => [
+                            'from' => $existingSetting?->daily_transaction_limit,
+                            'to' => $data['daily_transaction_limit'],
+                        ],
+                    ],
+                ]],
             );
         }
 
@@ -48,6 +74,10 @@ class SettingService
 
     public function upsertCompanyThreshold(Company $company, array $data): CompanySettingResource
     {
+        $existing = $company->settings()
+            ->where('currency', strtoupper($data['currency']))
+            ->first();
+
         $setting = $company->settings()->updateOrCreate(
             [
                 'company_id' => $company->id,
@@ -61,7 +91,15 @@ class SettingService
             AuditSeverity::High,
             'settings.threshold_changed',
             __('messages.audit.threshold_changed'),
-            ['metadata' => $data],
+            ['metadata' => [
+                'currency' => strtoupper($data['currency']),
+                'changes' => [
+                    'approval_threshold' => [
+                        'from' => $existing?->approval_threshold,
+                        'to' => $data['approval_threshold'],
+                    ],
+                ],
+            ]],
         );
 
         return new CompanySettingResource($setting->fresh());
@@ -69,7 +107,10 @@ class SettingService
 
     public function deleteCompanyThreshold(CompanySetting $setting): void
     {
-        $thresholdData = ['currency' => $setting->currency, 'amount' => $setting->value];
+        $thresholdData = [
+            'currency' => $setting->currency,
+            'approval_threshold' => $setting->approval_threshold,
+        ];
 
         $setting->delete();
 

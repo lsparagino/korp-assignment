@@ -231,6 +231,7 @@
               <div class="d-flex justify-end ga-3 mt-2">
                 <v-btn
                   class="text-none font-weight-bold"
+                  :disabled="processing"
                   variant="text"
                   @click="dialog = false"
                 >

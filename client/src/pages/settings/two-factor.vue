@@ -158,6 +158,7 @@
               </v-btn>
               <v-btn
                 class="text-none font-weight-bold"
+                :disabled="processing"
                 variant="text"
                 @click="
                   confirming = false;

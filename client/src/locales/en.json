@@ -439,7 +439,16 @@
             "severity": "Severity",
             "action": "Action",
             "description": "Description",
-            "ipAddress": "IP Address"
+            "ipAddress": "IP Address",
+            "details": "Details"
+        },
+        "detail": {
+            "title": "Audit Log Details",
+            "action": "Action",
+            "metadata": "Metadata",
+            "field": "Field",
+            "previousValue": "Previous",
+            "newValue": "New"
         }
     }
 }

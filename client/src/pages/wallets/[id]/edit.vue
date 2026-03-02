@@ -224,6 +224,7 @@
               <v-btn
                 class="text-none font-weight-bold px-8"
                 color="grey-darken-1"
+                :disabled="processing"
                 height="48"
                 rounded="lg"
                 to="/wallets/"
@@ -254,6 +255,7 @@
                       : 'success'
                   "
                   data-testid="freeze-btn"
+                  :disabled="processing"
                   :prepend-icon="
                     wallet?.status === 'active'
                       ? Snowflake
@@ -273,7 +275,7 @@
                 <v-btn
                   class="flex-grow-1 text-none"
                   color="error"
-                  :disabled="!wallet?.can_delete"
+                  :disabled="!wallet?.can_delete || processing"
                   :prepend-icon="Trash2"
                   rounded="lg"
                   variant="tonal"

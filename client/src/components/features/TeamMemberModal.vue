@@ -143,6 +143,7 @@
         <v-spacer />
         <v-btn
           color="grey-darken-1"
+          :disabled="processing"
           variant="text"
           @click="dialog = false"
         >

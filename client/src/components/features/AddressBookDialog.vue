@@ -165,6 +165,7 @@
               <v-btn
                 class="text-none"
                 color="grey"
+                :disabled="savingAddress"
                 size="small"
                 variant="text"
                 @click="showAddForm = false"
@@ -244,6 +245,7 @@
           <v-spacer />
           <v-btn
             color="grey"
+            :disabled="deleting"
             variant="text"
             @click="deleteConfirmId = null"
           >

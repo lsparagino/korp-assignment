@@ -78,6 +78,9 @@ class TransferService
                 'group_id' => $groupId,
                 'status' => $status->value,
                 'company_id' => $senderWallet->company_id,
+                'currency' => $senderWallet->currency->value,
+                'sender_wallet_name' => $senderWallet->name,
+                'receiver_wallet_name' => $receiverWallet?->name,
             ];
         });
 
@@ -88,7 +91,15 @@ class TransferService
             AuditSeverity::Normal,
             'transfer.initiated',
             __('messages.audit.transfer_initiated'),
-            ['metadata' => ['group_id' => $result['group_id'], 'amount' => $data['amount']]],
+            ['metadata' => [
+                'group_id' => $result['group_id'],
+                'amount' => $data['amount'],
+                'currency' => $result['currency'],
+                'sender_wallet' => $result['sender_wallet_name'],
+                'receiver_wallet' => $result['receiver_wallet_name'],
+                'external' => $data['external'] ?? false,
+                'status' => $result['status'],
+            ]],
         );
 
         return $result;
@@ -135,12 +146,24 @@ class TransferService
             ? __('messages.audit.transfer_approved')
             : __('messages.audit.transfer_rejected');
 
+        $debitTx = Transaction::where('group_id', $groupId)
+            ->where('type', TransactionType::Debit)
+            ->with('wallet')
+            ->first();
+
         $this->auditService->log(
             AuditCategory::Transaction,
             AuditSeverity::Normal,
             $auditAction,
             $auditMessage,
-            ['metadata' => ['group_id' => $groupId, 'reason' => $reason]],
+            ['metadata' => [
+                'group_id' => $groupId,
+                'action' => $action,
+                'amount' => $debitTx ? abs((float) $debitTx->amount) : null,
+                'currency' => $debitTx?->currency,
+                'wallet_name' => $debitTx?->wallet?->name,
+                'reason' => $reason,
+            ]],
         );
 
         return $result;
@@ -174,12 +197,22 @@ class TransferService
             ];
         });
 
+        $debitTx = Transaction::where('group_id', $groupId)
+            ->where('type', TransactionType::Debit)
+            ->with('wallet')
+            ->first();
+
         $this->auditService->log(
             AuditCategory::Transaction,
             AuditSeverity::Normal,
             'transfer.cancelled',
             __('messages.audit.transfer_cancelled'),
-            ['metadata' => ['group_id' => $groupId]],
+            ['metadata' => [
+                'group_id' => $groupId,
+                'amount' => $debitTx ? abs((float) $debitTx->amount) : null,
+                'currency' => $debitTx?->currency,
+                'wallet_name' => $debitTx?->wallet?->name,
+            ]],
         );
 
         return $result;

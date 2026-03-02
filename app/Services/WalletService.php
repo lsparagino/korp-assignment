@@ -55,6 +55,13 @@ class WalletService
 
     public function update(Wallet $wallet, array $data): Wallet
     {
+        $changes = [];
+        foreach ($data as $key => $value) {
+            if ($wallet->getAttribute($key) != $value) {
+                $changes[$key] = ['from' => $wallet->getAttribute($key), 'to' => $value];
+            }
+        }
+
         $wallet->update($data);
 
         $this->auditService->log(
@@ -62,7 +69,7 @@ class WalletService
             AuditSeverity::Normal,
             'wallet.updated',
             __('messages.audit.wallet_updated'),
-            ['metadata' => ['wallet_id' => $wallet->id, 'wallet_name' => $wallet->name]],
+            ['metadata' => ['wallet_id' => $wallet->id, 'wallet_name' => $wallet->name, 'changes' => $changes]],
         );
 
         return $wallet;
@@ -86,6 +93,7 @@ class WalletService
 
     public function toggleFreeze(Wallet $wallet): Wallet
     {
+        $previousStatus = $wallet->status->value;
         $wallet->toggleFreeze();
 
         $this->auditService->log(
@@ -93,7 +101,16 @@ class WalletService
             AuditSeverity::Medium,
             'wallet.freeze_toggled',
             __('messages.audit.wallet_freeze_toggled'),
-            ['metadata' => ['wallet_id' => $wallet->id, 'status' => $wallet->status->value]],
+            ['metadata' => [
+                'wallet_id' => $wallet->id,
+                'wallet_name' => $wallet->name,
+                'changes' => [
+                    'status' => [
+                        'from' => $previousStatus,
+                        'to' => $wallet->status->value,
+                    ],
+                ],
+            ]],
         );
 
         return $wallet;

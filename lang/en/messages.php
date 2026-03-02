@@ -88,6 +88,7 @@ return [
         'threshold_changed' => 'Company threshold updated.',
         'threshold_deleted' => 'Company threshold deleted.',
         'security_threshold_changed' => 'Security threshold changed.',
+        'daily_limit_changed' => 'Daily transaction limit changed.',
         'profile_updated' => 'Profile updated.',
         'account_deleted' => 'Account deleted.',
     ],

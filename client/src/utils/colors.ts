@@ -57,3 +57,26 @@ export function getStatusColors(status: string): ColorPair {
 export function getRoleColors(role: string): ColorPair {
   return roleColorMap[role.toLowerCase()] || defaultColorPair
 }
+
+const auditSeverityColorMap: Record<string, ColorPair> = {
+  normal: { bg: 'green-lighten-4', text: 'green-darken-3' },
+  medium: { bg: 'blue-lighten-4', text: 'blue-darken-3' },
+  high: { bg: 'orange-lighten-4', text: 'orange-darken-3' },
+  critical: { bg: 'red-lighten-4', text: 'red-darken-3' },
+}
+
+const auditCategoryColorMap: Record<string, ColorPair> = {
+  auth: { bg: 'blue-lighten-4', text: 'blue-darken-3' },
+  transaction: { bg: 'green-lighten-4', text: 'green-darken-3' },
+  team: { bg: 'purple-lighten-4', text: 'purple-darken-3' },
+  wallet: { bg: 'orange-lighten-4', text: 'orange-darken-3' },
+  settings: { bg: 'teal-lighten-4', text: 'teal-darken-3' },
+}
+
+export function getAuditSeverityColors(severity: string): ColorPair {
+  return auditSeverityColorMap[severity.toLowerCase()] || defaultColorPair
+}
+
+export function getAuditCategoryColors(category: string): ColorPair {
+  return auditCategoryColorMap[category.toLowerCase()] || defaultColorPair
+}
