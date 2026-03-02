@@ -7,26 +7,23 @@ import { companiesQuery, COMPANY_QUERY_KEYS } from '@/queries/companies'
 
 export const useCompanyStore = defineStore('company', () => {
   const currentCompany = ref<Company | null>(null)
-  const companiesList = ref<Company[]>([])
+  const companies = ref<Company[]>([])
   const queryCache = useQueryCache()
 
-  const companies = computed<Company[]>(() => companiesList.value)
   const hasCompanies = computed(() => companies.value.length > 0)
   const companyLabel = computed(() => currentCompany.value?.name ?? i18n.global.t('company.selectCompany'))
 
-  function setCurrentCompany (company: Company) {
+  function setCurrentCompany(company: Company) {
     currentCompany.value = company
   }
 
-  // Imperative fetch for router guards — leverages query cache
-  async function fetchCompanies () {
+  async function fetchCompanies() {
     try {
       const entry = queryCache.ensure(companiesQuery)
       await queryCache.fetch(entry)
       const data = entry.state.value.data
       if (data) {
-        companiesList.value = data
-        // Auto-select first company if none selected yet
+        companies.value = data
         if (!currentCompany.value && data.length > 0) {
           currentCompany.value = data[0] ?? null
         }
@@ -36,7 +33,7 @@ export const useCompanyStore = defineStore('company', () => {
     }
   }
 
-  async function invalidateQueries () {
+  async function invalidateQueries() {
     await queryCache.invalidateQueries({ key: COMPANY_QUERY_KEYS.root })
   }
 

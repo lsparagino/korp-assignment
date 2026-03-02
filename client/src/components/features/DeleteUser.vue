@@ -1,40 +1,36 @@
 <script lang="ts" setup>
-  import { reactive, ref } from 'vue'
-  import { useI18n } from 'vue-i18n'
-  import { deleteAccount } from '@/api/settings'
-  import Heading from '@/components/ui/Heading.vue'
-  import { useFormSubmit } from '@/composables/useFormSubmit'
-  import { useFormValidation } from '@/composables/useFormValidation'
-  import { useAuthStore } from '@/stores/auth'
+import { reactive, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { deleteAccount } from '@/api/settings'
+import Heading from '@/components/ui/Heading.vue'
+import { useFormSubmit } from '@/composables/useFormSubmit'
+import { useFormValidation } from '@/composables/useFormValidation'
+import { useValidationRules } from '@/composables/useValidationRules'
+import { useAuthStore } from '@/stores/auth'
 
-  const { t } = useI18n()
-  const authStore = useAuthStore()
-  const dialog = ref(false)
-  const form = reactive({ password: '' })
-  const { formRef, formValid } = useFormValidation()
+const { t } = useI18n()
+const authStore = useAuthStore()
+const dialog = ref(false)
+const form = reactive({ password: '' })
+const { formRef, formValid } = useFormValidation()
 
-  const requiredRule = (v: unknown) => !!v || t('validation.required')
+const { requiredRule } = useValidationRules()
 
-  const { processing, errors, submit } = useFormSubmit({
-    submitFn: (data: typeof form) => deleteAccount(data),
-    onSuccess: () => {
-      authStore.clearToken()
-      globalThis.location.href = '/'
-    },
-  })
+const { processing, errors, submit } = useFormSubmit({
+  submitFn: (data: typeof form) => deleteAccount(data),
+  onSuccess: () => {
+    authStore.clearToken()
+    globalThis.location.href = '/'
+  },
+})
 </script>
 
 <template>
   <div class="mt-8">
     <Heading :description="$t('deleteUser.description')" :title="$t('deleteUser.title')" variant="small" />
 
-    <v-btn
-      class="text-none font-weight-bold"
-      color="error"
-      data-testid="delete-user-trigger-btn"
-      variant="tonal"
-      @click="dialog = true"
-    >
+    <v-btn class="text-none font-weight-bold" color="error" data-testid="delete-user-trigger-btn" variant="tonal"
+      @click="dialog = true">
       {{ $t('deleteUser.button') }}
     </v-btn>
 
@@ -49,39 +45,18 @@
           </v-card-subtitle>
 
           <v-form ref="formRef" v-model="formValid" class="mt-6" @submit.prevent="submit(form)">
-            <v-text-field
-              v-model="form.password"
-              autocomplete="current-password"
-              color="primary"
-              density="comfortable"
-              :error-messages="errors.password"
-              hide-details="auto"
-              :label="$t('common.password')"
-              :placeholder="$t('common.password')"
-              required
-              :rules="[requiredRule]"
-              type="password"
-              variant="outlined"
-            />
+            <v-text-field v-model="form.password" autocomplete="current-password" color="primary" density="comfortable"
+              :error-messages="errors.password" hide-details="auto" :label="$t('common.password')"
+              :placeholder="$t('common.password')" required :rules="[requiredRule]" type="password"
+              variant="outlined" />
 
             <div class="d-flex ga-3 mt-8 justify-end">
-              <v-btn
-                class="text-none font-weight-bold"
-                data-testid="delete-user-cancel-btn"
-                variant="text"
-                @click="dialog = false"
-              >
+              <v-btn class="text-none font-weight-bold" data-testid="delete-user-cancel-btn" variant="text"
+                @click="dialog = false">
                 {{ $t('common.cancel') }}
               </v-btn>
-              <v-btn
-                class="text-none font-weight-bold"
-                color="error"
-                data-testid="delete-user-submit-btn"
-                :disabled="!formValid"
-                :loading="processing"
-                type="submit"
-                variant="flat"
-              >
+              <v-btn class="text-none font-weight-bold" color="error" data-testid="delete-user-submit-btn"
+                :disabled="!formValid" :loading="processing" type="submit" variant="flat">
                 {{ $t('deleteUser.button') }}
               </v-btn>
             </div>

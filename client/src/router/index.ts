@@ -1,10 +1,3 @@
-/**
- * router/index.ts
- *
- * Automatic routes for `./src/pages/*.vue`
- *
- * @see https://github.com/posva/unplugin-vue-router
- */
 import type { NavigationGuardNext, RouteLocationNormalized } from 'vue-router'
 import { setupLayouts } from 'virtual:generated-layouts'
 import { createRouter, createWebHistory } from 'vue-router'

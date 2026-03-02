@@ -36,8 +36,8 @@ export const transactionsListQuery = defineQueryOptions(
         amount_min: params.amountMin,
         amount_max: params.amountMax,
         reference: params.reference,
-        from_wallet_id: params.fromWalletId as FilterNullableId,
-        to_wallet_id: params.toWalletId as FilterNullableId,
+        from_wallet_id: params.fromWalletId,
+        to_wallet_id: params.toWalletId,
         has_wallet_id: params.hasWalletId ?? undefined,
         initiator_user_id: params.initiatorUserId ?? undefined,
       })
