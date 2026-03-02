@@ -1,0 +1,46 @@
+# Version control
+.git
+.gitignore
+
+# CI/CD & IDE
+.github
+.vscode
+.idea
+.agents
+
+# Server-side code (not needed in frontend container)
+app
+bootstrap
+config
+database
+public
+resources
+routes
+storage
+vendor
+artisan
+composer.json
+composer.lock
+Dockerfile
+
+# Testing
+tests
+phpunit.xml
+.phpunit.cache
+e2e
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Dependencies (installed during build)
+node_modules
+
+# Infrastructure
+terraform
+docker-compose*.yml
+
+# Documentation
+*.md
+LICENSE

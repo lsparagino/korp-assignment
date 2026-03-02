@@ -38,8 +38,13 @@ COPY deployment/gcp/supervisord.conf /etc/supervisord.conf
 COPY deployment/gcp/php-optimizations.ini /usr/local/etc/php/conf.d/optimizations.ini
 COPY deployment/gcp/entrypoint.sh /usr/local/bin/entrypoint.sh
 
-# Set execution permissions for the entrypoint
-RUN chmod +x /usr/local/bin/entrypoint.sh
+# Set execution permissions and grant www-data access to nginx runtime directories
+RUN chmod +x /usr/local/bin/entrypoint.sh \
+    && mkdir -p /var/cache/nginx /var/log/nginx \
+    && chown -R www-data:www-data /var/cache/nginx \
+    && chown -R www-data:www-data /var/log/nginx \
+    && touch /var/run/nginx.pid \
+    && chown www-data:www-data /var/run/nginx.pid
 
 # Run as non-root user
 USER www-data
