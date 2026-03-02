@@ -1,5 +1,5 @@
 import type { PaginationMeta } from '@/api/pagination'
-import { describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { mountWithPlugins } from '@/test/setup'
 import Pagination from './Pagination.vue'
 
@@ -13,13 +13,21 @@ const defaultMeta: PaginationMeta = {
 }
 
 describe('Pagination.vue', () => {
-  it('renders pagination meta text properly', () => {
-    const wrapper = mountWithPlugins(Pagination, {
+  let wrapper: ReturnType<typeof mountWithPlugins>
+
+  beforeEach(() => {
+    wrapper = mountWithPlugins(Pagination, {
       props: {
         meta: defaultMeta,
       },
     })
+  })
 
+  afterEach(() => {
+    wrapper?.unmount()
+  })
+
+  it('renders pagination meta text properly', () => {
     // Uses i18n key 'pagination.showing' -> 'Showing {from} to {to} of {total} entries'
     const metaText = wrapper.find('[data-testid="pagination-meta"]').text()
     expect(metaText).toContain('26')
@@ -28,12 +36,6 @@ describe('Pagination.vue', () => {
   })
 
   it('binds current page and last page to v-pagination', () => {
-    const wrapper = mountWithPlugins(Pagination, {
-      props: {
-        meta: defaultMeta,
-      },
-    })
-
     const vPagination = wrapper.findComponent({ name: 'v-pagination' })
     expect(vPagination.exists()).toBe(true)
     expect(vPagination.props('length')).toBe(5)
@@ -41,12 +43,6 @@ describe('Pagination.vue', () => {
   })
 
   it('emits update:page when v-pagination value changes', async () => {
-    const wrapper = mountWithPlugins(Pagination, {
-      props: {
-        meta: defaultMeta,
-      },
-    })
-
     const vPagination = wrapper.findComponent({ name: 'v-pagination' })
     await vPagination.vm.$emit('update:modelValue', 3)
 
@@ -55,12 +51,6 @@ describe('Pagination.vue', () => {
   })
 
   it('emits update:per-page when v-select value changes', async () => {
-    const wrapper = mountWithPlugins(Pagination, {
-      props: {
-        meta: defaultMeta,
-      },
-    })
-
     const vSelect = wrapper.findComponent({ name: 'v-select' })
     await vSelect.vm.$emit('update:modelValue', 50)
 

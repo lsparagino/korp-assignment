@@ -5,6 +5,8 @@ use App\Models\Company;
 use App\Models\User;
 use Illuminate\Support\Str;
 
+const INVITATION_ENDPOINT = '/api/v0/invitation';
+
 beforeEach(function () {
     $this->company = Company::factory()->create();
 });
@@ -16,7 +18,7 @@ test('invitation details can be viewed with valid token', function () {
     ]);
     $user->companies()->attach($this->company);
 
-    $response = $this->getJson('/api/v0/invitation/valid-token-123');
+    $response = $this->getJson(INVITATION_ENDPOINT.'/valid-token-123');
 
     $response->assertOk()
         ->assertJsonStructure(['email', 'name'])
@@ -25,7 +27,7 @@ test('invitation details can be viewed with valid token', function () {
 });
 
 test('invitation details return 404 for invalid token', function () {
-    $response = $this->getJson('/api/v0/invitation/invalid-token');
+    $response = $this->getJson(INVITATION_ENDPOINT.'/invalid-token');
 
     $response->assertNotFound();
 });
@@ -40,7 +42,7 @@ test('invitation can be accepted with valid token', function () {
     ]);
     $user->companies()->attach($this->company);
 
-    $response = $this->postJson("/api/v0/invitation/{$token}/accept", [
+    $response = $this->postJson(INVITATION_ENDPOINT."/{$token}/accept", [
         'password' => 'new-password-123',
         'password_confirmation' => 'new-password-123',
     ]);
@@ -54,7 +56,7 @@ test('invitation can be accepted with valid token', function () {
 });
 
 test('invitation cannot be accepted with invalid token', function () {
-    $response = $this->postJson('/api/v0/invitation/invalid-token/accept', [
+    $response = $this->postJson(INVITATION_ENDPOINT.'/invalid-token/accept', [
         'password' => 'new-password-123',
         'password_confirmation' => 'new-password-123',
     ]);
@@ -70,7 +72,7 @@ test('invitation acceptance requires password confirmation', function () {
         'invitation_token' => $token,
     ]);
 
-    $response = $this->postJson("/api/v0/invitation/{$token}/accept", [
+    $response = $this->postJson(INVITATION_ENDPOINT."/{$token}/accept", [
         'password' => 'new-password-123',
     ]);
 

@@ -9,13 +9,21 @@ import { type PaginationMeta, useUrlPagination } from '@/composables/useUrlPagin
 import { TRANSACTION_QUERY_KEYS, transactionsListQuery } from '@/queries/transactions'
 import { WALLET_QUERY_KEYS, walletsListQuery } from '@/queries/wallets'
 
+type WalletParamValue = number | string | null
+
 const FILTER_KEYS = [
   'date_from', 'date_to', 'type', 'status',
   'amount_min', 'amount_max', 'reference',
   'wallet_id', 'counterpart_wallet_id',
 ] as const
 
-export function useTransactionFilters () {
+function parseWalletParam(value: string | undefined): WalletParamValue {
+  if (!value) return null
+  if (value === 'external') return 'external'
+  return Number(value)
+}
+
+export function useTransactionFilters() {
   const route = useRoute()
   const router = useRouter()
   const { t } = useI18n()
@@ -30,8 +38,8 @@ export function useTransactionFilters () {
     amount_min: '',
     amount_max: '',
     reference: '',
-    wallet_id: null as number | string | null,
-    counterpart_wallet_id: null as number | string | null,
+    wallet_id: null as WalletParamValue,
+    counterpart_wallet_id: null as WalletParamValue,
   })
 
   const types = computed(() => [
@@ -67,12 +75,8 @@ export function useTransactionFilters () {
       filterForm.status = (route.query.status as string) || 'All'
       filterForm.amount_min = (route.query.amount_min as string) || ''
       filterForm.amount_max = (route.query.amount_max as string) || ''
-      filterForm.wallet_id = route.query.wallet_id
-        ? (route.query.wallet_id === 'external' ? 'external' : Number(route.query.wallet_id))
-        : null
-      filterForm.counterpart_wallet_id = route.query.counterpart_wallet_id
-        ? (route.query.counterpart_wallet_id === 'external' ? 'external' : Number(route.query.counterpart_wallet_id))
-        : null
+      filterForm.wallet_id = parseWalletParam(route.query.wallet_id as string | undefined)
+      filterForm.counterpart_wallet_id = parseWalletParam(route.query.counterpart_wallet_id as string | undefined)
     },
     { immediate: true },
   )
@@ -111,7 +115,7 @@ export function useTransactionFilters () {
     + ['date_from', 'date_to', 'type', 'status'].filter(k => route.query[k]).length,
   )
 
-  function handleFilter () {
+  function handleFilter() {
     const raw: Record<string, string | undefined> = {
       ...route.query,
       page: '1',
@@ -132,7 +136,7 @@ export function useTransactionFilters () {
     router.push({ query })
   }
 
-  function clearFilters () {
+  function clearFilters() {
     const query = { ...route.query }
     for (const key of FILTER_KEYS) {
       delete query[key]
@@ -141,7 +145,7 @@ export function useTransactionFilters () {
     router.push({ query })
   }
 
-  async function invalidateQueries () {
+  async function invalidateQueries() {
     await Promise.all([
       queryCache.invalidateQueries({ key: TRANSACTION_QUERY_KEYS.root }),
       queryCache.invalidateQueries({ key: WALLET_QUERY_KEYS.root }),

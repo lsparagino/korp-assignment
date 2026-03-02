@@ -3,6 +3,10 @@
 use App\Models\User;
 use Laravel\Fortify\Features;
 
+if (! defined('LOGIN_ENDPOINT')) {
+    define('LOGIN_ENDPOINT', '/api/v0/login');
+}
+
 test('users with two factor enabled receive challenged response on login', function () {
     if (! Features::canManageTwoFactorAuthentication()) {
         $this->markTestSkipped('Two-factor authentication is not enabled.');
@@ -16,7 +20,7 @@ test('users with two factor enabled receive challenged response on login', funct
         'two_factor_confirmed_at' => now(),
     ])->save();
 
-    $response = $this->postJson('/api/v0/login', [
+    $response = $this->postJson(LOGIN_ENDPOINT, [
         'email' => $user->email,
         'password' => 'password',
     ]);

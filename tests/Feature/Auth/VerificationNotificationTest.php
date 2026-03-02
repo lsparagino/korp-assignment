@@ -4,13 +4,17 @@ use App\Models\User;
 use App\Notifications\VerifyEmailNotification;
 use Illuminate\Support\Facades\Notification;
 
+if (! defined('VERIFICATION_NOTIFICATION_ENDPOINT')) {
+    define('VERIFICATION_NOTIFICATION_ENDPOINT', '/api/v0/email/verification-notification');
+}
+
 test('sends verification notification', function () {
     Notification::fake();
 
     $user = User::factory()->unverified()->create();
 
     $response = $this->actingAs($user, 'sanctum')
-        ->postJson('/api/v0/email/verification-notification');
+        ->postJson(VERIFICATION_NOTIFICATION_ENDPOINT);
 
     $response->assertOk();
     $response->assertJson(['message' => 'Verification link sent']);
@@ -24,7 +28,7 @@ test('does not send verification notification if email already verified', functi
     $user = User::factory()->create();
 
     $response = $this->actingAs($user, 'sanctum')
-        ->postJson('/api/v0/email/verification-notification');
+        ->postJson(VERIFICATION_NOTIFICATION_ENDPOINT);
 
     $response->assertStatus(400);
     $response->assertJson(['message' => 'Email already verified']);

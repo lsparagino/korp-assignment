@@ -2,10 +2,11 @@ import type { Transaction } from '@/api/transactions'
 import { DOMWrapper, flushPromises } from '@vue/test-utils'
 import { afterEach, describe, expect, it } from 'vitest'
 import en from '@/locales/en.json'
+import { bodyText } from '@/test/helpers'
 import { mountWithPlugins } from '@/test/setup'
 import TransactionDetailModal from './TransactionDetailModal.vue'
 
-function createTransaction (overrides: Partial<Transaction> = {}): Transaction {
+function createTransaction(overrides: Partial<Transaction> = {}): Transaction {
   return {
     id: 1,
     group_id: 'grp-1',
@@ -41,7 +42,7 @@ describe('TransactionDetailModal.vue', () => {
     document.body.innerHTML = ''
   })
 
-  async function mountModal (options: Record<string, unknown> = {}) {
+  async function mountModal(options: Record<string, unknown> = {}) {
     const { piniaOptions, ...props } = options
 
     wrapper = mountWithPlugins(TransactionDetailModal, {
@@ -57,10 +58,6 @@ describe('TransactionDetailModal.vue', () => {
     await wrapper.vm.$nextTick()
     await flushPromises()
     return wrapper
-  }
-
-  function bodyText () {
-    return document.body.textContent || ''
   }
 
   it('renders nothing (no card) when transaction is null', async () => {

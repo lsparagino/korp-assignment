@@ -7,7 +7,7 @@ use App\Models\User;
 
 class TeamMemberPolicy
 {
-    public function viewAny(User $user): bool
+    public function viewAny(User $user): bool // NOSONAR - parameter required by Laravel policy contract
     {
         return true;
     }

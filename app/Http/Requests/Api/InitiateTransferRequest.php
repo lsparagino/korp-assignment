@@ -31,7 +31,7 @@ class InitiateTransferRequest extends FormRequest
 
     public function rules(): array
     {
-        $rules = [
+        return [
             'sender_wallet_id' => ['required', 'integer', 'exists:wallets,id'],
             'receiver_wallet_id' => ['nullable', 'integer', 'exists:wallets,id', 'required_if:external,false'],
             'amount' => ['required', 'numeric', 'gt:0'],
@@ -43,8 +43,6 @@ class InitiateTransferRequest extends FormRequest
             'password' => ['nullable', 'string'],
             'code' => ['nullable', 'string'],
         ];
-
-        return $rules;
     }
 
     protected function passedValidation(): void

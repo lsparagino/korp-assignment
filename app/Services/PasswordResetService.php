@@ -20,7 +20,7 @@ class PasswordResetService
     {
         $status = Password::broker(config('fortify.passwords'))->reset(
             $data,
-            function ($user, $password) use ($resets, $data) {
+            function ($user) use ($resets, $data) {
                 $resets->reset($user, [
                     'password' => $data['password'],
                     'password_confirmation' => $data['password_confirmation'],

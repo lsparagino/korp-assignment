@@ -2,10 +2,12 @@
 
 use App\Models\User;
 
+const CONFIRM_PASSWORD_ENDPOINT = '/api/v0/user/confirm-password';
+
 test('password can be confirmed', function () {
     $user = User::factory()->create();
 
-    $response = $this->actingAs($user, 'sanctum')->postJson('/api/v0/user/confirm-password', [
+    $response = $this->actingAs($user, 'sanctum')->postJson(CONFIRM_PASSWORD_ENDPOINT, [
         'password' => 'password',
     ]);
 
@@ -14,7 +16,7 @@ test('password can be confirmed', function () {
 });
 
 test('password confirmation requires authentication', function () {
-    $response = $this->postJson('/api/v0/user/confirm-password', [
+    $response = $this->postJson(CONFIRM_PASSWORD_ENDPOINT, [
         'password' => 'password',
     ]);
 

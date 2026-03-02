@@ -1,6 +1,7 @@
-import { DOMWrapper, flushPromises } from '@vue/test-utils'
+import { flushPromises } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import en from '@/locales/en.json'
+import { findByTestId } from '@/test/helpers'
 import { mountWithPlugins } from '@/test/setup'
 import TeamMemberModal from './TeamMemberModal.vue'
 
@@ -35,7 +36,7 @@ describe('TeamMemberModal.vue', () => {
     document.body.innerHTML = ''
   })
 
-  async function mountModal (props: Record<string, unknown> = {}) {
+  async function mountModal(props: Record<string, unknown> = {}) {
     wrapper = mountWithPlugins(TeamMemberModal, {
       props: {
         modelValue: true,
@@ -52,10 +53,6 @@ describe('TeamMemberModal.vue', () => {
     return wrapper
   }
 
-  function findByTestId (testId: string) {
-    const el = document.body.querySelector(`[data-testid="${testId}"]`)
-    return el ? new DOMWrapper(el as HTMLElement) : null
-  }
 
   it('renders dialog with form fields for new member', async () => {
     await mountModal()

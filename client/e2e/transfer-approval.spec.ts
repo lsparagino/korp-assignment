@@ -15,7 +15,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 /**
  * Navigate to the transfer creation page.
  */
-async function goToCreateTransfer (page: Page) {
+async function goToCreateTransfer(page: Page) {
   await page.goto('/transactions/create')
   await expect(page.getByTestId('transfer-type-toggle')).toBeVisible({ timeout: 10_000 })
 }
@@ -26,7 +26,7 @@ async function goToCreateTransfer (page: Page) {
  * The wallet data loads asynchronously via useQuery, so the dropdown may
  * briefly contain no items. This helper retries up to 3 times to handle that.
  */
-async function selectFirstAvailableWallet (page: Page, testId: string) {
+async function selectFirstAvailableWallet(page: Page, testId: string) {
   const select = page.getByTestId(testId)
 
   for (let attempt = 0; attempt < 3; attempt++) {
@@ -56,7 +56,7 @@ async function selectFirstAvailableWallet (page: Page, testId: string) {
 /**
  * Fill the internal transfer form (sender, receiver, amount, reference).
  */
-async function fillInternalTransfer (page: Page, amount: string, reference: string) {
+async function fillInternalTransfer(page: Page, amount: string, reference: string) {
   await selectFirstAvailableWallet(page, 'transfer-sender-wallet')
   await selectFirstAvailableWallet(page, 'transfer-receiver-wallet')
 
@@ -67,7 +67,7 @@ async function fillInternalTransfer (page: Page, amount: string, reference: stri
 /**
  * Complete the 2-step transfer flow: review → confirm.
  */
-async function submitTransfer (page: Page) {
+async function submitTransfer(page: Page) {
   await page.getByTestId('transfer-submit-btn').click()
   await expect(page.getByTestId('transfer-recap')).toBeVisible({ timeout: 10_000 })
   await page.getByTestId('transfer-confirm-btn').click()
@@ -323,7 +323,7 @@ test.describe('Transfer Approval Flow', () => {
     await textarea.evaluate(el => {
       const t = el as HTMLTextAreaElement
       const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
-        window.HTMLTextAreaElement.prototype, 'value',
+        globalThis.HTMLTextAreaElement.prototype, 'value',
       )!.set!
       nativeInputValueSetter.call(t, 'Budget exceeded')
       t.dispatchEvent(new Event('input', { bubbles: true }))

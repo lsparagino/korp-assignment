@@ -7,6 +7,8 @@ use App\Models\Company;
 use App\Models\User;
 use App\Models\Wallet;
 
+const WALLETS_ENDPOINT = '/api/v0/wallets';
+
 beforeEach(function () {
     $this->company = Company::factory()->create();
 });
@@ -19,7 +21,7 @@ test('authenticated users can list their wallets', function () {
         'company_id' => $this->company->id,
     ]);
 
-    $response = $this->actingAs($user, 'sanctum')->getJson("/api/v0/wallets?company_id={$this->company->id}");
+    $response = $this->actingAs($user, 'sanctum')->getJson(WALLETS_ENDPOINT."?company_id={$this->company->id}");
 
     $response->assertStatus(200)
         ->assertJsonCount(3, 'data');
@@ -29,7 +31,7 @@ test('admins can create wallets', function () {
     $admin = User::factory()->create(['role' => UserRole::Admin]);
     $admin->companies()->attach($this->company);
 
-    $response = $this->actingAs($admin, 'sanctum')->postJson('/api/v0/wallets', [
+    $response = $this->actingAs($admin, 'sanctum')->postJson(WALLETS_ENDPOINT, [
         'name' => 'New Wallet',
         'currency' => WalletCurrency::USD->value,
         'company_id' => $this->company->id,
@@ -47,7 +49,7 @@ test('members cannot create wallets', function () {
     $member = User::factory()->create(['role' => UserRole::Member]);
     $member->companies()->attach($this->company);
 
-    $response = $this->actingAs($member, 'sanctum')->postJson('/api/v0/wallets', [
+    $response = $this->actingAs($member, 'sanctum')->postJson(WALLETS_ENDPOINT, [
         'name' => 'Illegal Wallet',
         'currency' => WalletCurrency::USD->value,
         'company_id' => $this->company->id,
@@ -64,7 +66,7 @@ test('admins can toggle freeze status', function () {
         'company_id' => $this->company->id,
     ]);
 
-    $response = $this->actingAs($admin, 'sanctum')->patchJson("/api/v0/wallets/{$wallet->id}/toggle-freeze?company_id={$this->company->id}");
+    $response = $this->actingAs($admin, 'sanctum')->patchJson(WALLETS_ENDPOINT."/{$wallet->id}/toggle-freeze?company_id={$this->company->id}");
 
     $response->assertStatus(200)
         ->assertJsonPath('data.status', 'frozen');
@@ -79,7 +81,7 @@ test('admins can delete empty wallets', function () {
         'company_id' => $this->company->id,
     ]);
 
-    $response = $this->actingAs($admin, 'sanctum')->deleteJson("/api/v0/wallets/{$wallet->id}?company_id={$this->company->id}");
+    $response = $this->actingAs($admin, 'sanctum')->deleteJson(WALLETS_ENDPOINT."/{$wallet->id}?company_id={$this->company->id}");
 
     $response->assertStatus(204);
     $this->assertDatabaseMissing('wallets', ['id' => $wallet->id]);
@@ -93,7 +95,7 @@ test('wallets list is paginated', function () {
         'company_id' => $this->company->id,
     ]);
 
-    $response = $this->actingAs($user, 'sanctum')->getJson("/api/v0/wallets?per_page=10&company_id={$this->company->id}");
+    $response = $this->actingAs($user, 'sanctum')->getJson(WALLETS_ENDPOINT."?per_page=10&company_id={$this->company->id}");
 
     $response->assertStatus(200)
         ->assertJsonCount(10, 'data')
@@ -109,7 +111,7 @@ test('admins can view a single wallet', function () {
     ]);
 
     $response = $this->actingAs($admin, 'sanctum')
-        ->getJson("/api/v0/wallets/{$wallet->id}?company_id={$this->company->id}");
+        ->getJson(WALLETS_ENDPOINT."/{$wallet->id}?company_id={$this->company->id}");
 
     $response->assertOk()
         ->assertJsonPath('data.id', $wallet->id)
@@ -129,7 +131,7 @@ test('members can only view wallets assigned to them', function () {
 
     // Member cannot view unassigned wallet
     $response = $this->actingAs($member, 'sanctum')
-        ->getJson("/api/v0/wallets/{$wallet->id}?company_id={$this->company->id}");
+        ->getJson(WALLETS_ENDPOINT."/{$wallet->id}?company_id={$this->company->id}");
 
     $response->assertForbidden();
 
@@ -137,7 +139,7 @@ test('members can only view wallets assigned to them', function () {
     $wallet->members()->attach($member);
 
     $response = $this->actingAs($member, 'sanctum')
-        ->getJson("/api/v0/wallets/{$wallet->id}?company_id={$this->company->id}");
+        ->getJson(WALLETS_ENDPOINT."/{$wallet->id}?company_id={$this->company->id}");
 
     $response->assertOk();
 });
@@ -152,7 +154,7 @@ test('admins can update a wallet', function () {
     ]);
 
     $response = $this->actingAs($admin, 'sanctum')
-        ->putJson("/api/v0/wallets/{$wallet->id}?company_id={$this->company->id}", [
+        ->putJson(WALLETS_ENDPOINT."/{$wallet->id}?company_id={$this->company->id}", [
             'name' => 'Updated Wallet Name',
             'currency' => WalletCurrency::USD->value,
         ]);
@@ -164,7 +166,7 @@ test('admins can update a wallet', function () {
 });
 
 test('guests are denied access to wallets', function () {
-    $response = $this->getJson('/api/v0/wallets');
+    $response = $this->getJson(WALLETS_ENDPOINT);
 
     $response->assertUnauthorized();
 });

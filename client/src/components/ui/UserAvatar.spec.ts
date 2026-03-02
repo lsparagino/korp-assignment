@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { useAuthStore } from '@/stores/auth'
 import { mountWithPlugins } from '@/test/setup'
 
@@ -8,7 +8,7 @@ vi.mock('@/stores/auth', () => ({
   useAuthStore: vi.fn(),
 }))
 
-function mockAuthStore (overrides: Record<string, unknown> = {}) {
+function mockAuthStore(overrides: Record<string, unknown> = {}) {
   ; (useAuthStore as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
     user: {
       id: 1,
@@ -23,6 +23,11 @@ function mockAuthStore (overrides: Record<string, unknown> = {}) {
 describe('UserAvatar.vue', () => {
   let wrapper: ReturnType<typeof mountWithPlugins>
 
+  beforeEach(() => {
+    mockAuthStore()
+    wrapper = mountWithPlugins(UserAvatar, { attachTo: document.body })
+  })
+
   afterEach(() => {
     wrapper?.unmount()
     document.body.innerHTML = ''
@@ -30,31 +35,22 @@ describe('UserAvatar.vue', () => {
   })
 
   it('renders a v-avatar', () => {
-    mockAuthStore()
-    wrapper = mountWithPlugins(UserAvatar, { attachTo: document.body })
-
     expect(wrapper.findComponent({ name: 'v-avatar' }).exists()).toBe(true)
   })
 
   it('renders a mdi-account icon inside the avatar', () => {
-    mockAuthStore()
-    wrapper = mountWithPlugins(UserAvatar, { attachTo: document.body })
-
     const icon = wrapper.findComponent({ name: 'v-icon' })
     expect(icon.exists()).toBe(true)
     expect(icon.props('icon')).toBe('mdi-account')
   })
 
   it('does not show user info by default', () => {
-    mockAuthStore()
-    wrapper = mountWithPlugins(UserAvatar, { attachTo: document.body })
-
     expect(wrapper.text()).not.toContain('John Doe')
     expect(wrapper.text()).not.toContain('john@example.com')
   })
 
   it('shows user name, email, and role chip when showInfo is true', () => {
-    mockAuthStore()
+    wrapper.unmount()
     wrapper = mountWithPlugins(UserAvatar, {
       attachTo: document.body,
       props: { showInfo: true },
@@ -66,6 +62,7 @@ describe('UserAvatar.vue', () => {
   })
 
   it('displays admin role when user is admin', () => {
+    wrapper.unmount()
     mockAuthStore({
       user: { id: 1, name: 'Admin User', email: 'admin@test.com', role: 'admin' },
     })
@@ -78,7 +75,7 @@ describe('UserAvatar.vue', () => {
   })
 
   it('accepts a custom size prop', () => {
-    mockAuthStore()
+    wrapper.unmount()
     wrapper = mountWithPlugins(UserAvatar, {
       attachTo: document.body,
       props: { size: 64 },
@@ -89,6 +86,7 @@ describe('UserAvatar.vue', () => {
   })
 
   it('hides info section when user is null', () => {
+    wrapper.unmount()
     mockAuthStore({ user: null })
     wrapper = mountWithPlugins(UserAvatar, {
       attachTo: document.body,

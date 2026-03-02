@@ -203,19 +203,12 @@ class AuditService
         $category = $filters['category'] ?? null;
         $severity = $filters['severity'] ?? null;
 
-        if ($category && $severity) {
-            return "cat_{$category}_sev_{$severity}";
-        }
-
-        if ($category) {
-            return "cat_{$category}";
-        }
-
-        if ($severity) {
-            return "sev_{$severity}";
-        }
-
-        return null;
+        return match (true) {
+            $category && $severity => "cat_{$category}_sev_{$severity}",
+            (bool) $category => "cat_{$category}",
+            (bool) $severity => "sev_{$severity}",
+            default => null,
+        };
     }
 
     /**
@@ -238,23 +231,14 @@ class AuditService
      */
     private function encodeValue(mixed $value): array
     {
-        if ($value === null) {
-            return ['nullValue' => null];
-        }
-        if (is_bool($value)) {
-            return ['booleanValue' => $value];
-        }
-        if (is_int($value)) {
-            return ['integerValue' => (string) $value];
-        }
-        if (is_float($value)) {
-            return ['doubleValue' => $value];
-        }
-        if (is_array($value)) {
-            return ['arrayValue' => ['values' => array_map([$this, 'encodeValue'], $value)]];
-        }
-
-        return ['stringValue' => (string) $value];
+        return match (true) {
+            $value === null => ['nullValue' => null],
+            is_bool($value) => ['booleanValue' => $value],
+            is_int($value) => ['integerValue' => (string) $value],
+            is_float($value) => ['doubleValue' => $value],
+            is_array($value) => ['arrayValue' => ['values' => array_map([$this, 'encodeValue'], $value)]],
+            default => ['stringValue' => (string) $value],
+        };
     }
 
     /**
@@ -274,26 +258,15 @@ class AuditService
 
     private function decodeValue(array $wrapper): mixed
     {
-        if (array_key_exists('nullValue', $wrapper)) {
-            return null;
-        }
-        if (isset($wrapper['booleanValue'])) {
-            return $wrapper['booleanValue'];
-        }
-        if (isset($wrapper['integerValue'])) {
-            return (int) $wrapper['integerValue'];
-        }
-        if (isset($wrapper['doubleValue'])) {
-            return $wrapper['doubleValue'];
-        }
-        if (isset($wrapper['stringValue'])) {
-            return $wrapper['stringValue'];
-        }
-        if (isset($wrapper['arrayValue'])) {
-            return array_map([$this, 'decodeValue'], $wrapper['arrayValue']['values'] ?? []);
-        }
-
-        return null;
+        return match (true) {
+            array_key_exists('nullValue', $wrapper) => null,
+            isset($wrapper['booleanValue']) => $wrapper['booleanValue'],
+            isset($wrapper['integerValue']) => (int) $wrapper['integerValue'],
+            isset($wrapper['doubleValue']) => $wrapper['doubleValue'],
+            isset($wrapper['stringValue']) => $wrapper['stringValue'],
+            isset($wrapper['arrayValue']) => array_map([$this, 'decodeValue'], $wrapper['arrayValue']['values'] ?? []),
+            default => null,
+        };
     }
 
     /**

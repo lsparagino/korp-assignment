@@ -14,6 +14,14 @@ class TransactionFilterTest extends TestCase
 {
     use RefreshDatabase;
 
+    private const TRANSACTIONS_ENDPOINT = '/api/v0/transactions';
+
+    private const BASE_DATE = '2025-01-01 10:00:00';
+
+    private const SECOND_DATE = '2025-02-01 10:00:00';
+
+    private const MID_DATE = '2025-01-15 10:00:00';
+
     private User $user;
 
     private Wallet $wallet;
@@ -47,7 +55,7 @@ class TransactionFilterTest extends TestCase
 
         // Filter by Credit
         $response = $this->actingAs($this->user, 'sanctum')
-            ->getJson("/api/v0/transactions?type=credit&company_id={$this->company->id}");
+            ->getJson(self::TRANSACTIONS_ENDPOINT."?type=credit&company_id={$this->company->id}");
 
         $response->assertStatus(200);
         $response->assertJsonCount(3, 'data');
@@ -57,7 +65,7 @@ class TransactionFilterTest extends TestCase
 
         // Filter by Debit
         $response = $this->actingAs($this->user, 'sanctum')
-            ->getJson("/api/v0/transactions?type=debit&company_id={$this->company->id}");
+            ->getJson(self::TRANSACTIONS_ENDPOINT."?type=debit&company_id={$this->company->id}");
 
         $response->assertStatus(200);
         $response->assertJsonCount(2, 'data');
@@ -70,65 +78,65 @@ class TransactionFilterTest extends TestCase
     {
         Transaction::factory()->create([
             'wallet_id' => $this->wallet->id,
-            'created_at' => '2025-01-01 10:00:00',
+            'created_at' => self::BASE_DATE,
         ]);
 
         Transaction::factory()->create([
             'wallet_id' => $this->wallet->id,
-            'created_at' => '2025-02-01 10:00:00',
+            'created_at' => self::SECOND_DATE,
         ]);
 
         $response = $this->actingAs($this->user, 'sanctum')
-            ->getJson("/api/v0/transactions?date_from=2025-01-15&company_id={$this->company->id}");
+            ->getJson(self::TRANSACTIONS_ENDPOINT."?date_from=2025-01-15&company_id={$this->company->id}");
 
         $response->assertStatus(200);
         $response->assertJsonCount(1, 'data');
-        $this->assertEquals('2025-02-01 10:00:00', Transaction::find($response->json('data.0.id'))->created_at->toDateTimeString());
+        $this->assertEquals(self::SECOND_DATE, Transaction::find($response->json('data.0.id'))->created_at->toDateTimeString());
     }
 
     public function test_can_filter_transactions_by_date_to(): void
     {
         Transaction::factory()->create([
             'wallet_id' => $this->wallet->id,
-            'created_at' => '2025-01-01 10:00:00',
+            'created_at' => self::BASE_DATE,
         ]);
 
         Transaction::factory()->create([
             'wallet_id' => $this->wallet->id,
-            'created_at' => '2025-02-01 10:00:00',
+            'created_at' => self::SECOND_DATE,
         ]);
 
         $response = $this->actingAs($this->user, 'sanctum')
-            ->getJson("/api/v0/transactions?date_to=2025-01-15&company_id={$this->company->id}");
+            ->getJson(self::TRANSACTIONS_ENDPOINT."?date_to=2025-01-15&company_id={$this->company->id}");
 
         $response->assertStatus(200);
         $response->assertJsonCount(1, 'data');
-        $this->assertEquals('2025-01-01 10:00:00', Transaction::find($response->json('data.0.id'))->created_at->toDateTimeString());
+        $this->assertEquals(self::BASE_DATE, Transaction::find($response->json('data.0.id'))->created_at->toDateTimeString());
     }
 
     public function test_can_filter_transactions_by_date_range(): void
     {
         Transaction::factory()->create([
             'wallet_id' => $this->wallet->id,
-            'created_at' => '2025-01-01 10:00:00',
+            'created_at' => self::BASE_DATE,
         ]);
 
         Transaction::factory()->create([
             'wallet_id' => $this->wallet->id,
-            'created_at' => '2025-01-15 10:00:00',
+            'created_at' => self::MID_DATE,
         ]);
 
         Transaction::factory()->create([
             'wallet_id' => $this->wallet->id,
-            'created_at' => '2025-02-01 10:00:00',
+            'created_at' => self::SECOND_DATE,
         ]);
 
         $response = $this->actingAs($this->user, 'sanctum')
-            ->getJson("/api/v0/transactions?date_from=2025-01-10&date_to=2025-01-20&company_id={$this->company->id}");
+            ->getJson(self::TRANSACTIONS_ENDPOINT."?date_from=2025-01-10&date_to=2025-01-20&company_id={$this->company->id}");
 
         $response->assertStatus(200);
         $response->assertJsonCount(1, 'data');
-        $this->assertEquals('2025-01-15 10:00:00', Transaction::find($response->json('data.0.id'))->created_at->toDateTimeString());
+        $this->assertEquals(self::MID_DATE, Transaction::find($response->json('data.0.id'))->created_at->toDateTimeString());
     }
 
     public function test_can_filter_transactions_by_amount_range(): void
@@ -138,7 +146,7 @@ class TransactionFilterTest extends TestCase
         Transaction::factory()->create(['wallet_id' => $this->wallet->id, 'amount' => 250]);
 
         $response = $this->actingAs($this->user, 'sanctum')
-            ->getJson("/api/v0/transactions?amount_min=100&amount_max=200&company_id={$this->company->id}");
+            ->getJson(self::TRANSACTIONS_ENDPOINT."?amount_min=100&amount_max=200&company_id={$this->company->id}");
 
         $response->assertStatus(200);
         $response->assertJsonCount(1, 'data');
@@ -151,7 +159,7 @@ class TransactionFilterTest extends TestCase
         Transaction::factory()->create(['wallet_id' => $this->wallet->id, 'reference' => 'Refund 456']);
 
         $response = $this->actingAs($this->user, 'sanctum')
-            ->getJson("/api/v0/transactions?reference=Refund&company_id={$this->company->id}");
+            ->getJson(self::TRANSACTIONS_ENDPOINT."?reference=Refund&company_id={$this->company->id}");
 
         $response->assertStatus(200);
         $response->assertJsonCount(1, 'data');
@@ -169,7 +177,7 @@ class TransactionFilterTest extends TestCase
 
         // Filter by wallet_id — should return the debit entry for wallet1 (de-duplicated)
         $response = $this->actingAs($this->user, 'sanctum')
-            ->getJson("/api/v0/transactions?wallet_id={$wallet1->id}&company_id={$this->company->id}");
+            ->getJson(self::TRANSACTIONS_ENDPOINT."?wallet_id={$wallet1->id}&company_id={$this->company->id}");
 
         $response->assertStatus(200);
         $response->assertJsonCount(1, 'data');
@@ -177,7 +185,7 @@ class TransactionFilterTest extends TestCase
 
         // Filter by counterpart_wallet_id — the debit entry has wallet2 as counterpart
         $response = $this->actingAs($this->user, 'sanctum')
-            ->getJson("/api/v0/transactions?counterpart_wallet_id={$wallet2->id}&company_id={$this->company->id}");
+            ->getJson(self::TRANSACTIONS_ENDPOINT."?counterpart_wallet_id={$wallet2->id}&company_id={$this->company->id}");
 
         $response->assertStatus(200);
         $response->assertJsonCount(1, 'data');
@@ -186,7 +194,7 @@ class TransactionFilterTest extends TestCase
 
     public function test_guests_are_denied_access_to_transactions(): void
     {
-        $response = $this->getJson('/api/v0/transactions');
+        $response = $this->getJson(self::TRANSACTIONS_ENDPOINT);
 
         $response->assertUnauthorized();
     }
@@ -198,7 +206,7 @@ class TransactionFilterTest extends TestCase
         ]);
 
         $response = $this->actingAs($this->user, 'sanctum')
-            ->getJson("/api/v0/transactions?per_page=5&company_id={$this->company->id}");
+            ->getJson(self::TRANSACTIONS_ENDPOINT."?per_page=5&company_id={$this->company->id}");
 
         $response->assertStatus(200)
             ->assertJsonCount(5, 'data')
@@ -216,7 +224,7 @@ class TransactionFilterTest extends TestCase
 
         // User owns both wallets — should see only 1 row (the debit entry)
         $response = $this->actingAs($this->user, 'sanctum')
-            ->getJson("/api/v0/transactions?company_id={$this->company->id}");
+            ->getJson(self::TRANSACTIONS_ENDPOINT."?company_id={$this->company->id}");
 
         $response->assertStatus(200);
         $response->assertJsonCount(1, 'data');
@@ -241,7 +249,7 @@ class TransactionFilterTest extends TestCase
         ]);
 
         $response = $this->actingAs($this->user, 'sanctum')
-            ->getJson("/api/v0/transactions?status=completed&company_id={$this->company->id}");
+            ->getJson(self::TRANSACTIONS_ENDPOINT."?status=completed&company_id={$this->company->id}");
 
         $response->assertStatus(200);
         $response->assertJsonCount(1, 'data');
@@ -261,7 +269,7 @@ class TransactionFilterTest extends TestCase
         ]);
 
         $response = $this->actingAs($this->user, 'sanctum')
-            ->getJson("/api/v0/transactions?status=pending_approval&company_id={$this->company->id}");
+            ->getJson(self::TRANSACTIONS_ENDPOINT."?status=pending_approval&company_id={$this->company->id}");
 
         $response->assertStatus(200);
         $response->assertJsonCount(1, 'data');
@@ -281,7 +289,7 @@ class TransactionFilterTest extends TestCase
         ]);
 
         $response = $this->actingAs($this->user, 'sanctum')
-            ->getJson("/api/v0/transactions?status=rejected&company_id={$this->company->id}");
+            ->getJson(self::TRANSACTIONS_ENDPOINT."?status=rejected&company_id={$this->company->id}");
 
         $response->assertStatus(200);
         $response->assertJsonCount(1, 'data');
@@ -312,7 +320,7 @@ class TransactionFilterTest extends TestCase
         ]);
 
         $response = $this->actingAs($this->user, 'sanctum')
-            ->getJson("/api/v0/transactions?initiator_user_id={$initiator->id}&company_id={$this->company->id}");
+            ->getJson(self::TRANSACTIONS_ENDPOINT."?initiator_user_id={$initiator->id}&company_id={$this->company->id}");
 
         $response->assertStatus(200);
         $response->assertJsonCount(1, 'data');

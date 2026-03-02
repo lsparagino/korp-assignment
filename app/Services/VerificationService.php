@@ -45,18 +45,16 @@ class VerificationService
             $user->pending_email = null;
             $user->email_verified_at = now();
             $user->save();
-
-            return ['message' => __('messages.email_updated_verified'), 'status' => 200];
+            $message = __('messages.email_updated_verified');
+        } elseif ($user->hasVerifiedEmail()) {
+            $message = __('messages.email_already_verified');
+        } else {
+            if ($user->markEmailAsVerified()) {
+                event(new Verified($user));
+            }
+            $message = __('messages.email_verified');
         }
 
-        if ($user->hasVerifiedEmail()) {
-            return ['message' => __('messages.email_already_verified'), 'status' => 200];
-        }
-
-        if ($user->markEmailAsVerified()) {
-            event(new Verified($user));
-        }
-
-        return ['message' => __('messages.email_verified'), 'status' => 200];
+        return ['message' => $message, 'status' => 200];
     }
 }

@@ -1,122 +1,122 @@
 <script lang="ts" setup>
-  import type { CompanyThreshold } from '@/api/settings'
-  import { computed, onMounted, reactive, ref } from 'vue'
-  import { useI18n } from 'vue-i18n'
-  import { deleteCompanyThreshold, fetchCompanyThresholds, upsertCompanyThreshold } from '@/api/settings'
-  import { fetchCurrencies } from '@/api/wallets'
-  import SettingsLayout from '@/components/layout/SettingsLayout.vue'
-  import ConfirmDialog from '@/components/ui/ConfirmDialog.vue'
-  import Heading from '@/components/ui/Heading.vue'
-  import { useAppNotification } from '@/composables/useAppNotification'
-  import { useFormSubmit } from '@/composables/useFormSubmit'
-  import { useFormValidation } from '@/composables/useFormValidation'
+import type { CompanyThreshold } from '@/api/settings'
+import { computed, onMounted, reactive, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { deleteCompanyThreshold, fetchCompanyThresholds, upsertCompanyThreshold } from '@/api/settings'
+import { fetchCurrencies } from '@/api/wallets'
+import SettingsLayout from '@/components/layout/SettingsLayout.vue'
+import ConfirmDialog from '@/components/ui/ConfirmDialog.vue'
+import Heading from '@/components/ui/Heading.vue'
+import { useAppNotification } from '@/composables/useAppNotification'
+import { useFormSubmit } from '@/composables/useFormSubmit'
+import { useFormValidation } from '@/composables/useFormValidation'
 
-  const { t } = useI18n()
-  const { notifyError } = useAppNotification()
+const { t } = useI18n()
+const { notifyError } = useAppNotification()
 
-  const loading = ref(true)
-  const thresholds = ref<CompanyThreshold[]>([])
+const loading = ref(true)
+const thresholds = ref<CompanyThreshold[]>([])
 
-  const dialog = ref(false)
-  const editingId = ref<number | null>(null)
-  const form = reactive({
-    currency: '',
-    approval_threshold: 0,
-  })
+const dialog = ref(false)
+const editingId = ref<number | null>(null)
+const form = reactive({
+  currency: '',
+  approval_threshold: 0,
+})
 
-  const confirmDialog = reactive({
-    show: false,
-    message: '',
-    onConfirm: () => {},
-  })
+const confirmDialog = reactive({
+  show: false,
+  message: '',
+  onConfirm: () => { },
+})
 
-  const currencyOptions = ref<string[]>([])
-  const { formRef, formValid, validate, resetValidation } = useFormValidation()
+const currencyOptions = ref<string[]>([])
+const { formRef, formValid, validate, resetValidation } = useFormValidation()
 
-  const requiredRule = (v: unknown) => !!v || t('validation.required')
-  const positiveRule = (v: number) => v > 0 || t('validation.positiveAmount')
+const requiredRule = (v: unknown) => !!v || t('validation.required')
+const positiveRule = (v: number) => v > 0 || t('validation.positiveAmount')
 
-  const availableCurrencies = computed(() => {
-    const used = new Set(thresholds.value.map(t => t.currency))
-    return currencyOptions.value.filter(c => !used.has(c))
-  })
+const availableCurrencies = computed(() => {
+  const used = new Set(thresholds.value.map(t => t.currency))
+  return currencyOptions.value.filter(c => !used.has(c))
+})
 
-  const allThresholdsSet = computed(() =>
-    currencyOptions.value.length > 0 && availableCurrencies.value.length === 0,
-  )
+const allThresholdsSet = computed(() =>
+  currencyOptions.value.length > 0 && availableCurrencies.value.length === 0,
+)
 
-  onMounted(async () => {
-    await loadThresholds()
-  })
+onMounted(async () => {
+  await loadThresholds()
+})
 
-  async function loadThresholds () {
-    loading.value = true
+async function loadThresholds() {
+  loading.value = true
+  try {
+    const [thresholdsRes, currenciesRes] = await Promise.all([
+      fetchCompanyThresholds(),
+      fetchCurrencies(),
+    ])
+    thresholds.value = thresholdsRes.data.data
+    currencyOptions.value = currenciesRes.data
+  } catch (error) {
+    notifyError(error)
+  } finally {
+    loading.value = false
+  }
+}
+
+function openAdd() {
+  editingId.value = null
+  form.currency = ''
+  form.approval_threshold = 0
+  resetValidation()
+  dialog.value = true
+}
+
+function openEdit(threshold: CompanyThreshold) {
+  editingId.value = threshold.id
+  form.currency = threshold.currency
+  form.approval_threshold = Number(threshold.approval_threshold)
+  resetValidation()
+  dialog.value = true
+}
+
+function confirmDelete(threshold: CompanyThreshold) {
+  confirmDialog.message = t('settings.thresholds.deleteConfirmMessage', { currency: threshold.currency })
+  confirmDialog.onConfirm = async () => {
     try {
-      const [thresholdsRes, currenciesRes] = await Promise.all([
-        fetchCompanyThresholds(),
-        fetchCurrencies(),
-      ])
-      thresholds.value = thresholdsRes.data.data
-      currencyOptions.value = currenciesRes.data
+      await deleteCompanyThreshold(threshold.id)
+      thresholds.value = thresholds.value.filter(t => t.id !== threshold.id)
     } catch (error) {
       notifyError(error)
-    } finally {
-      loading.value = false
     }
   }
+  confirmDialog.show = true
+}
 
-  function openAdd () {
-    editingId.value = null
-    form.currency = ''
-    form.approval_threshold = 0
-    resetValidation()
-    dialog.value = true
-  }
-
-  function openEdit (threshold: CompanyThreshold) {
-    editingId.value = threshold.id
-    form.currency = threshold.currency
-    form.approval_threshold = Number(threshold.approval_threshold)
-    resetValidation()
-    dialog.value = true
-  }
-
-  function confirmDelete (threshold: CompanyThreshold) {
-    confirmDialog.message = t('settings.thresholds.deleteConfirmMessage', { currency: threshold.currency })
-    confirmDialog.onConfirm = async () => {
-      try {
-        await deleteCompanyThreshold(threshold.id)
-        thresholds.value = thresholds.value.filter(t => t.id !== threshold.id)
-      } catch (error) {
-        notifyError(error)
-      }
+const { processing, errors, submit } = useFormSubmit({
+  submitFn: async (data: typeof form) => {
+    const response = await upsertCompanyThreshold(data)
+    const saved = response.data.data
+    const index = thresholds.value.findIndex(t => t.id === saved.id)
+    if (index === -1) {
+      thresholds.value.push(saved)
+    } else {
+      thresholds.value[index] = saved
     }
-    confirmDialog.show = true
-  }
+    dialog.value = false
+  },
+})
 
-  const { processing, errors, submit } = useFormSubmit({
-    submitFn: async (data: typeof form) => {
-      const response = await upsertCompanyThreshold(data)
-      const saved = response.data.data
-      const index = thresholds.value.findIndex(t => t.id === saved.id)
-      if (index === -1) {
-        thresholds.value.push(saved)
-      } else {
-        thresholds.value[index] = saved
-      }
-      dialog.value = false
-    },
-  })
+async function handleSubmit() {
+  const valid = await validate()
+  if (!valid) return
+  await submit(form)
+}
 
-  async function handleSubmit () {
-    const valid = await validate()
-    if (!valid) return
-    await submit(form)
-  }
-
-  function formatAmount (value: string) {
-    return Number(value).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-  }
+function formatAmount(value: string) {
+  return Number(value).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+}
 </script>
 
 <template>
@@ -124,20 +124,10 @@
     <div>
       <div class="d-flex flex-column ga-6">
         <div class="d-flex align-center justify-space-between">
-          <Heading
-            :description="$t('settings.thresholds.description')"
-            :title="$t('settings.thresholds.title')"
-            variant="small"
-          />
-          <v-btn
-            class="text-none font-weight-bold"
-            color="primary"
-            data-testid="add-threshold-btn"
-            :disabled="allThresholdsSet"
-            prepend-icon="mdi-plus"
-            variant="flat"
-            @click="openAdd"
-          >
+          <Heading :description="$t('settings.thresholds.description')" :title="$t('settings.thresholds.title')"
+            variant="small" />
+          <v-btn class="text-none font-weight-bold" color="primary" data-testid="add-threshold-btn"
+            :disabled="allThresholdsSet" prepend-icon="mdi-plus" variant="flat" @click="openAdd">
             {{ $t('settings.thresholds.addThreshold') }}
           </v-btn>
         </div>
@@ -148,13 +138,14 @@
           <v-table data-testid="data-table" density="comfortable">
             <thead class="bg-grey-lighten-4">
               <tr>
-                <th class="text-uppercase text-caption font-weight-bold text-grey-darken-1">
+                <th scope="col" class="text-uppercase text-caption font-weight-bold text-grey-darken-1">
                   {{ $t('settings.thresholds.currency') }}
                 </th>
-                <th class="text-uppercase text-caption font-weight-bold text-grey-darken-1">
+                <th scope="col" class="text-uppercase text-caption font-weight-bold text-grey-darken-1">
                   {{ $t('settings.thresholds.approvalThreshold') }}
                 </th>
-                <th class="text-uppercase text-caption font-weight-bold text-grey-darken-1 text-center" style="width: 100px">
+                <th scope="col" class="text-uppercase text-caption font-weight-bold text-grey-darken-1 text-center"
+                  style="width: 100px">
                   {{ $t('common.actions') }}
                 </th>
               </tr>
@@ -166,31 +157,14 @@
                 </td>
                 <td>{{ formatAmount(item.approval_threshold) }}</td>
                 <td class="text-center">
-                  <v-btn
-                    color="primary"
-                    data-testid="threshold-edit-btn"
-                    density="comfortable"
-                    icon="mdi-pencil"
-                    size="small"
-                    variant="text"
-                    @click="openEdit(item)"
-                  />
-                  <v-btn
-                    color="error"
-                    data-testid="threshold-delete-btn"
-                    density="comfortable"
-                    icon="mdi-delete"
-                    size="small"
-                    variant="text"
-                    @click="confirmDelete(item)"
-                  />
+                  <v-btn color="primary" data-testid="threshold-edit-btn" density="comfortable" icon="mdi-pencil"
+                    size="small" variant="text" @click="openEdit(item)" />
+                  <v-btn color="error" data-testid="threshold-delete-btn" density="comfortable" icon="mdi-delete"
+                    size="small" variant="text" @click="confirmDelete(item)" />
                 </td>
               </tr>
               <tr v-if="thresholds.length === 0">
-                <td
-                  class="text-grey-darken-1 py-8 text-center"
-                  colspan="3"
-                >
+                <td class="text-grey-darken-1 py-8 text-center" colspan="3">
                   {{ $t('settings.thresholds.noThresholds') }}
                 </td>
               </tr>
@@ -208,44 +182,18 @@
           <v-divider />
           <v-card-text class="pa-4">
             <v-form ref="formRef" v-model="formValid" @submit.prevent="handleSubmit">
-              <v-select
-                v-model="form.currency"
-                data-testid="threshold-currency-select"
-                :disabled="!!editingId"
-                :error-messages="errors.currency"
-                :items="editingId ? currencyOptions : availableCurrencies"
-                :label="$t('settings.thresholds.currency')"
-                :rules="[requiredRule]"
-                variant="outlined"
-              />
-              <v-text-field
-                v-model.number="form.approval_threshold"
-                data-testid="threshold-amount-input"
-                :error-messages="errors.approval_threshold"
-                :label="$t('settings.thresholds.approvalThreshold')"
-                min="0"
-                :rules="[requiredRule, positiveRule]"
-                type="number"
-                variant="outlined"
-              />
+              <v-select v-model="form.currency" data-testid="threshold-currency-select" :disabled="!!editingId"
+                :error-messages="errors.currency" :items="editingId ? currencyOptions : availableCurrencies"
+                :label="$t('settings.thresholds.currency')" :rules="[requiredRule]" variant="outlined" />
+              <v-text-field v-model.number="form.approval_threshold" data-testid="threshold-amount-input"
+                :error-messages="errors.approval_threshold" :label="$t('settings.thresholds.approvalThreshold')" min="0"
+                :rules="[requiredRule, positiveRule]" type="number" variant="outlined" />
               <div class="d-flex justify-end ga-3 mt-2">
-                <v-btn
-                  class="text-none font-weight-bold"
-                  :disabled="processing"
-                  variant="text"
-                  @click="dialog = false"
-                >
+                <v-btn class="text-none font-weight-bold" :disabled="processing" variant="text" @click="dialog = false">
                   {{ $t('common.cancel') }}
                 </v-btn>
-                <v-btn
-                  class="text-none font-weight-bold"
-                  color="primary"
-                  data-testid="threshold-save-btn"
-                  :disabled="!formValid"
-                  :loading="processing"
-                  type="submit"
-                  variant="flat"
-                >
+                <v-btn class="text-none font-weight-bold" color="primary" data-testid="threshold-save-btn"
+                  :disabled="!formValid" :loading="processing" type="submit" variant="flat">
                   {{ $t('common.save') }}
                 </v-btn>
               </div>
@@ -254,13 +202,8 @@
         </v-card>
       </v-dialog>
 
-      <ConfirmDialog
-        v-model="confirmDialog.show"
-        confirm-color="error"
-        :message="confirmDialog.message"
-        :title="$t('settings.thresholds.deleteConfirmTitle')"
-        @confirm="confirmDialog.onConfirm"
-      />
+      <ConfirmDialog v-model="confirmDialog.show" confirm-color="error" :message="confirmDialog.message"
+        :title="$t('settings.thresholds.deleteConfirmTitle')" @confirm="confirmDialog.onConfirm" />
     </div>
   </SettingsLayout>
 </template>

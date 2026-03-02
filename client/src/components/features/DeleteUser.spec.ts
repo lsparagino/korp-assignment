@@ -1,6 +1,7 @@
-import { DOMWrapper, flushPromises } from '@vue/test-utils'
+import { flushPromises } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import en from '@/locales/en.json'
+import { findByTestId } from '@/test/helpers'
 import { mountWithPlugins } from '@/test/setup'
 import DeleteUser from './DeleteUser.vue'
 
@@ -23,15 +24,10 @@ describe('DeleteUser.vue', () => {
     document.body.innerHTML = ''
   })
 
-  async function mount () {
+  async function mount() {
     wrapper = mountWithPlugins(DeleteUser, { attachTo: document.body })
     await flushPromises()
     return wrapper
-  }
-
-  function findByTestId (testId: string) {
-    const el = document.body.querySelector(`[data-testid="${testId}"]`)
-    return el ? new DOMWrapper(el as HTMLElement) : null
   }
 
   it('renders the delete account trigger button', async () => {

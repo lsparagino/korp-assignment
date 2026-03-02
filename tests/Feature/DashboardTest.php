@@ -6,8 +6,10 @@ use App\Models\Transaction;
 use App\Models\User;
 use App\Models\Wallet;
 
+const DASHBOARD_ENDPOINT = '/api/v0/dashboard';
+
 test('guests are denied access to dashboard', function () {
-    $response = $this->getJson('/api/v0/dashboard');
+    $response = $this->getJson(DASHBOARD_ENDPOINT);
     $response->assertUnauthorized();
 });
 
@@ -18,7 +20,7 @@ test('authenticated users can visit the dashboard', function () {
 
     $this->actingAs($user, 'sanctum');
 
-    $response = $this->getJson("/api/v0/dashboard?company_id={$company->id}");
+    $response = $this->getJson(DASHBOARD_ENDPOINT."?company_id={$company->id}");
     $response->assertOk()
         ->assertJsonStructure([
             'balances',

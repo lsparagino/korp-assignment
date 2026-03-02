@@ -1,5 +1,5 @@
-import { DOMWrapper } from '@vue/test-utils'
 import { afterEach, describe, expect, it } from 'vitest'
+import { findByTestId } from '@/test/helpers'
 import { mountWithPlugins } from '@/test/setup'
 import ConfirmDialog from './ConfirmDialog.vue'
 
@@ -11,7 +11,7 @@ describe('ConfirmDialog.vue', () => {
     document.body.innerHTML = ''
   })
 
-  function mountDialog (props: Record<string, unknown> = {}) {
+  function mountDialog(props: Record<string, unknown> = {}) {
     return mountWithPlugins(ConfirmDialog, {
       props: {
         modelValue: true,
@@ -21,10 +21,6 @@ describe('ConfirmDialog.vue', () => {
     })
   }
 
-  function findByTestId (testId: string) {
-    const el = document.body.querySelector(`[data-testid="${testId}"]`)
-    return el ? new DOMWrapper(el as HTMLElement) : null
-  }
 
   it('renders with default props', async () => {
     wrapper = mountDialog()

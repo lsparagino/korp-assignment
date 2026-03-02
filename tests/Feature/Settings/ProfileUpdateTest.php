@@ -2,14 +2,17 @@
 
 use App\Models\User;
 
+const TEST_USER_NAME = 'Test User';
+const TEST_EMAIL = 'test@example.com';
+
 test('profile email change stores pending email', function () {
     $user = User::factory()->create();
 
     $response = $this
         ->actingAs($user, 'sanctum')
         ->patchJson(route('settings.profile.update'), [
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+            'name' => TEST_USER_NAME,
+            'email' => TEST_EMAIL,
         ]);
 
     $response
@@ -18,9 +21,9 @@ test('profile email change stores pending email', function () {
 
     $user->refresh();
 
-    expect($user->name)->toBe('Test User');
-    expect($user->email)->not->toBe('test@example.com');
-    expect($user->pending_email)->toBe('test@example.com');
+    expect($user->name)->toBe(TEST_USER_NAME);
+    expect($user->email)->not->toBe(TEST_EMAIL);
+    expect($user->pending_email)->toBe(TEST_EMAIL);
 });
 
 test('email verification status is unchanged when the email address is unchanged', function () {
@@ -29,7 +32,7 @@ test('email verification status is unchanged when the email address is unchanged
     $response = $this
         ->actingAs($user, 'sanctum')
         ->patchJson(route('settings.profile.update'), [
-            'name' => 'Test User',
+            'name' => TEST_USER_NAME,
             'email' => $user->email,
         ]);
 

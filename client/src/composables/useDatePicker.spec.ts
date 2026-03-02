@@ -2,11 +2,11 @@ import { describe, expect, it } from 'vitest'
 import { nextTick, reactive } from 'vue'
 import { useDatePicker } from './useDatePicker'
 
-describe('useDatePicker', () => {
-  function createForm () {
-    return reactive({ date_from: '', date_to: '' })
-  }
+function createForm() {
+  return reactive({ date_from: '', date_to: '' })
+}
 
+describe('useDatePicker', () => {
   describe('initial state', () => {
     it('starts with menus closed and null date values', () => {
       const form = createForm()

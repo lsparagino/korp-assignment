@@ -1,6 +1,7 @@
 import { flushPromises } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import en from '@/locales/en.json'
+import { bodyText } from '@/test/helpers'
 import { mountWithPlugins } from '@/test/setup'
 import AddressBookDialog from './AddressBookDialog.vue'
 
@@ -26,7 +27,7 @@ describe('AddressBookDialog.vue', () => {
     document.body.innerHTML = ''
   })
 
-  async function mountDialog (props: Record<string, unknown> = {}) {
+  async function mountDialog(props: Record<string, unknown> = {}) {
     wrapper = mountWithPlugins(AddressBookDialog, {
       props: {
         modelValue: true,
@@ -36,10 +37,6 @@ describe('AddressBookDialog.vue', () => {
     })
     await flushPromises()
     return wrapper
-  }
-
-  function bodyText () {
-    return document.body.textContent || ''
   }
 
   it('renders the dialog title', async () => {
@@ -75,7 +72,7 @@ describe('AddressBookDialog.vue', () => {
     await mountDialog()
 
     const addBtn = document.body.querySelector('[data-testid="address-book-add-btn"]') as HTMLElement
-    await addBtn.click()
+    addBtn.click()
     await flushPromises()
 
     const nameInput = document.body.querySelector('[data-testid="address-book-new-name"]')
@@ -88,7 +85,7 @@ describe('AddressBookDialog.vue', () => {
     await mountDialog()
 
     const addBtn = document.body.querySelector('[data-testid="address-book-add-btn"]') as HTMLElement
-    await addBtn.click()
+    addBtn.click()
     await flushPromises()
 
     const saveBtn = document.body.querySelector('[data-testid="address-book-save-btn"]') as HTMLButtonElement
@@ -100,7 +97,7 @@ describe('AddressBookDialog.vue', () => {
     await mountDialog()
 
     const addBtn = document.body.querySelector('[data-testid="address-book-add-btn"]') as HTMLElement
-    await addBtn.click()
+    addBtn.click()
     await flushPromises()
 
     const saveBtn = document.body.querySelector('[data-testid="address-book-save-btn"]') as HTMLElement

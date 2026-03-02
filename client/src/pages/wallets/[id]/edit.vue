@@ -7,7 +7,7 @@
   import { useRoute, useRouter } from 'vue-router'
   import ConfirmDialog from '@/components/ui/ConfirmDialog.vue'
   import { useConfirmDialog } from '@/composables/useConfirmDialog'
-  import { useWalletStore } from '@/stores/wallet'
+  import { useWalletById, useWalletStore } from '@/stores/wallet'
   import { getErrorMessage, getValidationErrors, isApiError } from '@/utils/errors'
 
   const { t } = useI18n()
@@ -31,7 +31,7 @@
     { title: 'Euro (EUR)', value: 'EUR' },
   ]
 
-  const { data: queryData, isPending: loading } = walletStore.useWalletById(walletId)
+  const { data: queryData, isPending: loading } = useWalletById(walletId)
 
   const wallet = ref<WalletType | null>(null)
 

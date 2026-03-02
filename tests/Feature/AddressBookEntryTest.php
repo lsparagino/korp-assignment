@@ -4,6 +4,9 @@ use App\Models\AddressBookEntry;
 use App\Models\Company;
 use App\Models\User;
 
+const VENDOR_NAME = 'Acme Vendor';
+const ADDRESS_BOOK_ENDPOINT = '/api/v0/address-book';
+
 beforeEach(function () {
     $this->company = Company::factory()->create();
     $this->user = User::factory()->create();
@@ -25,7 +28,7 @@ test('authenticated users can list their address book entries', function () {
     ]);
 
     $response = $this->actingAs($this->user, 'sanctum')
-        ->getJson("/api/v0/address-book?company_id={$this->company->id}");
+        ->getJson(ADDRESS_BOOK_ENDPOINT."?company_id={$this->company->id}");
 
     $response->assertOk()
         ->assertJsonCount(3, 'data');
@@ -53,19 +56,19 @@ test('entries are ordered by name', function () {
 
 test('users can create an address book entry', function () {
     $response = $this->actingAs($this->user, 'sanctum')
-        ->postJson("/api/v0/address-book?company_id={$this->company->id}", [
-            'name' => 'Acme Vendor',
+        ->postJson(ADDRESS_BOOK_ENDPOINT."?company_id={$this->company->id}", [
+            'name' => VENDOR_NAME,
             'address' => 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh',
         ]);
 
     $response->assertStatus(201)
-        ->assertJsonPath('data.name', 'Acme Vendor')
+        ->assertJsonPath('data.name', VENDOR_NAME)
         ->assertJsonPath('data.address', 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh');
 
     $this->assertDatabaseHas('address_book_entries', [
         'user_id' => $this->user->id,
         'company_id' => $this->company->id,
-        'name' => 'Acme Vendor',
+        'name' => VENDOR_NAME,
     ]);
 });
 
@@ -117,7 +120,7 @@ test('same address is allowed for different companies', function () {
     ]);
 
     $response = $this->actingAs($this->user, 'sanctum')
-        ->postJson("/api/v0/address-book?company_id={$otherCompany->id}", [
+        ->postJson(ADDRESS_BOOK_ENDPOINT."?company_id={$otherCompany->id}", [
             'name' => 'Same Addr Different Company',
             'address' => 'shared-addr',
         ]);
@@ -132,7 +135,7 @@ test('users can update their own entry', function () {
     ]);
 
     $response = $this->actingAs($this->user, 'sanctum')
-        ->putJson("/api/v0/address-book/{$entry->id}?company_id={$this->company->id}", [
+        ->putJson(ADDRESS_BOOK_ENDPOINT."/{$entry->id}?company_id={$this->company->id}", [
             'name' => 'Updated Name',
             'address' => 'updated-address',
         ]);
@@ -166,7 +169,7 @@ test('users can delete their own entry', function () {
     ]);
 
     $response = $this->actingAs($this->user, 'sanctum')
-        ->deleteJson("/api/v0/address-book/{$entry->id}?company_id={$this->company->id}");
+        ->deleteJson(ADDRESS_BOOK_ENDPOINT."/{$entry->id}?company_id={$this->company->id}");
 
     $response->assertNoContent();
     $this->assertDatabaseMissing('address_book_entries', ['id' => $entry->id]);
@@ -188,7 +191,7 @@ test('users cannot delete another users entry', function () {
 });
 
 test('guests are denied access to address book', function () {
-    $response = $this->getJson('/api/v0/address-book');
+    $response = $this->getJson(ADDRESS_BOOK_ENDPOINT);
 
     $response->assertUnauthorized();
 });

@@ -1,7 +1,8 @@
-import { DOMWrapper, flushPromises } from '@vue/test-utils'
+import { flushPromises } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createMemoryHistory, createRouter } from 'vue-router'
 import TransferCreatePage from '@/pages/transactions/create.vue'
+import { findByTestId } from '@/test/helpers'
 import { mountWithPlugins } from '@/test/setup'
 
 vi.mock('@/api/transactions', () => ({
@@ -65,7 +66,7 @@ describe('TransferCreatePage', () => {
     document.body.innerHTML = ''
   })
 
-  async function mountPage (props: Record<string, unknown> = {}) {
+  async function mountPage(props: Record<string, unknown> = {}) {
     const w = mountWithPlugins(TransferCreatePage, {
       props,
       attachTo: document.body,
@@ -80,10 +81,6 @@ describe('TransferCreatePage', () => {
     return w
   }
 
-  function findByTestId (testId: string) {
-    const el = document.body.querySelector(`[data-testid="${testId}"]`)
-    return el ? new DOMWrapper(el as HTMLElement) : null
-  }
 
   it('renders page with all key elements', async () => {
     wrapper = await mountPage()

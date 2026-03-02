@@ -1,5 +1,5 @@
-import { DOMWrapper } from '@vue/test-utils'
 import { afterEach, describe, expect, it } from 'vitest'
+import { findByTestId } from '@/test/helpers'
 import { mountWithPlugins } from '@/test/setup'
 import IdentityConfirmDialog from './IdentityConfirmDialog.vue'
 
@@ -11,7 +11,7 @@ describe('IdentityConfirmDialog.vue', () => {
     document.body.innerHTML = ''
   })
 
-  function mountDialog (props: Record<string, unknown> = {}) {
+  function mountDialog(props: Record<string, unknown> = {}) {
     return mountWithPlugins(IdentityConfirmDialog, {
       props: {
         modelValue: true,
@@ -25,10 +25,6 @@ describe('IdentityConfirmDialog.vue', () => {
     })
   }
 
-  function findByTestId (testId: string) {
-    const el = document.body.querySelector(`[data-testid="${testId}"]`)
-    return el ? new DOMWrapper(el as HTMLElement) : null
-  }
 
   it('renders with password label when no 2FA', async () => {
     wrapper = mountDialog()

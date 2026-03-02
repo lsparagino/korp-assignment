@@ -3,126 +3,108 @@
 use App\Models\User;
 use Laravel\Fortify\Features;
 
-test('two factor authentication can be enabled', function () {
+const TWO_FACTOR_AUTH_ENDPOINT = '/api/v0/user/two-factor/authentication';
+const TWO_FACTOR_QR_ENDPOINT = '/api/v0/user/two-factor/qr-code';
+const TWO_FACTOR_RECOVERY_ENDPOINT = '/api/v0/user/two-factor/recovery-codes';
+
+beforeEach(function () {
     if (! Features::canManageTwoFactorAuthentication()) {
         $this->markTestSkipped('Two-factor authentication is not enabled.');
     }
+});
 
+test('two factor authentication can be enabled', function () {
     $user = User::factory()->create();
 
     $this->actingAs($user, 'sanctum')
-        ->postJson('/api/v0/user/two-factor/authentication')
+        ->postJson(TWO_FACTOR_AUTH_ENDPOINT)
         ->assertStatus(200);
 
     expect($user->fresh()->two_factor_secret)->not->toBeNull();
 });
 
 test('two factor qr code can be retrieved', function () {
-    if (! Features::canManageTwoFactorAuthentication()) {
-        $this->markTestSkipped('Two-factor authentication is not enabled.');
-    }
-
     $user = User::factory()->create();
 
     $this->actingAs($user, 'sanctum')
-        ->postJson('/api/v0/user/two-factor/authentication');
+        ->postJson(TWO_FACTOR_AUTH_ENDPOINT);
 
     $response = $this->actingAs($user, 'sanctum')
-        ->getJson('/api/v0/user/two-factor/qr-code');
+        ->getJson(TWO_FACTOR_QR_ENDPOINT);
 
     $response->assertStatus(200)
         ->assertJsonStructure(['svg']);
 });
 
 test('two factor recovery codes can be retrieved', function () {
-    if (! Features::canManageTwoFactorAuthentication()) {
-        $this->markTestSkipped('Two-factor authentication is not enabled.');
-    }
-
     $user = User::factory()->create();
 
     $this->actingAs($user, 'sanctum')
-        ->postJson('/api/v0/user/two-factor/authentication');
+        ->postJson(TWO_FACTOR_AUTH_ENDPOINT);
 
     $response = $this->actingAs($user, 'sanctum')
-        ->getJson('/api/v0/user/two-factor/recovery-codes');
+        ->getJson(TWO_FACTOR_RECOVERY_ENDPOINT);
 
     $response->assertStatus(200);
     expect($response->json())->toBeArray()->not->toBeEmpty();
 });
 
 test('two factor authentication can be disabled', function () {
-    if (! Features::canManageTwoFactorAuthentication()) {
-        $this->markTestSkipped('Two-factor authentication is not enabled.');
-    }
-
     $user = User::factory()->create();
 
     $this->actingAs($user, 'sanctum')
-        ->postJson('/api/v0/user/two-factor/authentication');
+        ->postJson(TWO_FACTOR_AUTH_ENDPOINT);
 
     $this->actingAs($user, 'sanctum')
-        ->deleteJson('/api/v0/user/two-factor/authentication')
+        ->deleteJson(TWO_FACTOR_AUTH_ENDPOINT)
         ->assertStatus(200);
 
     expect($user->fresh()->two_factor_secret)->toBeNull();
 });
 
 test('qr code returns 400 when two factor is not enabled', function () {
-    if (! Features::canManageTwoFactorAuthentication()) {
-        $this->markTestSkipped('Two-factor authentication is not enabled.');
-    }
-
     $user = User::factory()->create();
 
     $response = $this->actingAs($user, 'sanctum')
-        ->getJson('/api/v0/user/two-factor/qr-code');
+        ->getJson(TWO_FACTOR_QR_ENDPOINT);
 
     $response->assertStatus(400);
 });
 
 test('recovery codes return 400 when two factor is not enabled', function () {
-    if (! Features::canManageTwoFactorAuthentication()) {
-        $this->markTestSkipped('Two-factor authentication is not enabled.');
-    }
-
     $user = User::factory()->create();
 
     $response = $this->actingAs($user, 'sanctum')
-        ->getJson('/api/v0/user/two-factor/recovery-codes');
+        ->getJson(TWO_FACTOR_RECOVERY_ENDPOINT);
 
     $response->assertStatus(400);
 });
 
 test('recovery codes can be regenerated', function () {
-    if (! Features::canManageTwoFactorAuthentication()) {
-        $this->markTestSkipped('Two-factor authentication is not enabled.');
-    }
-
     $user = User::factory()->create();
 
     $this->actingAs($user, 'sanctum')
-        ->postJson('/api/v0/user/two-factor/authentication');
+        ->postJson(TWO_FACTOR_AUTH_ENDPOINT);
 
     $originalCodes = $this->actingAs($user, 'sanctum')
-        ->getJson('/api/v0/user/two-factor/recovery-codes')
+        ->getJson(TWO_FACTOR_RECOVERY_ENDPOINT)
         ->json();
 
     $response = $this->actingAs($user, 'sanctum')
-        ->postJson('/api/v0/user/two-factor/recovery-codes');
+        ->postJson(TWO_FACTOR_RECOVERY_ENDPOINT);
 
     $response->assertOk();
 
     $newCodes = $this->actingAs($user, 'sanctum')
-        ->getJson('/api/v0/user/two-factor/recovery-codes')
+        ->getJson(TWO_FACTOR_RECOVERY_ENDPOINT)
         ->json();
 
     expect($newCodes)->not->toEqual($originalCodes);
 });
 
 test('guests cannot access two factor endpoints', function () {
-    $this->postJson('/api/v0/user/two-factor/authentication')->assertUnauthorized();
-    $this->getJson('/api/v0/user/two-factor/qr-code')->assertUnauthorized();
-    $this->getJson('/api/v0/user/two-factor/recovery-codes')->assertUnauthorized();
-    $this->deleteJson('/api/v0/user/two-factor/authentication')->assertUnauthorized();
+    $this->postJson(TWO_FACTOR_AUTH_ENDPOINT)->assertUnauthorized();
+    $this->getJson(TWO_FACTOR_QR_ENDPOINT)->assertUnauthorized();
+    $this->getJson(TWO_FACTOR_RECOVERY_ENDPOINT)->assertUnauthorized();
+    $this->deleteJson(TWO_FACTOR_AUTH_ENDPOINT)->assertUnauthorized();
 });

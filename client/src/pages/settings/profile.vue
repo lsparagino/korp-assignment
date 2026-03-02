@@ -56,7 +56,7 @@
     submitFn: (data: typeof deleteForm) => apiDeleteAccount(data),
     onSuccess: () => {
       authStore.clearToken()
-      window.location.href = '/'
+      globalThis.location.href = '/'
     },
   })
 </script>
@@ -126,7 +126,7 @@
 
           <v-text-field
             v-model="form.email"
-            autocomplete="username"
+            autocomplete="email"
             color="primary"
             density="comfortable"
             :disabled="cancellingPendingEmail"

@@ -1,7 +1,6 @@
 <?php
 
 use Illuminate\Foundation\Application;
-use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 
 return Application::configure(basePath: dirname(__DIR__))
@@ -21,7 +20,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'company' => \App\Http\Middleware\EnsureUserBelongsToCompany::class,
             'idempotent' => \App\Http\Middleware\EnsureIdempotency::class,
         ]);
-    })
-    ->withExceptions(function (Exceptions $exceptions): void {
-        //
+    })->withExceptions(function (\Illuminate\Foundation\Configuration\Exceptions $exceptions): void {
+        // Required by Laravel to register the ExceptionHandler binding.
+        // Custom exception rendering/reporting can be added here as needed.
     })->create();

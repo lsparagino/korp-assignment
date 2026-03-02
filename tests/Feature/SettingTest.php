@@ -5,6 +5,9 @@ use App\Models\Company;
 use App\Models\CompanySetting;
 use App\Models\User;
 
+const PREFERENCES_ENDPOINT = '/api/v0/settings/preferences';
+const THRESHOLDS_ENDPOINT = '/api/v0/settings/thresholds';
+
 beforeEach(function () {
     $this->company = Company::factory()->create();
     $this->admin = User::factory()->create(['role' => UserRole::Admin]);
@@ -16,7 +19,7 @@ beforeEach(function () {
 describe('User Preferences', function () {
     it('returns default preferences for authenticated user', function () {
         $response = $this->actingAs($this->admin, 'sanctum')
-            ->getJson('/api/v0/settings/preferences');
+            ->getJson(PREFERENCES_ENDPOINT);
 
         $response->assertOk()
             ->assertJsonStructure([
@@ -36,7 +39,7 @@ describe('User Preferences', function () {
 
     it('updates user preferences', function () {
         $response = $this->actingAs($this->admin, 'sanctum')
-            ->putJson('/api/v0/settings/preferences', [
+            ->putJson(PREFERENCES_ENDPOINT, [
                 'notify_money_received' => false,
                 'date_format' => 'de-DE',
                 'daily_transaction_limit' => 5000,
@@ -50,13 +53,13 @@ describe('User Preferences', function () {
     });
 
     it('requires authentication', function () {
-        $this->getJson('/api/v0/settings/preferences')
+        $this->getJson(PREFERENCES_ENDPOINT)
             ->assertUnauthorized();
     });
 
     it('rejects daily limit change without password', function () {
         $this->actingAs($this->admin, 'sanctum')
-            ->putJson('/api/v0/settings/preferences', [
+            ->putJson(PREFERENCES_ENDPOINT, [
                 'daily_transaction_limit' => 5000,
             ])
             ->assertUnprocessable()
@@ -65,7 +68,7 @@ describe('User Preferences', function () {
 
     it('rejects daily limit change with wrong password', function () {
         $this->actingAs($this->admin, 'sanctum')
-            ->putJson('/api/v0/settings/preferences', [
+            ->putJson(PREFERENCES_ENDPOINT, [
                 'daily_transaction_limit' => 5000,
                 'password' => 'wrong-password',
             ])
@@ -75,7 +78,7 @@ describe('User Preferences', function () {
 
     it('allows non-limit settings without password', function () {
         $response = $this->actingAs($this->admin, 'sanctum')
-            ->putJson('/api/v0/settings/preferences', [
+            ->putJson(PREFERENCES_ENDPOINT, [
                 'notify_money_received' => false,
                 'date_format' => 'de-DE',
             ]);
@@ -86,14 +89,14 @@ describe('User Preferences', function () {
 
     it('clears daily limit with password', function () {
         $this->actingAs($this->admin, 'sanctum')
-            ->putJson('/api/v0/settings/preferences', [
+            ->putJson(PREFERENCES_ENDPOINT, [
                 'daily_transaction_limit' => 5000,
                 'password' => 'password',
             ])
             ->assertOk();
 
         $response = $this->actingAs($this->admin, 'sanctum')
-            ->putJson('/api/v0/settings/preferences', [
+            ->putJson(PREFERENCES_ENDPOINT, [
                 'daily_transaction_limit' => null,
                 'password' => 'password',
             ]);
@@ -104,7 +107,7 @@ describe('User Preferences', function () {
 
     it('updates security threshold with password', function () {
         $response = $this->actingAs($this->admin, 'sanctum')
-            ->putJson('/api/v0/settings/preferences', [
+            ->putJson(PREFERENCES_ENDPOINT, [
                 'security_threshold' => 2000,
                 'password' => 'password',
             ]);
@@ -115,7 +118,7 @@ describe('User Preferences', function () {
 
     it('rejects security threshold change without password', function () {
         $this->actingAs($this->admin, 'sanctum')
-            ->putJson('/api/v0/settings/preferences', [
+            ->putJson(PREFERENCES_ENDPOINT, [
                 'security_threshold' => 2000,
             ])
             ->assertUnprocessable()
@@ -129,7 +132,7 @@ describe('User Preferences', function () {
         ]);
 
         $this->actingAs($this->admin, 'sanctum')
-            ->putJson('/api/v0/settings/preferences', [
+            ->putJson(PREFERENCES_ENDPOINT, [
                 'security_threshold' => 6000,
                 'password' => 'password',
             ])
@@ -147,7 +150,7 @@ describe('Company Thresholds', function () {
         ]);
 
         $response = $this->actingAs($this->admin, 'sanctum')
-            ->getJson('/api/v0/settings/thresholds?company_id='.$this->company->id);
+            ->getJson(THRESHOLDS_ENDPOINT.'?company_id='.$this->company->id);
 
         $response->assertOk();
         expect($response->json('data'))->toHaveCount(1);
@@ -156,7 +159,7 @@ describe('Company Thresholds', function () {
 
     it('creates a threshold for admin', function () {
         $response = $this->actingAs($this->admin, 'sanctum')
-            ->putJson('/api/v0/settings/thresholds?company_id='.$this->company->id, [
+            ->putJson(THRESHOLDS_ENDPOINT.'?company_id='.$this->company->id, [
                 'currency' => 'USD',
                 'approval_threshold' => 2500,
             ]);
@@ -174,7 +177,7 @@ describe('Company Thresholds', function () {
         ]);
 
         $response = $this->actingAs($this->admin, 'sanctum')
-            ->putJson('/api/v0/settings/thresholds?company_id='.$this->company->id, [
+            ->putJson(THRESHOLDS_ENDPOINT.'?company_id='.$this->company->id, [
                 'currency' => 'EUR',
                 'approval_threshold' => 5000,
             ]);
@@ -192,7 +195,7 @@ describe('Company Thresholds', function () {
         ]);
 
         $response = $this->actingAs($this->admin, 'sanctum')
-            ->deleteJson("/api/v0/settings/thresholds/{$setting->id}?company_id=".$this->company->id);
+            ->deleteJson(THRESHOLDS_ENDPOINT."/{$setting->id}?company_id=".$this->company->id);
 
         $response->assertNoContent();
         expect(CompanySetting::find($setting->id))->toBeNull();
@@ -200,7 +203,7 @@ describe('Company Thresholds', function () {
 
     it('forbids non-admin from upserting thresholds', function () {
         $this->actingAs($this->member, 'sanctum')
-            ->putJson('/api/v0/settings/thresholds?company_id='.$this->company->id, [
+            ->putJson(THRESHOLDS_ENDPOINT.'?company_id='.$this->company->id, [
                 'currency' => 'EUR',
                 'approval_threshold' => 1000,
             ])

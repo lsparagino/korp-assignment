@@ -2,6 +2,7 @@ import { DOMWrapper, flushPromises } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import en from '@/locales/en.json'
 import { useCompanyStore } from '@/stores/company'
+import { findByTestId } from '@/test/helpers'
 import { mountWithPlugins } from '@/test/setup'
 
 import CompanySelector from './CompanySelector.vue'
@@ -15,7 +16,7 @@ vi.mock('@/stores/company', () => ({
   useCompanyStore: vi.fn(),
 }))
 
-function mockStore (overrides: Record<string, unknown> = {}) {
+function mockStore(overrides: Record<string, unknown> = {}) {
   ; (useCompanyStore as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
     companies: mockCompanies,
     currentCompany: mockCompanies[0],
@@ -33,11 +34,6 @@ describe('CompanySelector.vue', () => {
     wrapper?.unmount()
     document.body.innerHTML = ''
   })
-
-  function findByTestId (testId: string) {
-    const el = document.body.querySelector(`[data-testid="${testId}"]`)
-    return el ? new DOMWrapper(el as HTMLElement) : null
-  }
 
   it('renders selector button when companies exist', () => {
     mockStore()

@@ -2,6 +2,7 @@ import type { Transaction } from '@/api/transactions'
 import { flushPromises } from '@vue/test-utils'
 import { afterEach, describe, expect, it } from 'vitest'
 import en from '@/locales/en.json'
+import { bodyText } from '@/test/helpers'
 import { mountWithPlugins } from '@/test/setup'
 import TransactionTable from './TransactionTable.vue'
 
@@ -10,7 +11,7 @@ const mockWallets = [
   { id: 2, name: 'Business', address: 'addr2', balance: 3000, locked_balance: 0, available_balance: 3000, currency: 'USD', status: 'active' as const, can_delete: false },
 ]
 
-function createTransaction (overrides: Partial<Transaction> = {}): Transaction {
+function createTransaction(overrides: Partial<Transaction> = {}): Transaction {
   return {
     id: 1,
     group_id: 'grp-1',
@@ -46,7 +47,7 @@ describe('TransactionTable.vue', () => {
     document.body.innerHTML = ''
   })
 
-  async function mountTable (props: Record<string, unknown> = {}) {
+  async function mountTable(props: Record<string, unknown> = {}) {
     wrapper = mountWithPlugins(TransactionTable, {
       props: {
         items: [],
@@ -57,10 +58,6 @@ describe('TransactionTable.vue', () => {
     })
     await flushPromises()
     return wrapper
-  }
-
-  function bodyText () {
-    return document.body.textContent || ''
   }
 
   it('renders column headers', async () => {

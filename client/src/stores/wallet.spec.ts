@@ -39,7 +39,7 @@ describe('useWalletStore', () => {
   })
 
   it('exposes expected actions', async () => {
-    const { useWalletStore } = await import('./wallet')
+    const { useWalletStore, useWalletById } = await import('./wallet')
     const store = useWalletStore()
 
     expect(store.createWallet).toBeDefined()
@@ -47,7 +47,7 @@ describe('useWalletStore', () => {
     expect(store.toggleFreeze).toBeDefined()
     expect(store.deleteWallet).toBeDefined()
     expect(store.invalidateQueries).toBeDefined()
-    expect(store.useWalletById).toBeDefined()
+    expect(useWalletById).toBeDefined()
   })
 
   it('calls createWallet API via mutation', async () => {

@@ -4,12 +4,15 @@ use App\Models\User;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Support\Facades\Notification;
 
+const FORGOT_PASSWORD_ENDPOINT = '/api/v0/forgot-password';
+const RESET_PASSWORD_ENDPOINT = '/api/v0/reset-password';
+
 test('reset password link can be requested', function () {
     Notification::fake();
 
     $user = User::factory()->create();
 
-    $response = $this->postJson('/api/v0/forgot-password', ['email' => $user->email]);
+    $response = $this->postJson(FORGOT_PASSWORD_ENDPOINT, ['email' => $user->email]);
 
     $response->assertOk();
     Notification::assertSentTo($user, ResetPassword::class);
@@ -20,14 +23,14 @@ test('password can be reset with valid token', function () {
 
     $user = User::factory()->create();
 
-    $this->postJson('/api/v0/forgot-password', ['email' => $user->email]);
+    $this->postJson(FORGOT_PASSWORD_ENDPOINT, ['email' => $user->email]);
 
     Notification::assertSentTo($user, ResetPassword::class);
 
     $notification = Notification::sent($user, ResetPassword::class)->first();
     $token = $notification->token;
 
-    $response = $this->postJson('/api/v0/reset-password', [
+    $response = $this->postJson(RESET_PASSWORD_ENDPOINT, [
         'token' => $token,
         'email' => $user->email,
         'password' => 'new-password-123',
@@ -41,7 +44,7 @@ test('password can be reset with valid token', function () {
 test('password cannot be reset with invalid token', function () {
     $user = User::factory()->create();
 
-    $response = $this->postJson('/api/v0/reset-password', [
+    $response = $this->postJson(RESET_PASSWORD_ENDPOINT, [
         'token' => 'invalid-token',
         'email' => $user->email,
         'password' => 'newpassword123',

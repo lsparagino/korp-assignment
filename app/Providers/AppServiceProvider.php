@@ -18,7 +18,7 @@ class AppServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        //
+        // No custom container bindings are needed for this application.
     }
 
     public function boot(): void

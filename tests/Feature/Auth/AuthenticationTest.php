@@ -4,10 +4,17 @@ use App\Models\User;
 use Illuminate\Support\Facades\RateLimiter;
 use Laravel\Fortify\Features;
 
+if (! defined('LOGIN_ENDPOINT')) {
+    define('LOGIN_ENDPOINT', '/api/v0/login');
+}
+if (! defined('USER_ENDPOINT')) {
+    define('USER_ENDPOINT', '/api/v0/user');
+}
+
 test('users can authenticate', function () {
     $user = User::factory()->create();
 
-    $response = $this->postJson('/api/v0/login', [
+    $response = $this->postJson(LOGIN_ENDPOINT, [
         'email' => $user->email,
         'password' => 'password',
     ]);
@@ -29,7 +36,7 @@ test('users with two factor enabled receive challenged response', function () {
         'two_factor_confirmed_at' => now(),
     ])->save();
 
-    $response = $this->postJson('/api/v0/login', [
+    $response = $this->postJson(LOGIN_ENDPOINT, [
         'email' => $user->email,
         'password' => 'password',
     ]);
@@ -42,7 +49,7 @@ test('users with two factor enabled receive challenged response', function () {
 test('users can not authenticate with invalid password', function () {
     $user = User::factory()->create();
 
-    $response = $this->postJson('/api/v0/login', [
+    $response = $this->postJson(LOGIN_ENDPOINT, [
         'email' => $user->email,
         'password' => 'wrong-password',
     ]);
@@ -65,7 +72,7 @@ test('users are rate limited', function () {
 
     RateLimiter::increment(md5('login'.implode('|', [$user->email, '127.0.0.1'])), amount: 5);
 
-    $response = $this->postJson('/api/v0/login', [
+    $response = $this->postJson(LOGIN_ENDPOINT, [
         'email' => $user->email,
         'password' => 'wrong-password',
     ]);
@@ -76,7 +83,7 @@ test('users are rate limited', function () {
 test('authenticated user can get their profile', function () {
     $user = User::factory()->create();
 
-    $response = $this->actingAs($user, 'sanctum')->getJson('/api/v0/user');
+    $response = $this->actingAs($user, 'sanctum')->getJson(USER_ENDPOINT);
 
     $response->assertOk()
         ->assertJsonPath('id', $user->id)
@@ -84,7 +91,7 @@ test('authenticated user can get their profile', function () {
 });
 
 test('guests cannot access user profile', function () {
-    $response = $this->getJson('/api/v0/user');
+    $response = $this->getJson(USER_ENDPOINT);
 
     $response->assertUnauthorized();
 });
@@ -92,7 +99,7 @@ test('guests cannot access user profile', function () {
 test('password confirmation fails with wrong password', function () {
     $user = User::factory()->create();
 
-    $response = $this->actingAs($user, 'sanctum')->postJson('/api/v0/user/confirm-password', [
+    $response = $this->actingAs($user, 'sanctum')->postJson(USER_ENDPOINT.'/confirm-password', [
         'password' => 'wrong-password',
     ]);
 

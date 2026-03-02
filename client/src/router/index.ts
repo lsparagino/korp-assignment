@@ -37,9 +37,8 @@ router.onError((err: Error, to: RouteLocationNormalized) => {
   }
 })
 
-router.isReady().then(() => {
-  localStorage.removeItem('vuetify:dynamic-reload')
-})
+await router.isReady()
+localStorage.removeItem('vuetify:dynamic-reload')
 
 router.beforeEach(
   async (

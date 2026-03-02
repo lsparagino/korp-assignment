@@ -6,6 +6,11 @@ use App\Notifications\VerifyEmailNotification;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\URL;
 
+const NEW_EMAIL = 'new@example.com';
+if (! defined('VERIFICATION_NOTIFICATION_ENDPOINT')) {
+    define('VERIFICATION_NOTIFICATION_ENDPOINT', '/api/v0/email/verification-notification');
+}
+
 beforeEach(function () {
     $this->company = Company::factory()->create();
 });
@@ -35,7 +40,7 @@ test('unverified user can resend verification email', function () {
     $user = User::factory()->create(['email_verified_at' => null]);
 
     $response = $this->actingAs($user, 'sanctum')
-        ->postJson('/api/v0/email/verification-notification');
+        ->postJson(VERIFICATION_NOTIFICATION_ENDPOINT);
 
     $response->assertStatus(200)
         ->assertJsonPath('message', 'Verification link sent');
@@ -102,14 +107,14 @@ test('profile email change stores pending email', function () {
     $response = $this->actingAs($user, 'sanctum')
         ->patchJson('/api/v0/settings/profile', [
             'name' => $user->name,
-            'email' => 'new@example.com',
+            'email' => NEW_EMAIL,
         ]);
 
     $response->assertStatus(200);
 
     $user->refresh();
-    expect($user->email)->not->toBe('new@example.com');
-    expect($user->pending_email)->toBe('new@example.com');
+    expect($user->email)->not->toBe(NEW_EMAIL);
+    expect($user->pending_email)->toBe(NEW_EMAIL);
 
     Notification::assertSentTo($user, VerifyEmailNotification::class);
 });
@@ -117,13 +122,13 @@ test('profile email change stores pending email', function () {
 test('verifying pending email swaps it', function () {
     $user = User::factory()->create([
         'email_verified_at' => now(),
-        'pending_email' => 'new@example.com',
+        'pending_email' => NEW_EMAIL,
     ]);
 
     $url = URL::temporarySignedRoute(
         'verification.verify',
         now()->addMinutes(60),
-        ['id' => $user->id, 'hash' => sha1('new@example.com')]
+        ['id' => $user->id, 'hash' => sha1(NEW_EMAIL)]
     );
 
     $response = $this->getJson($url);
@@ -132,14 +137,14 @@ test('verifying pending email swaps it', function () {
         ->assertJsonPath('message', 'Email address updated and verified successfully');
 
     $user->refresh();
-    expect($user->email)->toBe('new@example.com');
+    expect($user->email)->toBe(NEW_EMAIL);
     expect($user->pending_email)->toBeNull();
 });
 
 test('user can cancel pending email change', function () {
     $user = User::factory()->create([
         'email_verified_at' => now(),
-        'pending_email' => 'new@example.com',
+        'pending_email' => NEW_EMAIL,
     ]);
 
     $response = $this->actingAs($user, 'sanctum')

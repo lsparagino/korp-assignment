@@ -14,6 +14,10 @@ use App\Notifications\TransactionPendingApproval;
 use App\Notifications\TransactionRejected;
 use Illuminate\Support\Facades\Notification;
 
+if (! defined('TRANSFERS_ENDPOINT')) {
+    define('TRANSFERS_ENDPOINT', '/api/v0/transfers');
+}
+
 beforeEach(function () {
     $this->company = Company::factory()->create();
 
@@ -63,7 +67,8 @@ test('completed transfer sends TransactionCompleted to initiator', function () {
     Notification::fake();
 
     $this->actingAs($this->member, 'sanctum')
-        ->postJson('/api/v0/transfers', [
+        ->withHeaders(idempotencyHeaders())
+        ->postJson(TRANSFERS_ENDPOINT, [
             'sender_wallet_id' => $this->senderWallet->id,
             'receiver_wallet_id' => $this->receiverWallet->id,
             'amount' => 500,
@@ -85,7 +90,8 @@ test('completed transfer does not send TransactionCompleted when setting is off'
     ]);
 
     $this->actingAs($this->member, 'sanctum')
-        ->postJson('/api/v0/transfers', [
+        ->withHeaders(idempotencyHeaders())
+        ->postJson(TRANSFERS_ENDPOINT, [
             'sender_wallet_id' => $this->senderWallet->id,
             'receiver_wallet_id' => $this->receiverWallet->id,
             'amount' => 500,
@@ -104,7 +110,8 @@ test('pending transfer sends TransactionPendingApproval to admins and managers',
     Notification::fake();
 
     $this->actingAs($this->member, 'sanctum')
-        ->postJson('/api/v0/transfers', [
+        ->withHeaders(idempotencyHeaders())
+        ->postJson(TRANSFERS_ENDPOINT, [
             'sender_wallet_id' => $this->senderWallet->id,
             'receiver_wallet_id' => $this->receiverWallet->id,
             'amount' => 15000,
@@ -128,7 +135,8 @@ test('pending transfer does not notify admin when approval_needed setting is off
     ]);
 
     $this->actingAs($this->member, 'sanctum')
-        ->postJson('/api/v0/transfers', [
+        ->withHeaders(idempotencyHeaders())
+        ->postJson(TRANSFERS_ENDPOINT, [
             'sender_wallet_id' => $this->senderWallet->id,
             'receiver_wallet_id' => $this->receiverWallet->id,
             'amount' => 15000,
@@ -148,7 +156,8 @@ test('approved transfer sends TransactionApproved to initiator', function () {
     Notification::fake();
 
     $response = $this->actingAs($this->member, 'sanctum')
-        ->postJson('/api/v0/transfers', [
+        ->withHeaders(idempotencyHeaders())
+        ->postJson(TRANSFERS_ENDPOINT, [
             'sender_wallet_id' => $this->senderWallet->id,
             'receiver_wallet_id' => $this->receiverWallet->id,
             'amount' => 15000,
@@ -162,7 +171,8 @@ test('approved transfer sends TransactionApproved to initiator', function () {
     Notification::fake();
 
     $this->actingAs($this->manager, 'sanctum')
-        ->postJson("/api/v0/transfers/{$groupId}/review", [
+        ->withHeaders(idempotencyHeaders())
+        ->postJson(TRANSFERS_ENDPOINT."/{$groupId}/review", [
             'action' => 'approve',
             'company_id' => $this->company->id,
         ])
@@ -181,7 +191,8 @@ test('approved transfer does not notify when setting is off', function () {
     ]);
 
     $response = $this->actingAs($this->member, 'sanctum')
-        ->postJson('/api/v0/transfers', [
+        ->withHeaders(idempotencyHeaders())
+        ->postJson(TRANSFERS_ENDPOINT, [
             'sender_wallet_id' => $this->senderWallet->id,
             'receiver_wallet_id' => $this->receiverWallet->id,
             'amount' => 15000,
@@ -195,7 +206,8 @@ test('approved transfer does not notify when setting is off', function () {
     Notification::fake();
 
     $this->actingAs($this->manager, 'sanctum')
-        ->postJson("/api/v0/transfers/{$groupId}/review", [
+        ->withHeaders(idempotencyHeaders())
+        ->postJson(TRANSFERS_ENDPOINT."/{$groupId}/review", [
             'action' => 'approve',
             'company_id' => $this->company->id,
         ])
@@ -210,7 +222,8 @@ test('rejected transfer sends TransactionRejected to initiator', function () {
     Notification::fake();
 
     $response = $this->actingAs($this->member, 'sanctum')
-        ->postJson('/api/v0/transfers', [
+        ->withHeaders(idempotencyHeaders())
+        ->postJson(TRANSFERS_ENDPOINT, [
             'sender_wallet_id' => $this->senderWallet->id,
             'receiver_wallet_id' => $this->receiverWallet->id,
             'amount' => 15000,
@@ -224,7 +237,8 @@ test('rejected transfer sends TransactionRejected to initiator', function () {
     Notification::fake();
 
     $this->actingAs($this->manager, 'sanctum')
-        ->postJson("/api/v0/transfers/{$groupId}/review", [
+        ->withHeaders(idempotencyHeaders())
+        ->postJson(TRANSFERS_ENDPOINT."/{$groupId}/review", [
             'action' => 'reject',
             'reason' => 'Suspicious activity',
             'company_id' => $this->company->id,
@@ -243,7 +257,8 @@ test('rejected transfer does not notify when setting is off', function () {
     ]);
 
     $response = $this->actingAs($this->member, 'sanctum')
-        ->postJson('/api/v0/transfers', [
+        ->withHeaders(idempotencyHeaders())
+        ->postJson(TRANSFERS_ENDPOINT, [
             'sender_wallet_id' => $this->senderWallet->id,
             'receiver_wallet_id' => $this->receiverWallet->id,
             'amount' => 15000,
@@ -257,7 +272,8 @@ test('rejected transfer does not notify when setting is off', function () {
     Notification::fake();
 
     $this->actingAs($this->manager, 'sanctum')
-        ->postJson("/api/v0/transfers/{$groupId}/review", [
+        ->withHeaders(idempotencyHeaders())
+        ->postJson(TRANSFERS_ENDPOINT."/{$groupId}/review", [
             'action' => 'reject',
             'reason' => 'Unauthorized',
             'company_id' => $this->company->id,

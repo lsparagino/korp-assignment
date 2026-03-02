@@ -8,7 +8,7 @@ use App\Models\Wallet;
 
 class WalletPolicy
 {
-    public function viewAny(User $user): bool
+    public function viewAny(User $user): bool // NOSONAR - parameter required by Laravel policy contract
     {
         return true;
     }
@@ -31,22 +31,22 @@ class WalletPolicy
         return $user->isAdmin();
     }
 
-    public function update(User $user, Wallet $wallet): bool
+    public function update(User $user, Wallet $wallet): bool // NOSONAR - parameter required by Laravel policy contract
     {
         return $user->isAdmin();
     }
 
-    public function delete(User $user, Wallet $wallet): bool
+    public function delete(User $user, Wallet $wallet): bool // NOSONAR - parameter required by Laravel policy contract
     {
         return $user->isAdmin() && ! $wallet->hasTransactions();
     }
 
-    public function restore(User $user, Wallet $wallet): bool
+    public function restore(User $user, Wallet $wallet): bool // NOSONAR - parameter required by Laravel policy contract
     {
         return $user->isAdmin();
     }
 
-    public function forceDelete(User $user, Wallet $wallet): bool
+    public function forceDelete(User $user, Wallet $wallet): bool // NOSONAR - parameter required by Laravel policy contract
     {
         return $user->isAdmin();
     }
