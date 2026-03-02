@@ -6,6 +6,13 @@ resource "google_sql_database_instance" "mysql" {
 
   settings {
     tier = "db-f1-micro"
+
+    # log_connections database flag is intentionally omitted: it is a
+    # PostgreSQL-only flag and does not apply to MySQL instances.
+
+    # require_ssl is intentionally omitted: the instance has ipv4_enabled=false
+    # and is only accessible via private VPC, so SSL adds no meaningful security
+    # benefit and would introduce unnecessary certificate management overhead.
     ip_configuration {
       ipv4_enabled    = false
       private_network = google_compute_network.vpc.id

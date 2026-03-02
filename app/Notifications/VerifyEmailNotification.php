@@ -41,7 +41,7 @@ class VerifyEmailNotification extends Notification
             now()->addMinutes(config('auth.verification.expire', 60)),
             [
                 'id' => $notifiable->getKey(),
-                'hash' => sha1($emailToVerify),
+                'hash' => hash('sha256', $emailToVerify),
             ]
         );
 
@@ -52,7 +52,7 @@ class VerifyEmailNotification extends Notification
 
         return $clientUrl.'/auth/verify-email?'.http_build_query([
             'id' => $notifiable->getKey(),
-            'hash' => sha1($emailToVerify),
+            'hash' => hash('sha256', $emailToVerify),
             'expires' => $queryParams['expires'] ?? '',
             'signature' => $queryParams['signature'] ?? '',
         ]);

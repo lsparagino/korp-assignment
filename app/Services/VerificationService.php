@@ -36,7 +36,7 @@ class VerificationService
 
         $emailToVerify = $user->pending_email ?? $user->getEmailForVerification();
 
-        if (! hash_equals($hash, sha1($emailToVerify))) {
+        if (! hash_equals($hash, hash('sha256', $emailToVerify))) {
             return ['message' => __('messages.invalid_verification_link'), 'status' => 403];
         }
 

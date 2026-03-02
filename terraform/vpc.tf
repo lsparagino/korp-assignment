@@ -4,6 +4,8 @@ resource "google_compute_network" "vpc" {
   depends_on              = [time_sleep.wait_for_apis]
 }
 
+# log_config is intentionally omitted: VPC Flow Logs are not needed for this
+# project and would incur additional GCP Logging ingestion/storage costs.
 resource "google_compute_subnetwork" "subnet" {
   name          = "korp-subnet"
   ip_cidr_range = "10.0.0.0/24"

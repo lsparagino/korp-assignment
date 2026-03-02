@@ -19,7 +19,8 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # Set working directory
 WORKDIR /var/www/html
 
-# Copy application files
+# Copy application files (filtered by .dockerignore)
+# NOSONAR - recursive copy is safe, controlled by .dockerignore
 COPY . .
 
 # Install dependencies && Create system user to run composer and artisan commands
@@ -39,6 +40,9 @@ COPY deployment/gcp/entrypoint.sh /usr/local/bin/entrypoint.sh
 
 # Set execution permissions for the entrypoint
 RUN chmod +x /usr/local/bin/entrypoint.sh
+
+# Run as non-root user
+USER www-data
 
 # Expose port 8080
 EXPOSE 8080

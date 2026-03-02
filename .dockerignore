@@ -1,0 +1,42 @@
+# Version control
+.git
+.gitignore
+
+# CI/CD & IDE
+.github
+.vscode
+.idea
+.agents
+
+# Client (built separately or not needed in API container)
+client
+
+# Testing
+tests
+phpunit.xml
+.phpunit.cache
+e2e
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Dependencies (installed during build)
+vendor
+node_modules
+
+# Logs & cache
+storage/logs/*
+storage/framework/cache/*
+storage/framework/sessions/*
+storage/framework/views/*
+
+# Infrastructure (keep deployment/ — referenced by later COPY)
+terraform
+docker-compose*.yml
+Dockerfile
+
+# Documentation
+*.md
+LICENSE

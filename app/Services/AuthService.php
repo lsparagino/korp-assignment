@@ -27,7 +27,7 @@ class AuthService
      */
     public function attemptLogin(string $username, string $password, string $ip): array
     {
-        $throttleKey = md5('login'.implode('|', [$username, $ip]));
+        $throttleKey = hash('xxh128', 'login'.implode('|', [$username, $ip]));
 
         $this->checkThrottling($throttleKey);
 
