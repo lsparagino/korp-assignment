@@ -1,35 +1,33 @@
 <script lang="ts" setup>
-  import type { AuditLog, AuditLogFilters } from '@/api/audit-logs'
+  import type { AuditLog } from '@/api/audit-logs'
   import { ShieldCheck } from 'lucide-vue-next'
-  import { reactive, ref } from 'vue'
+  import { ref } from 'vue'
   import { useI18n } from 'vue-i18n'
-  import { fetchAuditLogs } from '@/api/audit-logs'
   import AuditLogDetailModal from '@/components/features/AuditLogDetailModal.vue'
   import PageHeader from '@/components/layout/PageHeader.vue'
   import DataTable from '@/components/ui/DataTable.vue'
   import { useRefreshData } from '@/composables/useRefreshData'
-  import { useCompanyStore } from '@/stores/company'
+  import { useAuditLogList } from '@/queries/audit-logs'
   import { getAuditCategoryColors, getAuditSeverityColors } from '@/utils/colors'
 
   const { t } = useI18n()
-  const companyStore = useCompanyStore()
 
-  const logs = ref<AuditLog[]>([])
-  const nextCursor = ref<number | null>(null)
-  const loading = ref(false)
-  const loadingMore = ref(false)
+  const {
+    logs,
+    filters,
+    nextCursor,
+    isLoadingMore,
+    isPending: loading,
+    refetch,
+    applyFilters,
+    loadMore,
+    clearFilters,
+  } = useAuditLogList()
+
   const dateFromMenu = ref(false)
   const dateToMenu = ref(false)
   const selectedLog = ref<AuditLog | null>(null)
   const detailDialog = ref(false)
-
-  const filters = reactive<AuditLogFilters>({
-    category: '',
-    severity: '',
-    date_from: undefined,
-    date_to: undefined,
-    per_page: 25,
-  })
 
   const categories = [
     { title: t('auditLogs.categories.all'), value: '' },
@@ -75,63 +73,25 @@
     const formatted = date.toISOString().split('T')[0]
 
     if (field === 'from') {
-      filters.date_from = formatted
+      filters.dateFrom = formatted
       dateFromMenu.value = false
     } else {
-      filters.date_to = formatted
+      filters.dateTo = formatted
       dateToMenu.value = false
     }
   }
 
-  async function search(append = false) {
-    if (append) {
-      loadingMore.value = true
-    } else {
-      loading.value = true
-      nextCursor.value = null
-    }
-
-    try {
-      const params: AuditLogFilters = {
-        per_page: filters.per_page,
-        cursor: append ? (nextCursor.value ?? undefined) : undefined,
-      }
-      if (filters.category) params.category = filters.category
-      if (filters.severity) params.severity = filters.severity
-      if (filters.date_from) params.date_from = filters.date_from
-      if (filters.date_to) params.date_to = filters.date_to
-
-      if (companyStore.currentCompany) {
-        (params as Record<string, unknown>).company_id = companyStore.currentCompany.id
-      }
-
-      const { data } = await fetchAuditLogs(params)
-      if (append) {
-        logs.value.push(...data.data)
-      } else {
-        logs.value = data.data
-      }
-      nextCursor.value = data.meta.next_cursor
-    } finally {
-      loading.value = false
-      loadingMore.value = false
-    }
+  function search() {
+    applyFilters({ ...filters })
   }
 
-  function clearFilters() {
-    filters.category = ''
-    filters.severity = ''
-    filters.date_from = undefined
-    filters.date_to = undefined
-    search()
+  function onClear() {
+    clearFilters()
   }
 
   const { refreshing, refresh } = useRefreshData(async () => {
-    await search()
+    await refetch()
   })
-
-  // initial load
-  search()
 </script>
 
 <template>
@@ -191,7 +151,7 @@
           >
             <template #activator="{ props }">
               <v-text-field
-                v-model="filters.date_from"
+                v-model="filters.dateFrom"
                 clearable
                 color="primary"
                 density="comfortable"
@@ -201,7 +161,7 @@
                 readonly
                 variant="outlined"
                 v-bind="props"
-                @click:clear="filters.date_from = undefined"
+                @click:clear="filters.dateFrom = undefined"
               />
             </template>
             <v-date-picker
@@ -217,7 +177,7 @@
           >
             <template #activator="{ props }">
               <v-text-field
-                v-model="filters.date_to"
+                v-model="filters.dateTo"
                 clearable
                 color="primary"
                 density="comfortable"
@@ -227,7 +187,7 @@
                 readonly
                 variant="outlined"
                 v-bind="props"
-                @click:clear="filters.date_to = undefined"
+                @click:clear="filters.dateTo = undefined"
               />
             </template>
             <v-date-picker
@@ -246,7 +206,7 @@
             prepend-icon="mdi-close"
             rounded="lg"
             variant="outlined"
-            @click="clearFilters"
+            @click="onClear"
           >
             {{ $t('auditLogs.clear') }}
           </v-btn>
@@ -258,7 +218,7 @@
             prepend-icon="mdi-filter-variant"
             rounded="lg"
             variant="flat"
-            @click="search()"
+            @click="search"
           >
             {{ $t('auditLogs.filter') }}
           </v-btn>
@@ -334,11 +294,11 @@
           class="text-none font-weight-bold"
           color="primary"
           data-testid="audit-load-more"
-          :loading="loadingMore"
+          :loading="isLoadingMore"
           prepend-icon="mdi-chevron-down"
           rounded="lg"
           variant="tonal"
-          @click="search(true)"
+          @click="loadMore"
         >
           {{ $t('auditLogs.loadMore') }}
         </v-btn>
