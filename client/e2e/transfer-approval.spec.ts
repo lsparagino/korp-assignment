@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url'
 import { expect, type Page, test } from '@playwright/test'
 import { createWallet, loginViaApi } from './helpers/api'
 import { authenticatedPage } from './helpers/auth'
+import { setNativeTextareaValue } from './helpers/dom'
 
 const require = createRequire(import.meta.url)
 const en = require('../src/locales/en.json')
@@ -317,17 +318,7 @@ test.describe('Transfer Approval Flow', () => {
     // Click reject, enter reason, confirm
     await page.getByTestId('reject-btn').click()
     await expect(page.getByTestId('reject-reason-input')).toBeVisible({ timeout: 5000 })
-    const textarea = page.getByTestId('reject-reason-input').locator('textarea').first()
-    await textarea.click()
-    // Use evaluate to set value + dispatch native input event for Vue v-model
-    await textarea.evaluate(el => {
-      const t = el as HTMLTextAreaElement
-      const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
-        globalThis.HTMLTextAreaElement.prototype, 'value',
-      )!.set!
-      nativeInputValueSetter.call(t, 'Budget exceeded')
-      t.dispatchEvent(new Event('input', { bubbles: true }))
-    })
+    await setNativeTextareaValue(page, 'reject-reason-input', 'Budget exceeded')
 
     // Wait for confirm button to become enabled after v-model updates
     const confirmRejectBtn = page.getByTestId('confirm-reject-btn')

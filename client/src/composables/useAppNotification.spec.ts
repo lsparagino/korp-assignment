@@ -1,30 +1,9 @@
-import { PiniaColada } from '@pinia/colada'
-import { createPinia, setActivePinia } from 'pinia'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { createApp } from 'vue'
-import en from '@/locales/en.json'
+import { beforeEach, describe, expect, it } from 'vitest'
+import { mockI18nWithTranslations } from '@/test/i18n.mock'
+import { setupPinia } from '@/test/pinia'
 import { useAppNotification, useNotificationStore } from './useAppNotification'
 
-// Inject the i18n instance globally
-vi.mock('vue-i18n', async importOriginal => {
-  const actual = await importOriginal()
-  return {
-    ...(actual as Record<string, unknown>),
-    useI18n: () => (actual as any).createI18n({
-      legacy: false,
-      locale: 'en',
-      messages: { en },
-    }).global,
-  }
-})
-
-function setupPinia () {
-  const app = createApp({})
-  const pinia = createPinia()
-  app.use(pinia)
-  app.use(PiniaColada)
-  setActivePinia(pinia)
-}
+mockI18nWithTranslations()
 
 describe('useNotificationStore', () => {
   beforeEach(() => {

@@ -1,30 +1,15 @@
-import { PiniaColada } from '@pinia/colada'
-import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { createApp } from 'vue'
-import en from '@/locales/en.json'
+import { createDeferred } from '@/test/deferred'
+import { mockI18nWithTranslations } from '@/test/i18n.mock'
+import { setupPinia } from '@/test/pinia'
 import { useNotificationStore } from './useAppNotification'
 import { useFormSubmit } from './useFormSubmit'
 
-vi.mock('vue-i18n', async importOriginal => {
-  const actual = await importOriginal()
-  return {
-    ...(actual as Record<string, unknown>),
-    useI18n: () => (actual as any).createI18n({
-      legacy: false,
-      locale: 'en',
-      messages: { en },
-    }).global,
-  }
-})
+mockI18nWithTranslations()
 
 describe('useFormSubmit', () => {
   beforeEach(() => {
-    const app = createApp({})
-    const pinia = createPinia()
-    app.use(pinia)
-    app.use(PiniaColada)
-    setActivePinia(pinia)
+    setupPinia()
   })
 
   it('initializes with default state', () => {
@@ -39,10 +24,7 @@ describe('useFormSubmit', () => {
   })
 
   it('sets processing to true during submission', async () => {
-    let resolvePromise: () => void
-    const promise = new Promise<void>(resolve => {
-      resolvePromise = resolve
-    })
+    const { promise, resolve } = createDeferred()
 
     const { processing, submit } = useFormSubmit({
       submitFn: async () => promise,
@@ -51,7 +33,7 @@ describe('useFormSubmit', () => {
     const submitPromise = submit({ name: 'test' })
     expect(processing.value).toBe(true)
 
-    resolvePromise!()
+    resolve()
     await submitPromise
     expect(processing.value).toBe(false)
   })

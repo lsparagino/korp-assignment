@@ -2,7 +2,7 @@ import type { Transaction } from '@/api/transactions'
 import { DOMWrapper, flushPromises } from '@vue/test-utils'
 import { afterEach, describe, expect, it } from 'vitest'
 import en from '@/locales/en.json'
-import { bodyText } from '@/test/helpers'
+import { bodyText, findByTestId } from '@/test/helpers'
 import { mountWithPlugins } from '@/test/setup'
 import TransactionDetailModal from './TransactionDetailModal.vue'
 
@@ -186,8 +186,8 @@ describe('TransactionDetailModal.vue', () => {
       isManagerOrAdmin: true,
     })
 
-    const approveBtn = document.body.querySelector('[data-testid="approve-btn"]')
-    const rejectBtn = document.body.querySelector('[data-testid="reject-btn"]')
+    const approveBtn = findByTestId('approve-btn')
+    const rejectBtn = findByTestId('reject-btn')
     expect(approveBtn).not.toBeNull()
     expect(rejectBtn).not.toBeNull()
   })
@@ -198,7 +198,7 @@ describe('TransactionDetailModal.vue', () => {
       isManagerOrAdmin: false,
     })
 
-    const approveBtn = document.body.querySelector('[data-testid="approve-btn"]')
+    const approveBtn = findByTestId('approve-btn')
     expect(approveBtn).toBeNull()
   })
 
@@ -208,7 +208,7 @@ describe('TransactionDetailModal.vue', () => {
       isManagerOrAdmin: true,
     })
 
-    const approveBtn = document.body.querySelector('[data-testid="approve-btn"]')
+    const approveBtn = findByTestId('approve-btn')
     expect(approveBtn).toBeNull()
   })
 
@@ -218,12 +218,12 @@ describe('TransactionDetailModal.vue', () => {
       isManagerOrAdmin: true,
     })
 
-    const rejectBtn = document.body.querySelector('[data-testid="reject-btn"]') as HTMLElement
+    const rejectBtn = findByTestId('reject-btn')
     expect(rejectBtn).not.toBeNull()
-    await new DOMWrapper(rejectBtn).trigger('click')
+    await rejectBtn!.trigger('click')
     await flushPromises()
 
-    const textarea = document.body.querySelector('[data-testid="reject-reason-input"]')
+    const textarea = findByTestId('reject-reason-input')
     expect(textarea).not.toBeNull()
   })
   it('shows view recent transactions link when initiator present and isManagerOrAdmin', async () => {
@@ -235,9 +235,9 @@ describe('TransactionDetailModal.vue', () => {
       isManagerOrAdmin: true,
     })
 
-    const btn = document.body.querySelector('[data-testid="view-recent-btn"]')
+    const btn = findByTestId('view-recent-btn')
     expect(btn).not.toBeNull()
-    expect(btn?.textContent).toContain(en.transactions.viewRecentTransactions)
+    expect(btn?.text()).toContain(en.transactions.viewRecentTransactions)
   })
 
   it('hides view recent transactions link when not manager or admin', async () => {
@@ -249,7 +249,7 @@ describe('TransactionDetailModal.vue', () => {
       isManagerOrAdmin: false,
     })
 
-    const btn = document.body.querySelector('[data-testid="view-recent-btn"]')
+    const btn = findByTestId('view-recent-btn')
     expect(btn).toBeNull()
   })
 
@@ -262,9 +262,9 @@ describe('TransactionDetailModal.vue', () => {
       piniaOptions: { initialState: { auth: { user: { id: 1 } } } },
     })
 
-    const cancelBtn = document.body.querySelector('[data-testid="cancel-transaction-btn"]')
+    const cancelBtn = findByTestId('cancel-transaction-btn')
     expect(cancelBtn).not.toBeNull()
-    expect(cancelBtn?.textContent).toContain(en.transactions.cancelTransaction)
+    expect(cancelBtn?.text()).toContain(en.transactions.cancelTransaction)
   })
 
   it('hides cancel button for non-pending transactions', async () => {
@@ -276,7 +276,7 @@ describe('TransactionDetailModal.vue', () => {
       piniaOptions: { initialState: { auth: { user: { id: 1 } } } },
     })
 
-    const cancelBtn = document.body.querySelector('[data-testid="cancel-transaction-btn"]')
+    const cancelBtn = findByTestId('cancel-transaction-btn')
     expect(cancelBtn).toBeNull()
   })
 
@@ -289,7 +289,7 @@ describe('TransactionDetailModal.vue', () => {
       piniaOptions: { initialState: { auth: { user: { id: 99 } } } },
     })
 
-    const cancelBtn = document.body.querySelector('[data-testid="cancel-transaction-btn"]')
+    const cancelBtn = findByTestId('cancel-transaction-btn')
     expect(cancelBtn).toBeNull()
   })
 })

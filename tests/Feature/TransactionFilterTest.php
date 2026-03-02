@@ -8,6 +8,8 @@ use App\Models\Transaction;
 use App\Models\User;
 use App\Models\Wallet;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Str;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
 class TransactionFilterTest extends TestCase
@@ -41,6 +43,90 @@ class TransactionFilterTest extends TestCase
         ]);
     }
 
+    /**
+     * Make an authenticated GET request to the transactions endpoint.
+     *
+     * @param  array<string, mixed>  $filters
+     */
+    private function fetchTransactions(array $filters = []): \Illuminate\Testing\TestResponse
+    {
+        $filters['company_id'] = $this->company->id;
+        $query = http_build_query($filters);
+
+        return $this->actingAs($this->user, 'sanctum')
+            ->getJson(self::TRANSACTIONS_ENDPOINT."?{$query}");
+    }
+
+    /**
+     * Create a transaction on the default wallet.
+     *
+     * @param  array<string, mixed>  $attrs
+     */
+    private function createTransaction(array $attrs = []): Transaction
+    {
+        return Transaction::factory()->create(array_merge(
+            ['wallet_id' => $this->wallet->id],
+            $attrs,
+        ));
+    }
+
+    /**
+     * Create an internal transfer pair (debit + credit) between two wallets.
+     *
+     * @return string The group_id
+     */
+    private function createTransferPair(Wallet $from, Wallet $to, float $amount): string
+    {
+        $groupId = Str::uuid()->toString();
+
+        Transaction::factory()->create([
+            'group_id' => $groupId,
+            'wallet_id' => $from->id,
+            'counterpart_wallet_id' => $to->id,
+            'type' => TransactionType::Debit,
+            'amount' => -$amount,
+            'external' => false,
+        ]);
+
+        Transaction::factory()->create([
+            'group_id' => $groupId,
+            'wallet_id' => $to->id,
+            'counterpart_wallet_id' => $from->id,
+            'type' => TransactionType::Credit,
+            'amount' => $amount,
+            'external' => false,
+        ]);
+
+        return $groupId;
+    }
+
+    /**
+     * Create an external transaction (no counterpart).
+     */
+    private function createExternalTransaction(Wallet $wallet, TransactionType $type, float $amount): Transaction
+    {
+        return Transaction::factory()->create([
+            'wallet_id' => $wallet->id,
+            'counterpart_wallet_id' => null,
+            'type' => $type,
+            'amount' => $amount,
+            'external' => true,
+        ]);
+    }
+
+    /**
+     * Create a wallet for the default user within the default company.
+     */
+    private function createWallet(): Wallet
+    {
+        return Wallet::factory()->create([
+            'user_id' => $this->user->id,
+            'company_id' => $this->company->id,
+        ]);
+    }
+
+    // ── Type Filter ──────────────────────────────────────────────────
+
     public function test_can_filter_transactions_by_type(): void
     {
         Transaction::factory()->count(3)->create([
@@ -53,314 +139,198 @@ class TransactionFilterTest extends TestCase
             'type' => TransactionType::Debit,
         ]);
 
-        // Filter by Credit
-        $response = $this->actingAs($this->user, 'sanctum')
-            ->getJson(self::TRANSACTIONS_ENDPOINT."?type=credit&company_id={$this->company->id}");
-
-        $response->assertStatus(200);
-        $response->assertJsonCount(3, 'data');
+        $response = $this->fetchTransactions(['type' => 'credit']);
+        $response->assertOk()->assertJsonCount(3, 'data');
         foreach ($response->json('data') as $transaction) {
             $this->assertEquals('credit', $transaction['type']);
         }
 
-        // Filter by Debit
-        $response = $this->actingAs($this->user, 'sanctum')
-            ->getJson(self::TRANSACTIONS_ENDPOINT."?type=debit&company_id={$this->company->id}");
-
-        $response->assertStatus(200);
-        $response->assertJsonCount(2, 'data');
+        $response = $this->fetchTransactions(['type' => 'debit']);
+        $response->assertOk()->assertJsonCount(2, 'data');
         foreach ($response->json('data') as $transaction) {
             $this->assertEquals('debit', $transaction['type']);
         }
     }
 
+    // ── Date Filters ─────────────────────────────────────────────────
+
     public function test_can_filter_transactions_by_date_from(): void
     {
-        Transaction::factory()->create([
-            'wallet_id' => $this->wallet->id,
-            'created_at' => self::BASE_DATE,
-        ]);
+        $this->createTransaction(['created_at' => self::BASE_DATE]);
+        $this->createTransaction(['created_at' => self::SECOND_DATE]);
 
-        Transaction::factory()->create([
-            'wallet_id' => $this->wallet->id,
-            'created_at' => self::SECOND_DATE,
-        ]);
+        $response = $this->fetchTransactions(['date_from' => '2025-01-15']);
 
-        $response = $this->actingAs($this->user, 'sanctum')
-            ->getJson(self::TRANSACTIONS_ENDPOINT."?date_from=2025-01-15&company_id={$this->company->id}");
-
-        $response->assertStatus(200);
-        $response->assertJsonCount(1, 'data');
-        $this->assertEquals(self::SECOND_DATE, Transaction::find($response->json('data.0.id'))->created_at->toDateTimeString());
+        $response->assertOk()->assertJsonCount(1, 'data');
+        $this->assertEquals(
+            self::SECOND_DATE,
+            Transaction::find($response->json('data.0.id'))->created_at->toDateTimeString(),
+        );
     }
 
     public function test_can_filter_transactions_by_date_to(): void
     {
-        Transaction::factory()->create([
-            'wallet_id' => $this->wallet->id,
-            'created_at' => self::BASE_DATE,
-        ]);
+        $this->createTransaction(['created_at' => self::BASE_DATE]);
+        $this->createTransaction(['created_at' => self::SECOND_DATE]);
 
-        Transaction::factory()->create([
-            'wallet_id' => $this->wallet->id,
-            'created_at' => self::SECOND_DATE,
-        ]);
+        $response = $this->fetchTransactions(['date_to' => '2025-01-15']);
 
-        $response = $this->actingAs($this->user, 'sanctum')
-            ->getJson(self::TRANSACTIONS_ENDPOINT."?date_to=2025-01-15&company_id={$this->company->id}");
-
-        $response->assertStatus(200);
-        $response->assertJsonCount(1, 'data');
-        $this->assertEquals(self::BASE_DATE, Transaction::find($response->json('data.0.id'))->created_at->toDateTimeString());
+        $response->assertOk()->assertJsonCount(1, 'data');
+        $this->assertEquals(
+            self::BASE_DATE,
+            Transaction::find($response->json('data.0.id'))->created_at->toDateTimeString(),
+        );
     }
 
     public function test_can_filter_transactions_by_date_range(): void
     {
-        Transaction::factory()->create([
-            'wallet_id' => $this->wallet->id,
-            'created_at' => self::BASE_DATE,
-        ]);
+        $this->createTransaction(['created_at' => self::BASE_DATE]);
+        $this->createTransaction(['created_at' => self::MID_DATE]);
+        $this->createTransaction(['created_at' => self::SECOND_DATE]);
 
-        Transaction::factory()->create([
-            'wallet_id' => $this->wallet->id,
-            'created_at' => self::MID_DATE,
-        ]);
+        $response = $this->fetchTransactions(['date_from' => '2025-01-10', 'date_to' => '2025-01-20']);
 
-        Transaction::factory()->create([
-            'wallet_id' => $this->wallet->id,
-            'created_at' => self::SECOND_DATE,
-        ]);
-
-        $response = $this->actingAs($this->user, 'sanctum')
-            ->getJson(self::TRANSACTIONS_ENDPOINT."?date_from=2025-01-10&date_to=2025-01-20&company_id={$this->company->id}");
-
-        $response->assertStatus(200);
-        $response->assertJsonCount(1, 'data');
-        $this->assertEquals(self::MID_DATE, Transaction::find($response->json('data.0.id'))->created_at->toDateTimeString());
+        $response->assertOk()->assertJsonCount(1, 'data');
+        $this->assertEquals(
+            self::MID_DATE,
+            Transaction::find($response->json('data.0.id'))->created_at->toDateTimeString(),
+        );
     }
+
+    // ── Amount & Reference Filters ───────────────────────────────────
 
     public function test_can_filter_transactions_by_amount_range(): void
     {
-        Transaction::factory()->create(['wallet_id' => $this->wallet->id, 'amount' => 50]);
-        Transaction::factory()->create(['wallet_id' => $this->wallet->id, 'amount' => 150]);
-        Transaction::factory()->create(['wallet_id' => $this->wallet->id, 'amount' => 250]);
+        $this->createTransaction(['amount' => 50]);
+        $this->createTransaction(['amount' => 150]);
+        $this->createTransaction(['amount' => 250]);
 
-        $response = $this->actingAs($this->user, 'sanctum')
-            ->getJson(self::TRANSACTIONS_ENDPOINT."?amount_min=100&amount_max=200&company_id={$this->company->id}");
+        $response = $this->fetchTransactions(['amount_min' => 100, 'amount_max' => 200]);
 
-        $response->assertStatus(200);
-        $response->assertJsonCount(1, 'data');
+        $response->assertOk()->assertJsonCount(1, 'data');
         $this->assertEquals(150, (float) Transaction::find($response->json('data.0.id'))->amount);
     }
 
     public function test_can_filter_transactions_by_reference(): void
     {
-        Transaction::factory()->create(['wallet_id' => $this->wallet->id, 'reference' => 'Invoice 123']);
-        Transaction::factory()->create(['wallet_id' => $this->wallet->id, 'reference' => 'Refund 456']);
+        $this->createTransaction(['reference' => 'Invoice 123']);
+        $this->createTransaction(['reference' => 'Refund 456']);
 
-        $response = $this->actingAs($this->user, 'sanctum')
-            ->getJson(self::TRANSACTIONS_ENDPOINT."?reference=Refund&company_id={$this->company->id}");
+        $response = $this->fetchTransactions(['reference' => 'Refund']);
 
-        $response->assertStatus(200);
-        $response->assertJsonCount(1, 'data');
+        $response->assertOk()->assertJsonCount(1, 'data');
         $this->assertStringContainsString('Refund', Transaction::find($response->json('data.0.id'))->reference);
     }
 
+    // ── Wallet Direction Filters ─────────────────────────────────────
+
     public function test_from_wallet_filter_returns_transactions_where_wallet_is_source(): void
     {
-        $walletA = Wallet::factory()->create(['user_id' => $this->user->id, 'company_id' => $this->company->id]);
-        $walletB = Wallet::factory()->create(['user_id' => $this->user->id, 'company_id' => $this->company->id]);
-        $walletC = Wallet::factory()->create(['user_id' => $this->user->id, 'company_id' => $this->company->id]);
+        $walletA = $this->createWallet();
+        $walletB = $this->createWallet();
+        $walletC = $this->createWallet();
 
-        $groupId = \Illuminate\Support\Str::uuid()->toString();
+        // A→B transfer
+        $this->createTransferPair($walletA, $walletB, 100);
+        // C→A transfer
+        $this->createTransferPair($walletC, $walletA, 50);
 
-        // A→B transfer: Debit on A (from=A, to=B), Credit on B (from=A, to=B)
-        Transaction::factory()->create([
-            'group_id' => $groupId, 'wallet_id' => $walletA->id,
-            'counterpart_wallet_id' => $walletB->id, 'type' => TransactionType::Debit,
-            'amount' => -100, 'external' => false,
-        ]);
-        Transaction::factory()->create([
-            'group_id' => $groupId, 'wallet_id' => $walletB->id,
-            'counterpart_wallet_id' => $walletA->id, 'type' => TransactionType::Credit,
-            'amount' => 100, 'external' => false,
-        ]);
+        // from_wallet_id = walletA → only the A→B debit
+        $response = $this->fetchTransactions(['from_wallet_id' => $walletA->id]);
 
-        // C→A transfer: Debit on C (from=C, to=A), Credit on A (from=C, to=A)
-        $groupId2 = \Illuminate\Support\Str::uuid()->toString();
-        Transaction::factory()->create([
-            'group_id' => $groupId2, 'wallet_id' => $walletC->id,
-            'counterpart_wallet_id' => $walletA->id, 'type' => TransactionType::Debit,
-            'amount' => -50, 'external' => false,
-        ]);
-        Transaction::factory()->create([
-            'group_id' => $groupId2, 'wallet_id' => $walletA->id,
-            'counterpart_wallet_id' => $walletC->id, 'type' => TransactionType::Credit,
-            'amount' => 50, 'external' => false,
-        ]);
-
-        // Filter by from_wallet_id = walletA → should find only the Debit on A (A→B)
-        $response = $this->actingAs($this->user, 'sanctum')
-            ->getJson(self::TRANSACTIONS_ENDPOINT."?from_wallet_id={$walletA->id}&company_id={$this->company->id}");
-
-        $response->assertStatus(200);
+        $response->assertOk();
         $this->assertCount(1, $response->json('data'));
     }
 
     public function test_to_wallet_filter_returns_transactions_where_wallet_is_destination(): void
     {
-        $walletA = Wallet::factory()->create(['user_id' => $this->user->id, 'company_id' => $this->company->id]);
-        $walletB = Wallet::factory()->create(['user_id' => $this->user->id, 'company_id' => $this->company->id]);
+        $walletA = $this->createWallet();
+        $walletB = $this->createWallet();
 
-        $groupId = \Illuminate\Support\Str::uuid()->toString();
+        $this->createTransferPair($walletA, $walletB, 100);
+        $this->createExternalTransaction($walletA, TransactionType::Credit, 200);
 
-        // A→B transfer: Debit on A (to=B), Credit on B (to=B)
-        Transaction::factory()->create([
-            'group_id' => $groupId, 'wallet_id' => $walletA->id,
-            'counterpart_wallet_id' => $walletB->id, 'type' => TransactionType::Debit,
-            'amount' => -100, 'external' => false,
-        ]);
-        Transaction::factory()->create([
-            'group_id' => $groupId, 'wallet_id' => $walletB->id,
-            'counterpart_wallet_id' => $walletA->id, 'type' => TransactionType::Credit,
-            'amount' => 100, 'external' => false,
-        ]);
+        // to_wallet_id = walletB → only the A→B debit entry
+        $response = $this->fetchTransactions(['to_wallet_id' => $walletB->id]);
 
-        // External credit to A (no counterpart)
-        Transaction::factory()->create([
-            'wallet_id' => $walletA->id, 'counterpart_wallet_id' => null,
-            'type' => TransactionType::Credit, 'amount' => 200, 'external' => true,
-        ]);
-
-        // Filter by to_wallet_id = walletB → should find Debit A→B entry
-        $response = $this->actingAs($this->user, 'sanctum')
-            ->getJson(self::TRANSACTIONS_ENDPOINT."?to_wallet_id={$walletB->id}&company_id={$this->company->id}");
-
-        $response->assertStatus(200);
+        $response->assertOk();
         $this->assertCount(1, $response->json('data'));
     }
 
     public function test_has_wallet_filter_returns_transactions_involving_wallet(): void
     {
-        $walletA = Wallet::factory()->create(['user_id' => $this->user->id, 'company_id' => $this->company->id]);
-        $walletB = Wallet::factory()->create(['user_id' => $this->user->id, 'company_id' => $this->company->id]);
+        $walletA = $this->createWallet();
+        $walletB = $this->createWallet();
 
-        // External credit to A
-        Transaction::factory()->create([
-            'wallet_id' => $walletA->id, 'counterpart_wallet_id' => null,
-            'type' => TransactionType::Credit, 'amount' => 200, 'external' => true,
-        ]);
+        $this->createExternalTransaction($walletA, TransactionType::Credit, 200);
+        $this->createExternalTransaction($walletB, TransactionType::Credit, 300);
+        $this->createTransferPair($walletA, $walletB, 50);
 
-        // External credit to B
-        Transaction::factory()->create([
-            'wallet_id' => $walletB->id, 'counterpart_wallet_id' => null,
-            'type' => TransactionType::Credit, 'amount' => 300, 'external' => true,
-        ]);
+        // has_wallet_id = walletA → external credit + debit A→B = 2
+        $response = $this->fetchTransactions(['has_wallet_id' => $walletA->id]);
 
-        // A→B transfer (debit on A)
-        $groupId = \Illuminate\Support\Str::uuid()->toString();
-        Transaction::factory()->create([
-            'group_id' => $groupId, 'wallet_id' => $walletA->id,
-            'counterpart_wallet_id' => $walletB->id, 'type' => TransactionType::Debit,
-            'amount' => -50, 'external' => false,
-        ]);
-        Transaction::factory()->create([
-            'group_id' => $groupId, 'wallet_id' => $walletB->id,
-            'counterpart_wallet_id' => $walletA->id, 'type' => TransactionType::Credit,
-            'amount' => 50, 'external' => false,
-        ]);
-
-        // has_wallet_id = walletA → external credit on A + debit A→B = 2 results
-        $response = $this->actingAs($this->user, 'sanctum')
-            ->getJson(self::TRANSACTIONS_ENDPOINT."?has_wallet_id={$walletA->id}&company_id={$this->company->id}");
-
-        $response->assertStatus(200);
+        $response->assertOk();
         $this->assertCount(2, $response->json('data'));
     }
 
+    // ── External Wallet Filters ──────────────────────────────────────
+
     public function test_from_external_filter_returns_only_credits_from_outside(): void
     {
-        $walletA = Wallet::factory()->create(['user_id' => $this->user->id, 'company_id' => $this->company->id]);
+        $walletA = $this->createWallet();
 
-        // External Credit: money FROM external INTO walletA → from=external ✓
-        $externalCredit = Transaction::factory()->create([
-            'wallet_id' => $walletA->id, 'counterpart_wallet_id' => null,
-            'type' => TransactionType::Credit, 'amount' => 200, 'external' => true,
-        ]);
+        $externalCredit = $this->createExternalTransaction($walletA, TransactionType::Credit, 200);
+        $this->createExternalTransaction($walletA, TransactionType::Debit, -150);
 
-        // External Debit: money FROM walletA TO external → from=walletA, to=external
-        Transaction::factory()->create([
-            'wallet_id' => $walletA->id, 'counterpart_wallet_id' => null,
-            'type' => TransactionType::Debit, 'amount' => -150, 'external' => true,
-        ]);
+        $response = $this->fetchTransactions(['from_wallet_id' => 'external']);
 
-        $response = $this->actingAs($this->user, 'sanctum')
-            ->getJson(self::TRANSACTIONS_ENDPOINT.'?from_wallet_id=external&company_id='.$this->company->id);
-
-        $response->assertStatus(200);
+        $response->assertOk();
         $this->assertCount(1, $response->json('data'));
         $this->assertEquals($externalCredit->id, $response->json('data.0.id'));
     }
 
     public function test_to_external_filter_returns_only_debits_sent_outside(): void
     {
-        $walletA = Wallet::factory()->create(['user_id' => $this->user->id, 'company_id' => $this->company->id]);
+        $walletA = $this->createWallet();
 
-        // External Credit: money FROM external INTO walletA → to=walletA, NOT to=external
-        Transaction::factory()->create([
-            'wallet_id' => $walletA->id, 'counterpart_wallet_id' => null,
-            'type' => TransactionType::Credit, 'amount' => 200, 'external' => true,
-        ]);
+        $this->createExternalTransaction($walletA, TransactionType::Credit, 200);
+        $externalDebit = $this->createExternalTransaction($walletA, TransactionType::Debit, -150);
 
-        // External Debit: money FROM walletA TO external → to=external ✓
-        $externalDebit = Transaction::factory()->create([
-            'wallet_id' => $walletA->id, 'counterpart_wallet_id' => null,
-            'type' => TransactionType::Debit, 'amount' => -150, 'external' => true,
-        ]);
+        $response = $this->fetchTransactions(['to_wallet_id' => 'external']);
 
-        $response = $this->actingAs($this->user, 'sanctum')
-            ->getJson(self::TRANSACTIONS_ENDPOINT.'?to_wallet_id=external&company_id='.$this->company->id);
-
-        $response->assertStatus(200);
+        $response->assertOk();
         $this->assertCount(1, $response->json('data'));
         $this->assertEquals($externalDebit->id, $response->json('data.0.id'));
     }
 
     public function test_has_wallet_external_filter_returns_all_external_transactions(): void
     {
-        $walletA = Wallet::factory()->create(['user_id' => $this->user->id, 'company_id' => $this->company->id]);
-        $walletB = Wallet::factory()->create(['user_id' => $this->user->id, 'company_id' => $this->company->id]);
+        $walletA = $this->createWallet();
+        $walletB = $this->createWallet();
 
-        // External credit (no counterpart)
+        $this->createExternalTransaction($walletA, TransactionType::Credit, 200);
+        $this->createExternalTransaction($walletA, TransactionType::Debit, -100);
+
+        // Internal transfer — should NOT match
         Transaction::factory()->create([
-            'wallet_id' => $walletA->id, 'counterpart_wallet_id' => null,
-            'type' => TransactionType::Credit, 'amount' => 200, 'external' => true,
+            'wallet_id' => $walletA->id,
+            'counterpart_wallet_id' => $walletB->id,
+            'type' => TransactionType::Debit,
+            'amount' => -50,
+            'external' => false,
         ]);
 
-        // External debit (no counterpart)
-        Transaction::factory()->create([
-            'wallet_id' => $walletA->id, 'counterpart_wallet_id' => null,
-            'type' => TransactionType::Debit, 'amount' => -100, 'external' => true,
-        ]);
+        $response = $this->fetchTransactions(['has_wallet_id' => 'external']);
 
-        // Internal transfer (has counterpart) — should NOT match
-        Transaction::factory()->create([
-            'wallet_id' => $walletA->id, 'counterpart_wallet_id' => $walletB->id,
-            'type' => TransactionType::Debit, 'amount' => -50, 'external' => false,
-        ]);
-
-        $response = $this->actingAs($this->user, 'sanctum')
-            ->getJson(self::TRANSACTIONS_ENDPOINT.'?has_wallet_id=external&company_id='.$this->company->id);
-
-        $response->assertStatus(200);
+        $response->assertOk();
         $this->assertCount(2, $response->json('data'));
     }
 
+    // ── Auth & Pagination ────────────────────────────────────────────
+
     public function test_guests_are_denied_access_to_transactions(): void
     {
-        $response = $this->getJson(self::TRANSACTIONS_ENDPOINT);
-
-        $response->assertUnauthorized();
+        $this->getJson(self::TRANSACTIONS_ENDPOINT)->assertUnauthorized();
     }
 
     public function test_transactions_are_paginated(): void
@@ -369,96 +339,57 @@ class TransactionFilterTest extends TestCase
             'wallet_id' => $this->wallet->id,
         ]);
 
-        $response = $this->actingAs($this->user, 'sanctum')
-            ->getJson(self::TRANSACTIONS_ENDPOINT."?per_page=5&company_id={$this->company->id}");
+        $response = $this->fetchTransactions(['per_page' => 5]);
 
-        $response->assertStatus(200)
+        $response->assertOk()
             ->assertJsonCount(5, 'data')
             ->assertJsonPath('meta.total', 15);
     }
 
+    // ── Deduplication ────────────────────────────────────────────────
+
     public function test_internal_transfers_are_deduplicated(): void
     {
-        $wallet1 = Wallet::factory()->create(['user_id' => $this->user->id, 'company_id' => $this->company->id]);
-        $wallet2 = Wallet::factory()->create(['user_id' => $this->user->id, 'company_id' => $this->company->id]);
+        $wallet1 = $this->createWallet();
+        $wallet2 = $this->createWallet();
 
-        $groupId = \Illuminate\Support\Str::uuid()->toString();
-        Transaction::factory()->create(['group_id' => $groupId, 'wallet_id' => $wallet1->id, 'counterpart_wallet_id' => $wallet2->id, 'type' => TransactionType::Debit, 'amount' => -100, 'external' => false]);
-        Transaction::factory()->create(['group_id' => $groupId, 'wallet_id' => $wallet2->id, 'counterpart_wallet_id' => $wallet1->id, 'type' => TransactionType::Credit, 'amount' => 100, 'external' => false]);
+        $this->createTransferPair($wallet1, $wallet2, 100);
 
-        // User owns both wallets — should see only 1 row (the debit entry)
-        $response = $this->actingAs($this->user, 'sanctum')
-            ->getJson(self::TRANSACTIONS_ENDPOINT."?company_id={$this->company->id}");
+        $response = $this->fetchTransactions();
 
-        $response->assertStatus(200);
-        $response->assertJsonCount(1, 'data');
+        $response->assertOk()->assertJsonCount(1, 'data');
         $this->assertEquals('debit', $response->json('data.0.type'));
     }
 
-    public function test_can_filter_transactions_by_status_completed(): void
+    // ── Status Filters ───────────────────────────────────────────────
+
+    #[DataProvider('statusFilterProvider')]
+    public function test_can_filter_transactions_by_status(string $filterValue, TransactionStatus $expected, array $others): void
     {
-        Transaction::factory()->create([
-            'wallet_id' => $this->wallet->id,
-            'status' => TransactionStatus::Completed,
-        ]);
+        $this->createTransaction(['status' => $expected]);
+        foreach ($others as $status) {
+            $this->createTransaction(['status' => $status]);
+        }
 
-        Transaction::factory()->create([
-            'wallet_id' => $this->wallet->id,
-            'status' => TransactionStatus::PendingApproval,
-        ]);
+        $response = $this->fetchTransactions(['status' => $filterValue]);
 
-        Transaction::factory()->create([
-            'wallet_id' => $this->wallet->id,
-            'status' => TransactionStatus::Rejected,
-        ]);
-
-        $response = $this->actingAs($this->user, 'sanctum')
-            ->getJson(self::TRANSACTIONS_ENDPOINT."?status=completed&company_id={$this->company->id}");
-
-        $response->assertStatus(200);
-        $response->assertJsonCount(1, 'data');
-        $this->assertEquals('completed', $response->json('data.0.status'));
+        $response->assertOk()->assertJsonCount(1, 'data');
+        $this->assertEquals($filterValue, $response->json('data.0.status'));
     }
 
-    public function test_can_filter_transactions_by_status_pending_approval(): void
+    /**
+     * @return array<string, array{string, TransactionStatus, TransactionStatus[]}>
+     */
+    public static function statusFilterProvider(): array
     {
-        Transaction::factory()->create([
-            'wallet_id' => $this->wallet->id,
-            'status' => TransactionStatus::Completed,
-        ]);
-
-        Transaction::factory()->create([
-            'wallet_id' => $this->wallet->id,
-            'status' => TransactionStatus::PendingApproval,
-        ]);
-
-        $response = $this->actingAs($this->user, 'sanctum')
-            ->getJson(self::TRANSACTIONS_ENDPOINT."?status=pending_approval&company_id={$this->company->id}");
-
-        $response->assertStatus(200);
-        $response->assertJsonCount(1, 'data');
-        $this->assertEquals('pending_approval', $response->json('data.0.status'));
+        return [
+            'completed' => ['completed', TransactionStatus::Completed, [TransactionStatus::PendingApproval, TransactionStatus::Rejected]],
+            'pending_approval' => ['pending_approval', TransactionStatus::PendingApproval, [TransactionStatus::Completed]],
+            'rejected' => ['rejected', TransactionStatus::Rejected, [TransactionStatus::Completed]],
+        ];
     }
 
-    public function test_can_filter_transactions_by_status_rejected(): void
-    {
-        Transaction::factory()->create([
-            'wallet_id' => $this->wallet->id,
-            'status' => TransactionStatus::Completed,
-        ]);
-
-        Transaction::factory()->create([
-            'wallet_id' => $this->wallet->id,
-            'status' => TransactionStatus::Rejected,
-        ]);
-
-        $response = $this->actingAs($this->user, 'sanctum')
-            ->getJson(self::TRANSACTIONS_ENDPOINT."?status=rejected&company_id={$this->company->id}");
-
-        $response->assertStatus(200);
-        $response->assertJsonCount(1, 'data');
-        $this->assertEquals('rejected', $response->json('data.0.status'));
-    }
+    // ── Initiator Filter ─────────────────────────────────────────────
 
     public function test_can_filter_transactions_by_initiator_user_id(): void
     {
@@ -468,26 +399,13 @@ class TransactionFilterTest extends TestCase
         $otherUser = User::factory()->create();
         $otherUser->companies()->attach($this->company);
 
-        Transaction::factory()->create([
-            'wallet_id' => $this->wallet->id,
-            'initiator_user_id' => $initiator->id,
-        ]);
+        $this->createTransaction(['initiator_user_id' => $initiator->id]);
+        $this->createTransaction(['initiator_user_id' => $otherUser->id]);
+        $this->createTransaction(['initiator_user_id' => null]);
 
-        Transaction::factory()->create([
-            'wallet_id' => $this->wallet->id,
-            'initiator_user_id' => $otherUser->id,
-        ]);
+        $response = $this->fetchTransactions(['initiator_user_id' => $initiator->id]);
 
-        Transaction::factory()->create([
-            'wallet_id' => $this->wallet->id,
-            'initiator_user_id' => null,
-        ]);
-
-        $response = $this->actingAs($this->user, 'sanctum')
-            ->getJson(self::TRANSACTIONS_ENDPOINT."?initiator_user_id={$initiator->id}&company_id={$this->company->id}");
-
-        $response->assertStatus(200);
-        $response->assertJsonCount(1, 'data');
+        $response->assertOk()->assertJsonCount(1, 'data');
         $this->assertEquals($initiator->id, $response->json('data.0.initiator_user_id'));
     }
 }

@@ -1,7 +1,5 @@
-import { PiniaColada } from '@pinia/colada'
-import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { createApp } from 'vue'
+import { setupPinia } from '@/test/pinia'
 import { useIdentityConfirm } from './useIdentityConfirm'
 
 vi.mock('@/utils/errors', () => ({
@@ -10,15 +8,6 @@ vi.mock('@/utils/errors', () => ({
     && (err as any).response?.status === status,
   getValidationErrors: (err: unknown) => (err as any).response?.data?.errors ?? {},
 }))
-
-function setupPinia (initialState: Record<string, any> = {}) {
-  const app = createApp({})
-  const pinia = createPinia()
-  app.use(pinia)
-  app.use(PiniaColada)
-  setActivePinia(pinia)
-  pinia.state.value = initialState
-}
 
 describe('useIdentityConfirm', () => {
   beforeEach(() => {

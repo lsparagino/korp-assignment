@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
+import { createDeferred } from '@/test/deferred'
 import { useConfirmDialog } from './useConfirmDialog'
 
 describe('useConfirmDialog', () => {
@@ -57,23 +58,21 @@ describe('useConfirmDialog', () => {
 
   it('sets processing to true while onConfirm is running', async () => {
     const { confirmDialog, openConfirmDialog, executeConfirm } = useConfirmDialog()
-    let resolvePromise: () => void
+    const { promise, resolve } = createDeferred()
 
     openConfirmDialog({
       title: 'Delete',
       message: 'Confirm?',
       requiresPin: false,
-      onConfirm: () => new Promise<void>(resolve => {
-        resolvePromise = resolve
-      }),
+      onConfirm: () => promise,
     })
 
-    const promise = executeConfirm()
+    const execPromise = executeConfirm()
     expect(confirmDialog.value.processing).toBe(true)
     expect(confirmDialog.value.show).toBe(true)
 
-    resolvePromise!()
-    await promise
+    resolve()
+    await execPromise
 
     expect(confirmDialog.value.processing).toBe(false)
     expect(confirmDialog.value.show).toBe(false)
@@ -115,25 +114,23 @@ describe('useConfirmDialog', () => {
 
   it('prevents closing while processing', async () => {
     const { confirmDialog, openConfirmDialog, executeConfirm, closeConfirmDialog } = useConfirmDialog()
-    let resolvePromise: () => void
+    const { promise, resolve } = createDeferred()
 
     openConfirmDialog({
       title: 'Test',
       message: 'Test',
       requiresPin: false,
-      onConfirm: () => new Promise<void>(resolve => {
-        resolvePromise = resolve
-      }),
+      onConfirm: () => promise,
     })
 
-    const promise = executeConfirm()
+    const execPromise = executeConfirm()
     expect(confirmDialog.value.processing).toBe(true)
 
     closeConfirmDialog()
     expect(confirmDialog.value.show).toBe(true)
 
-    resolvePromise!()
-    await promise
+    resolve()
+    await execPromise
     expect(confirmDialog.value.show).toBe(false)
   })
 })

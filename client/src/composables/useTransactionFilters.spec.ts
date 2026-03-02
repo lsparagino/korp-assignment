@@ -1,6 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { nextTick, reactive, ref } from 'vue'
 
+import { mockI18nPassthrough } from '@/test/i18n.mock'
+
 // Mock vue-router
 const mockRoute = reactive({ query: {} as Record<string, string>, fullPath: '/' })
 const mockRouter = { push: vi.fn() }
@@ -10,12 +12,7 @@ vi.mock('vue-router', () => ({
   useRouter: () => mockRouter,
 }))
 
-// Mock vue-i18n
-vi.mock('vue-i18n', () => ({
-  useI18n: () => ({
-    t: (key: string) => key,
-  }),
-}))
+mockI18nPassthrough()
 
 // Mock @pinia/colada
 const mockInvalidateQueries = vi.fn()

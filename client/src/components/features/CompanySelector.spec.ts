@@ -1,8 +1,8 @@
-import { DOMWrapper, flushPromises } from '@vue/test-utils'
+import { flushPromises } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import en from '@/locales/en.json'
 import { useCompanyStore } from '@/stores/company'
-import { findByTestId } from '@/test/helpers'
+import { findAllByTestId, findByTestId } from '@/test/helpers'
 import { mountWithPlugins } from '@/test/setup'
 
 import CompanySelector from './CompanySelector.vue'
@@ -75,7 +75,7 @@ describe('CompanySelector.vue', () => {
     await btn!.trigger('click')
     await flushPromises()
 
-    const items = document.body.querySelectorAll('[data-testid="company-list-item"]')
+    const items = findAllByTestId('company-list-item')
     expect(items.length).toBe(2)
   })
 
@@ -88,8 +88,8 @@ describe('CompanySelector.vue', () => {
     await btn!.trigger('click')
     await flushPromises()
 
-    const items = document.body.querySelectorAll('[data-testid="company-list-item"]')
-    const secondItem = new DOMWrapper(items[1] as HTMLElement)
+    const items = findAllByTestId('company-list-item')
+    const secondItem = items[1]!
     await secondItem.trigger('click')
     await flushPromises()
 

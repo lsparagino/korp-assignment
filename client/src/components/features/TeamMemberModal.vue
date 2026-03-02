@@ -2,14 +2,11 @@
 import type { Wallet } from '@/api/wallets'
 import { useQuery } from '@pinia/colada'
 import { computed, ref, watch } from 'vue'
-import { useI18n } from 'vue-i18n'
 import { useFormValidation } from '@/composables/useFormValidation'
 import { useValidationRules } from '@/composables/useValidationRules'
 import { walletsListQuery } from '@/queries/wallets'
 import { useTeamMemberStore } from '@/stores/team-member'
 import { getValidationErrors, isApiError } from '@/utils/errors'
-
-const { t } = useI18n()
 
 const props = defineProps<{
   modelValue: boolean

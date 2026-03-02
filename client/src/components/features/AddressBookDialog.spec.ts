@@ -1,7 +1,7 @@
 import { flushPromises } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import en from '@/locales/en.json'
-import { bodyText } from '@/test/helpers'
+import { bodyText, findByTestId } from '@/test/helpers'
 import { mountWithPlugins } from '@/test/setup'
 import AddressBookDialog from './AddressBookDialog.vue'
 
@@ -48,7 +48,7 @@ describe('AddressBookDialog.vue', () => {
   it('shows empty state when no entries', async () => {
     await mountDialog()
 
-    const empty = document.body.querySelector('[data-testid="address-book-empty"]')
+    const empty = findByTestId('address-book-empty')
     expect(empty).not.toBeNull()
     expect(bodyText()).toContain(en.addressBook.noEntries)
   })
@@ -56,14 +56,14 @@ describe('AddressBookDialog.vue', () => {
   it('renders search field', async () => {
     await mountDialog()
 
-    const search = document.body.querySelector('[data-testid="address-book-search"]')
+    const search = findByTestId('address-book-search')
     expect(search).not.toBeNull()
   })
 
   it('renders add new button', async () => {
     await mountDialog()
 
-    const addBtn = document.body.querySelector('[data-testid="address-book-add-btn"]')
+    const addBtn = findByTestId('address-book-add-btn')
     expect(addBtn).not.toBeNull()
     expect(bodyText()).toContain(en.addressBook.addNew)
   })
@@ -71,12 +71,12 @@ describe('AddressBookDialog.vue', () => {
   it('shows add form when add button is clicked', async () => {
     await mountDialog()
 
-    const addBtn = document.body.querySelector('[data-testid="address-book-add-btn"]') as HTMLElement
-    addBtn.click()
+    const addBtn = findByTestId('address-book-add-btn')
+    await addBtn!.trigger('click')
     await flushPromises()
 
-    const nameInput = document.body.querySelector('[data-testid="address-book-new-name"]')
-    const addressInput = document.body.querySelector('[data-testid="address-book-new-address"]')
+    const nameInput = findByTestId('address-book-new-name')
+    const addressInput = findByTestId('address-book-new-address')
     expect(nameInput).not.toBeNull()
     expect(addressInput).not.toBeNull()
   })
@@ -84,31 +84,31 @@ describe('AddressBookDialog.vue', () => {
   it('save button is disabled when fields are empty', async () => {
     await mountDialog()
 
-    const addBtn = document.body.querySelector('[data-testid="address-book-add-btn"]') as HTMLElement
-    addBtn.click()
+    const addBtn = findByTestId('address-book-add-btn')
+    await addBtn!.trigger('click')
     await flushPromises()
 
-    const saveBtn = document.body.querySelector('[data-testid="address-book-save-btn"]') as HTMLButtonElement
+    const saveBtn = findByTestId('address-book-save-btn')
     expect(saveBtn).not.toBeNull()
-    expect(saveBtn.disabled).toBe(true)
+    expect((saveBtn!.element as HTMLButtonElement).disabled).toBe(true)
   })
 
   it('has cancel/save buttons right-aligned', async () => {
     await mountDialog()
 
-    const addBtn = document.body.querySelector('[data-testid="address-book-add-btn"]') as HTMLElement
-    addBtn.click()
+    const addBtn = findByTestId('address-book-add-btn')
+    await addBtn!.trigger('click')
     await flushPromises()
 
-    const saveBtn = document.body.querySelector('[data-testid="address-book-save-btn"]') as HTMLElement
-    const btnContainer = saveBtn?.closest('.d-flex')
+    const saveBtn = findByTestId('address-book-save-btn')
+    const btnContainer = saveBtn?.element.closest('.d-flex')
     expect(btnContainer?.classList.contains('justify-end')).toBe(true)
   })
 
   it('has a close button', async () => {
     await mountDialog()
 
-    const closeBtn = document.body.querySelector('[data-testid="address-book-close-btn"]')
+    const closeBtn = findByTestId('address-book-close-btn')
     expect(closeBtn).not.toBeNull()
   })
 })

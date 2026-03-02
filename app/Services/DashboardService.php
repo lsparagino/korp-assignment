@@ -34,8 +34,6 @@ class DashboardService
 
         $recentTransactions = $this->transactionService->getFilteredTransactions($user, $companyId, [], 10);
 
-        Log::info('Dashboard data accessed', ['user_id' => $user->id, 'company_id' => $companyId]);
-
         $data = [
             'balances' => $balancesByCurrency,
             'top_wallets' => $top3,

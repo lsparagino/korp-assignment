@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
+import { createDeferred } from '@/test/deferred'
 import { useRefreshData } from './useRefreshData'
 
 describe('useRefreshData', () => {
@@ -8,17 +9,14 @@ describe('useRefreshData', () => {
   })
 
   it('sets refreshing to true during execution and false after', async () => {
-    let resolvePromise: () => void
-    const promise = new Promise<void>(resolve => {
-      resolvePromise = resolve
-    })
+    const { promise, resolve } = createDeferred()
 
     const { refreshing, refresh } = useRefreshData(async () => promise)
 
     const refreshPromise = refresh()
     expect(refreshing.value).toBe(true)
 
-    resolvePromise!()
+    resolve()
     await refreshPromise
     expect(refreshing.value).toBe(false)
   })
