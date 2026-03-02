@@ -23,19 +23,19 @@
     settings: t('auditLogs.categories.settings'),
   }
 
-  function categoryLabel(category: string): string {
+  function categoryLabel (category: string): string {
     return categoryLabelMap[category] ?? category
   }
 
-  function formatDate(timestamp: number): string {
+  function formatDate (timestamp: number): string {
     return new Date(timestamp * 1000).toLocaleString()
   }
 
-  function formatMetadataKey(key: string): string {
+  function formatMetadataKey (key: string): string {
     return key.split('_').join(' ').replace(/\b\w/g, (c: string) => c.toUpperCase())
   }
 
-  function parseMetadata(metadata: unknown): Record<string, unknown> | null {
+  function parseMetadata (metadata: unknown): Record<string, unknown> | null {
     if (!metadata) return null
     if (typeof metadata === 'string') {
       try {
@@ -56,7 +56,7 @@
     return parseMetadata(props.log.metadata)
   })
 
-  function isChangeEntry(value: unknown): value is { from: unknown; to: unknown } {
+  function isChangeEntry (value: unknown): value is { from: unknown, to: unknown } {
     return (
       typeof value === 'object'
       && value !== null
@@ -66,17 +66,17 @@
     )
   }
 
-  function isChangesObject(value: unknown): boolean {
+  function isChangesObject (value: unknown): boolean {
     if (typeof value !== 'object' || value === null || Array.isArray(value)) return false
     const entries = Object.values(value as Record<string, unknown>)
-    return entries.length > 0 && entries.every((v) => isChangeEntry(v))
+    return entries.length > 0 && entries.every(v => isChangeEntry(v))
   }
 
-  function isObject(value: unknown): value is Record<string, unknown> {
+  function isObject (value: unknown): value is Record<string, unknown> {
     return typeof value === 'object' && value !== null && !Array.isArray(value)
   }
 
-  function formatValue(value: unknown): string {
+  function formatValue (value: unknown): string {
     if (value === null || value === undefined) return '—'
     if (typeof value === 'boolean') return value ? 'Yes' : 'No'
     if (typeof value === 'number') return String(value)
@@ -87,8 +87,8 @@
 
 <template>
   <v-dialog
-    :model-value="modelValue"
     max-width="560"
+    :model-value="modelValue"
     @update:model-value="emit('update:modelValue', $event)"
   >
     <v-card v-if="log" rounded="lg">

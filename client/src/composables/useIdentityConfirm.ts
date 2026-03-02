@@ -2,7 +2,7 @@ import { computed, ref } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { getValidationErrors, isApiError } from '@/utils/errors'
 
-export function useIdentityConfirm() {
+export function useIdentityConfirm () {
   const authStore = useAuthStore()
 
   const showDialog = ref(false)
@@ -16,7 +16,7 @@ export function useIdentityConfirm() {
   let resolvePromise: (() => void) | null = null
   let rejectPromise: ((err: unknown) => void) | null = null
 
-  function requireConfirmation(action: (cred: Record<string, string>) => Promise<void>): Promise<void> {
+  function requireConfirmation (action: (cred: Record<string, string>) => Promise<void>): Promise<void> {
     return new Promise<void>((resolve, reject) => {
       pendingAction = action
       resolvePromise = resolve
@@ -28,13 +28,13 @@ export function useIdentityConfirm() {
     })
   }
 
-  function getCredentialPayload(): Record<string, string> {
+  function getCredentialPayload (): Record<string, string> {
     return hasTwoFactor.value
       ? { code: credential.value }
       : { password: credential.value }
   }
 
-  async function confirm() {
+  async function confirm () {
     if (!credential.value) {
       error.value = 'This field is required'
       return
@@ -71,7 +71,7 @@ export function useIdentityConfirm() {
     }
   }
 
-  function cancel() {
+  function cancel () {
     showDialog.value = false
     rejectPromise?.(new Error('cancelled'))
   }

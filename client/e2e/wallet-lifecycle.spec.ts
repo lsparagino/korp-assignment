@@ -9,7 +9,7 @@ const en = require('../src/locales/en.json')
 /**
  * Helper: navigates to the create wallet page, fills the name, and submits the form.
  */
-async function createWallet(page: Page, name: string) {
+async function createWallet (page: Page, name: string) {
   await page.goto('/wallets/create')
   await expect(page.getByTestId('wallet-name-input').locator('input')).toBeVisible({ timeout: 10_000 })
   await page.getByTestId('wallet-name-input').locator('input').fill(name)

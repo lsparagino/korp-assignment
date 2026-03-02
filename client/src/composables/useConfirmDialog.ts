@@ -9,17 +9,17 @@ interface ConfirmDialogState {
   onConfirm: () => void | Promise<void>
 }
 
-export function useConfirmDialog() {
+export function useConfirmDialog () {
   const confirmDialog = ref<ConfirmDialogState>({
     show: false,
     title: '',
     message: '',
     requiresPin: false,
     processing: false,
-    onConfirm: () => { },
+    onConfirm: () => {},
   })
 
-  function openConfirmDialog(options: Omit<ConfirmDialogState, 'show' | 'processing'>) {
+  function openConfirmDialog (options: Omit<ConfirmDialogState, 'show' | 'processing'>) {
     confirmDialog.value = {
       show: true,
       processing: false,
@@ -27,7 +27,7 @@ export function useConfirmDialog() {
     }
   }
 
-  async function executeConfirm() {
+  async function executeConfirm () {
     confirmDialog.value.processing = true
     try {
       await confirmDialog.value.onConfirm()
@@ -37,7 +37,7 @@ export function useConfirmDialog() {
     }
   }
 
-  function closeConfirmDialog() {
+  function closeConfirmDialog () {
     if (!confirmDialog.value.processing) {
       confirmDialog.value.show = false
     }

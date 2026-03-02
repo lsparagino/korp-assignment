@@ -422,7 +422,7 @@
                       variant="outlined"
                       @click="rejectMode = true"
                     >
-                    >
+                      >
                       {{ $t('transactions.reject') }}
                     </v-btn>
                   </div>
@@ -463,7 +463,7 @@
                       variant="outlined"
                       @click="rejectMode = false"
                     >
-                    >
+                      >
                       {{ $t('common.cancel') }}
                     </v-btn>
                   </div>

@@ -17,7 +17,7 @@ describe('useConfirmDialog', () => {
       title: 'Delete Item',
       message: 'Are you sure?',
       requiresPin: false,
-      onConfirm: async () => { },
+      onConfirm: async () => {},
     })
 
     expect(confirmDialog.value.show).toBe(true)
@@ -34,7 +34,7 @@ describe('useConfirmDialog', () => {
       title: 'Sensitive Action',
       message: 'Enter PIN',
       requiresPin: true,
-      onConfirm: async () => { },
+      onConfirm: async () => {},
     })
 
     expect(confirmDialog.value.requiresPin).toBe(true)
@@ -47,7 +47,7 @@ describe('useConfirmDialog', () => {
       title: 'Test',
       message: 'Test',
       requiresPin: false,
-      onConfirm: async () => { },
+      onConfirm: async () => {},
     })
 
     expect(confirmDialog.value.show).toBe(true)
@@ -63,7 +63,9 @@ describe('useConfirmDialog', () => {
       title: 'Delete',
       message: 'Confirm?',
       requiresPin: false,
-      onConfirm: () => new Promise<void>(resolve => { resolvePromise = resolve }),
+      onConfirm: () => new Promise<void>(resolve => {
+        resolvePromise = resolve
+      }),
     })
 
     const promise = executeConfirm()
@@ -102,7 +104,9 @@ describe('useConfirmDialog', () => {
       title: 'Fail',
       message: 'Will error',
       requiresPin: false,
-      onConfirm: async () => { throw new Error('API Error') },
+      onConfirm: async () => {
+        throw new Error('API Error')
+      },
     })
 
     await expect(executeConfirm()).rejects.toThrow('API Error')
@@ -117,7 +121,9 @@ describe('useConfirmDialog', () => {
       title: 'Test',
       message: 'Test',
       requiresPin: false,
-      onConfirm: () => new Promise<void>(resolve => { resolvePromise = resolve }),
+      onConfirm: () => new Promise<void>(resolve => {
+        resolvePromise = resolve
+      }),
     })
 
     const promise = executeConfirm()

@@ -38,23 +38,23 @@ const transactionStatusColorMap: Record<string, ColorPair> = {
   cancelled: { bg: 'grey-lighten-2', text: 'grey-darken-2' },
 }
 
-export function getTransactionTypeColors(type: string): ColorPair {
+export function getTransactionTypeColors (type: string): ColorPair {
   return transactionTypeColorMap[type.toLowerCase()] || defaultColorPair
 }
 
-export function getTransactionStatusColors(status: string): ColorPair {
+export function getTransactionStatusColors (status: string): ColorPair {
   return transactionStatusColorMap[status.toLowerCase()] || defaultColorPair
 }
 
-export function getCurrencyColors(currency: string): ColorPair {
+export function getCurrencyColors (currency: string): ColorPair {
   return currencyColorMap[currency] || defaultColorPair
 }
 
-export function getStatusColors(status: string): ColorPair {
+export function getStatusColors (status: string): ColorPair {
   return statusColorMap[status] || defaultColorPair
 }
 
-export function getRoleColors(role: string): ColorPair {
+export function getRoleColors (role: string): ColorPair {
   return roleColorMap[role.toLowerCase()] || defaultColorPair
 }
 
@@ -73,10 +73,10 @@ const auditCategoryColorMap: Record<string, ColorPair> = {
   settings: { bg: 'teal-lighten-4', text: 'teal-darken-3' },
 }
 
-export function getAuditSeverityColors(severity: string): ColorPair {
+export function getAuditSeverityColors (severity: string): ColorPair {
   return auditSeverityColorMap[severity.toLowerCase()] || defaultColorPair
 }
 
-export function getAuditCategoryColors(category: string): ColorPair {
+export function getAuditCategoryColors (category: string): ColorPair {
   return auditCategoryColorMap[category.toLowerCase()] || defaultColorPair
 }

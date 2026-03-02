@@ -17,29 +17,29 @@ export const useAuthStore = defineStore('auth', () => {
   const isAuthenticated = computed(() => !!token.value)
   const isEmailVerified = computed(() => !!user.value?.email_verified_at)
 
-  function setToken(value: string) {
+  function setToken (value: string) {
     token.value = value
     localStorage.setItem('access_token', value)
   }
 
-  function clearToken() {
+  function clearToken () {
     token.value = null
     user.value = null
     localStorage.removeItem('access_token')
     localStorage.removeItem('user')
   }
 
-  function setUser(value: User) {
+  function setUser (value: User) {
     user.value = value
     localStorage.setItem('user', JSON.stringify(value))
   }
 
-  function setTwoFactor(userId: number) {
+  function setTwoFactor (userId: number) {
     twoFactorUserId.value = userId
   }
 
   // Fetch user via query cache and sync local state
-  async function fetchUser() {
+  async function fetchUser () {
     try {
       const entry = queryCache.ensure(userQuery)
       await queryCache.fetch(entry)
@@ -61,7 +61,7 @@ export const useAuthStore = defineStore('auth', () => {
     },
   })
 
-  async function logout() {
+  async function logout () {
     try {
       await performLogout()
     } finally {

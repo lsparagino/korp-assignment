@@ -14,12 +14,12 @@ export const useCompanyStore = defineStore('company', () => {
   const hasCompanies = computed(() => companies.value.length > 0)
   const companyLabel = computed(() => currentCompany.value?.name ?? i18n.global.t('company.selectCompany'))
 
-  function setCurrentCompany(company: Company) {
+  function setCurrentCompany (company: Company) {
     currentCompany.value = company
   }
 
   // Imperative fetch for router guards — leverages query cache
-  async function fetchCompanies() {
+  async function fetchCompanies () {
     try {
       const entry = queryCache.ensure(companiesQuery)
       await queryCache.fetch(entry)
@@ -36,7 +36,7 @@ export const useCompanyStore = defineStore('company', () => {
     }
   }
 
-  async function invalidateQueries() {
+  async function invalidateQueries () {
     await queryCache.invalidateQueries({ key: COMPANY_QUERY_KEYS.root })
   }
 

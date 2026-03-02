@@ -54,20 +54,20 @@
     { title: t('auditLogs.severities.critical'), value: 'critical' },
   ]
 
-  function categoryLabel(category: string): string {
+  function categoryLabel (category: string): string {
     return categoryLabelMap[category] ?? category
   }
 
-  function formatDate(timestamp: number): string {
+  function formatDate (timestamp: number): string {
     return new Date(timestamp * 1000).toLocaleString()
   }
 
-  function openDetail(log: AuditLog) {
+  function openDetail (log: AuditLog) {
     selectedLog.value = log
     detailDialog.value = true
   }
 
-  function onDateSelected(field: 'from' | 'to', value: unknown) {
+  function onDateSelected (field: 'from' | 'to', value: unknown) {
     if (!value) return
     const date = value instanceof Date ? value : new Date(value as string)
     const formatted = date.toISOString().split('T')[0]
@@ -81,11 +81,11 @@
     }
   }
 
-  function search() {
+  function search () {
     applyFilters({ ...filters })
   }
 
-  function onClear() {
+  function onClear () {
     clearFilters()
   }
 

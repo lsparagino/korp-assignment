@@ -12,12 +12,12 @@ vi.mock('@/composables/useAppNotification', () => ({
   useAppNotification: vi.fn(),
 }))
 
-function mockComposable(notifications: Array<{ id: number, message: string, color: string, timeout: number }> = []) {
+function mockComposable (notifications: Array<{ id: number, message: string, color: string, timeout: number }> = []) {
   mockNotifications.mockReturnValue(notifications)
-    ; (useAppNotification as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
-      notifications: mockNotifications(),
-      dismiss: mockDismiss,
-    })
+  ; (useAppNotification as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
+    notifications: mockNotifications(),
+    dismiss: mockDismiss,
+  })
 }
 
 describe('AppNotification.vue', () => {
@@ -29,7 +29,7 @@ describe('AppNotification.vue', () => {
     vi.clearAllMocks()
   })
 
-  function findAllByTestId(testId: string) {
+  function findAllByTestId (testId: string) {
     return Array.from(document.body.querySelectorAll(`[data-testid="${testId}"]`))
       .map(el => new DOMWrapper(el as HTMLElement))
   }

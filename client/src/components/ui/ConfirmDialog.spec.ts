@@ -11,7 +11,7 @@ describe('ConfirmDialog.vue', () => {
     document.body.innerHTML = ''
   })
 
-  function mountDialog(props: Record<string, unknown> = {}) {
+  function mountDialog (props: Record<string, unknown> = {}) {
     return mountWithPlugins(ConfirmDialog, {
       props: {
         modelValue: true,
@@ -21,7 +21,7 @@ describe('ConfirmDialog.vue', () => {
     })
   }
 
-  function findByTestId(testId: string) {
+  function findByTestId (testId: string) {
     const el = document.body.querySelector(`[data-testid="${testId}"]`)
     return el ? new DOMWrapper(el as HTMLElement) : null
   }
@@ -103,4 +103,3 @@ describe('ConfirmDialog.vue', () => {
     expect(wrapper.emitted('update:modelValue')).toBeFalsy()
   })
 })
-

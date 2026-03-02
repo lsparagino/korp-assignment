@@ -52,18 +52,18 @@ export interface TransferForm {
   code?: string
 }
 
-export function fetchTransactions(params: TransactionParams) {
+export function fetchTransactions (params: TransactionParams) {
   return api.get('/transactions', { params })
 }
 
-export function initiateTransfer(form: TransferForm, idempotencyKey: string) {
+export function initiateTransfer (form: TransferForm, idempotencyKey: string) {
   return api.post('/transfers', form, { headers: { 'Idempotency-Key': idempotencyKey } })
 }
 
-export function reviewTransfer(groupId: string, payload: { action: 'approve' | 'reject', reason?: string }, idempotencyKey: string) {
+export function reviewTransfer (groupId: string, payload: { action: 'approve' | 'reject', reason?: string }, idempotencyKey: string) {
   return api.post(`/transfers/${groupId}/review`, payload, { headers: { 'Idempotency-Key': idempotencyKey } })
 }
 
-export function cancelTransfer(groupId: string, idempotencyKey: string) {
+export function cancelTransfer (groupId: string, idempotencyKey: string) {
   return api.post(`/transfers/${groupId}/cancel`, {}, { headers: { 'Idempotency-Key': idempotencyKey } })
 }
