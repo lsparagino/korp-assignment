@@ -37,8 +37,9 @@ router.onError((err: Error, to: RouteLocationNormalized) => {
   }
 })
 
-await router.isReady()
-localStorage.removeItem('vuetify:dynamic-reload')
+router.isReady().then(() => { // NOSONAR — top-level await creates a deadlock here
+  localStorage.removeItem('vuetify:dynamic-reload')
+})
 
 router.beforeEach(
   async (
