@@ -34,6 +34,7 @@ class PasswordResetService
                 AuditSeverity::Medium,
                 'user.password_reset',
                 __('messages.audit.user_password_reset'),
+                ['company_id' => 0],
             );
         }
 

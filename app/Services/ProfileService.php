@@ -49,7 +49,7 @@ class ProfileService
             AuditSeverity::Normal,
             'settings.profile_updated',
             __('messages.audit.profile_updated'),
-            ['metadata' => ['changes' => $changes]],
+            ['company_id' => 0, 'metadata' => ['changes' => $changes]],
         );
 
         return [
@@ -74,6 +74,7 @@ class ProfileService
             AuditSeverity::Critical,
             'settings.account_deleted',
             __('messages.audit.account_deleted'),
+            ['company_id' => 0],
         );
 
         DB::transaction(function () use ($requestToken, $user) {

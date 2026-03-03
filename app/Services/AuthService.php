@@ -47,7 +47,7 @@ class AuthService
                 $severity,
                 'user.login_failed',
                 __('messages.audit.user_login_failed'),
-                ['user_id' => $user?->id, 'user_name' => $user?->name, 'metadata' => ['username' => $username]],
+                ['user_id' => $user?->id, 'user_name' => $user?->name, 'company_id' => 0, 'metadata' => ['username' => $username]],
             );
 
             throw ValidationException::withMessages([
@@ -64,7 +64,7 @@ class AuthService
             AuditSeverity::Normal,
             'user.login',
             __('messages.audit.user_login'),
-            ['user_id' => $user->id, 'user_name' => $user->name],
+            ['user_id' => $user->id, 'user_name' => $user->name, 'company_id' => 0],
         );
 
         if ($user->two_factor_secret && $user->two_factor_confirmed_at) {
@@ -120,7 +120,7 @@ class AuthService
             AuditSeverity::Normal,
             'user.registered',
             __('messages.audit.user_registered'),
-            ['user_id' => $user->id, 'user_name' => $user->name],
+            ['user_id' => $user->id, 'user_name' => $user->name, 'company_id' => 0],
         );
 
         return $user->createAuthTokenResponse();
@@ -133,6 +133,7 @@ class AuthService
             AuditSeverity::Normal,
             'user.logout',
             __('messages.audit.user_logout'),
+            ['company_id' => 0],
         );
 
         $user->currentAccessToken()?->delete();
@@ -156,6 +157,7 @@ class AuthService
             AuditSeverity::Medium,
             'user.2fa_enabled',
             __('messages.audit.user_2fa_enabled'),
+            ['company_id' => 0],
         );
     }
 
@@ -168,6 +170,7 @@ class AuthService
             AuditSeverity::Medium,
             'user.2fa_disabled',
             __('messages.audit.user_2fa_disabled'),
+            ['company_id' => 0],
         );
     }
 
@@ -180,6 +183,7 @@ class AuthService
             AuditSeverity::Medium,
             'user.password_changed',
             __('messages.audit.user_password_changed'),
+            ['company_id' => 0],
         );
     }
 

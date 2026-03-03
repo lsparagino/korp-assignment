@@ -32,7 +32,7 @@
   )
 
   const processing = ref(false)
-  const { formRef, formValid, validate } = useFormValidation()
+  const { formRef, validate } = useFormValidation()
   const transferType = ref<'external' | 'internal'>('internal')
   const errors = ref<Record<string, string[]>>({})
   const apiError = ref('')

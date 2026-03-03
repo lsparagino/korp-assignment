@@ -36,7 +36,7 @@ class SettingService
                 AuditSeverity::High,
                 'settings.security_threshold_changed',
                 __('messages.audit.security_threshold_changed'),
-                ['metadata' => [
+                ['company_id' => 0, 'metadata' => [
                     'changes' => [
                         'security_threshold' => [
                             'from' => $existingSetting?->security_threshold,
@@ -53,7 +53,7 @@ class SettingService
                 AuditSeverity::High,
                 'settings.daily_limit_changed',
                 __('messages.audit.daily_limit_changed'),
-                ['metadata' => [
+                ['company_id' => 0, 'metadata' => [
                     'changes' => [
                         'daily_transaction_limit' => [
                             'from' => $existingSetting?->daily_transaction_limit,

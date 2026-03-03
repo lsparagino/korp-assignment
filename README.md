@@ -130,6 +130,7 @@ php artisan migrate:fresh --seed
 - Everyone is able to see other team members' email addresses. This might not be a desired behaviour. Ideally, only admins should be able to see email addresses.
 - Audit logs should have a user filter.
 - Firestore is currently using a TTL policy to delete audit logs after 7 days. This is not a good practice for audit logs, as they should be kept for a longer period of time (at least 6 months).
+- The audit log visible by admins is a subset of the full audit trail. User-scoped actions (e.g. login, logout, registration, 2FA setup, password changes, profile updates, account deletion) are intentionally logged without a `company_id` and therefore do not appear in the company-specific audit table.
 
 ---
 
