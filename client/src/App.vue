@@ -1,11 +1,26 @@
 <script lang="ts" setup>
-  import { PiniaColadaDevtools } from '@pinia/colada-devtools'
-  import AppNotification from '@/components/ui/AppNotification.vue'
+import { PiniaColadaDevtools } from '@pinia/colada-devtools'
+import AppNotification from '@/components/ui/AppNotification.vue'
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+
+const loading = ref(true)
+const router = useRouter()
+
+router.isReady().then(() => {
+  loading.value = false
+})
 </script>
 
 <template>
-  <router-view />
+  <div v-if="loading" class="app-loader">
+    <div class="app-loader__spinner" />
+    <span class="app-loader__text">Loading…</span>
+  </div>
 
-  <AppNotification />
-  <PiniaColadaDevtools />
+  <template v-else>
+    <router-view />
+    <AppNotification />
+    <PiniaColadaDevtools />
+  </template>
 </template>
