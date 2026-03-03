@@ -53,6 +53,21 @@ resource "google_firestore_index" "company_tags_created" {
   }
 }
 
+# ── TTL Policy ────────────────────────────────────────────────────
+# Automatically delete audit log documents 7 days after creation.
+# The `expires_at` field is written as a Firestore Timestamp by AuditService.
+
+resource "google_firestore_field" "audit_logs_ttl" {
+  database   = google_firestore_database.audit.name
+  collection = "audit_logs"
+  field      = "expires_at"
+
+  ttl_config {}
+
+  # Prevent Terraform from managing single-field index config
+  index_config {}
+}
+
 # ── IAM: Write-only custom role (true immutability) ────────────────
 # Excludes datastore.entities.update and datastore.entities.delete
 # so even a compromised API cannot alter or remove historical logs.

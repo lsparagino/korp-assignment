@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Enums\AuditCategory;
 use App\Enums\AuditSeverity;
+use Carbon\CarbonInterface;
 use GuzzleHttp\Client;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Request;
@@ -66,6 +67,7 @@ class AuditService
                             'metadata' => empty($metadata) ? null : json_encode($metadata),
                             'ip_address' => Request::ip(),
                             'created_at' => now()->getTimestamp(),
+                            'expires_at' => now()->addDays(7),
                             'filter_tags' => $filterTags,
                         ]),
                     ],
@@ -207,6 +209,7 @@ class AuditService
         return match (true) {
             $value === null => ['nullValue' => null],
             is_bool($value) => ['booleanValue' => $value],
+            $value instanceof CarbonInterface => ['timestampValue' => $value->toIso8601String()],
             is_int($value) => ['integerValue' => (string) $value],
             is_float($value) => ['doubleValue' => $value],
             is_array($value) => ['arrayValue' => ['values' => array_map([$this, 'encodeValue'], $value)]],
@@ -236,6 +239,7 @@ class AuditService
             isset($wrapper['booleanValue']) => $wrapper['booleanValue'],
             isset($wrapper['integerValue']) => (int) $wrapper['integerValue'],
             isset($wrapper['doubleValue']) => $wrapper['doubleValue'],
+            isset($wrapper['timestampValue']) => $wrapper['timestampValue'],
             isset($wrapper['stringValue']) => $wrapper['stringValue'],
             isset($wrapper['arrayValue']) => array_map([$this, 'decodeValue'], $wrapper['arrayValue']['values'] ?? []),
             default => null,

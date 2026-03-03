@@ -129,6 +129,7 @@ php artisan migrate:fresh --seed
 - Synchronous logging to Firestore introduces noticeable latency on audited operations. This should be mitigated by offloading log writes to a background queue.
 - Everyone is able to see other team members' email addresses. This might not be a desired behaviour. Ideally, only admins should be able to see email addresses.
 - Audit logs should have a user filter.
+- Firestore is currently using a TTL policy to delete audit logs after 7 days. This is not a good practice for audit logs, as they should be kept for a longer period of time (at least 6 months).
 
 ---
 

@@ -55,7 +55,7 @@ describe('TransferCreatePage', () => {
     document.body.innerHTML = ''
   })
 
-  async function mountPage(props: Record<string, unknown> = {}) {
+  async function mountPage (props: Record<string, unknown> = {}) {
     const w = mountWithPlugins(TransferCreatePage, {
       props,
       attachTo: document.body,
@@ -164,4 +164,3 @@ describe('TransferCreatePage', () => {
     expect(findByTestId('transfer-api-error')).toBeNull()
   })
 })
-
