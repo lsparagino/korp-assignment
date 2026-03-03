@@ -55,7 +55,7 @@ describe('TransferCreatePage', () => {
     document.body.innerHTML = ''
   })
 
-  async function mountPage (props: Record<string, unknown> = {}) {
+  async function mountPage(props: Record<string, unknown> = {}) {
     const w = mountWithPlugins(TransferCreatePage, {
       props,
       attachTo: document.body,
@@ -126,4 +126,42 @@ describe('TransferCreatePage', () => {
 
     expect(findByTestId('transfer-back-link')).not.toBeNull()
   })
+
+  it('submit button is not disabled after 422 error returns to form', async () => {
+    const { initiateTransfer } = await import('@/api/transactions')
+    vi.mocked(initiateTransfer).mockRejectedValueOnce({
+      response: { status: 422, data: { errors: { amount: ['Exceeds daily limit'] } } },
+    })
+
+    wrapper = await mountPage()
+
+    const vm = wrapper.vm as any
+    vm.step = 'recap'
+    await flushPromises()
+
+    await vm.executeTransfer()
+    await flushPromises()
+
+    expect(vm.step).toBe('form')
+    const submitBtn = findByTestId('transfer-submit-btn')
+    expect(submitBtn).not.toBeNull()
+    expect((submitBtn!.element as HTMLButtonElement).disabled).toBe(false)
+  })
+
+  it('clears api error when user edits a form field', async () => {
+    wrapper = await mountPage()
+
+    const vm = wrapper.vm as any
+    vm.apiError = 'Something went wrong'
+    await flushPromises()
+
+    expect(findByTestId('transfer-api-error')).not.toBeNull()
+
+    // Edit the amount field
+    vm.form.amount = 100
+    await flushPromises()
+
+    expect(findByTestId('transfer-api-error')).toBeNull()
+  })
 })
+

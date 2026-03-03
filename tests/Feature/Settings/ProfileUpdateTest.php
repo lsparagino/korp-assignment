@@ -69,7 +69,7 @@ test('correct password must be provided to delete account', function () {
         ]);
 
     $response
-        ->assertStatus(422)
+        ->assertUnprocessable()
         ->assertJsonValidationErrors('password');
 
     expect($user->fresh())->not->toBeNull();

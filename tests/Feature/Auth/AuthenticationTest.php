@@ -41,7 +41,7 @@ test('users with two factor enabled receive challenged response', function () {
         'password' => 'password',
     ]);
 
-    $response->assertStatus(200);
+    $response->assertSuccessful();
     $response->assertJson(['two_factor' => true]);
     $this->assertGuest();
 });
@@ -54,7 +54,7 @@ test('users can not authenticate with invalid password', function () {
         'password' => 'wrong-password',
     ]);
 
-    $response->assertStatus(422);
+    $response->assertUnprocessable();
     $this->assertGuest();
 });
 
@@ -103,6 +103,6 @@ test('password confirmation fails with wrong password', function () {
         'password' => 'wrong-password',
     ]);
 
-    $response->assertStatus(422)
+    $response->assertUnprocessable()
         ->assertJsonValidationErrors('password');
 });

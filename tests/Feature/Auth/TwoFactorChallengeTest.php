@@ -25,7 +25,7 @@ test('users with two factor enabled receive challenged response on login', funct
         'password' => 'password',
     ]);
 
-    $response->assertStatus(200);
+    $response->assertSuccessful();
     $response->assertJson(['two_factor' => true]);
     $this->assertGuest();
 });

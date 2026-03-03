@@ -29,7 +29,7 @@ test('admins can invite team members', function () {
         'company_id' => $this->company->id,
     ]);
 
-    $response->assertStatus(201)
+    $response->assertCreated()
         ->assertJsonPath('message', 'Member invited successfully');
 
     $this->assertDatabaseHas('users', [
@@ -47,7 +47,7 @@ test('admins can list team members', function () {
     $response = $this->actingAs($this->admin, 'sanctum')
         ->getJson(TEAM_MEMBERS_ENDPOINT."?company_id={$this->company->id}");
 
-    $response->assertStatus(200)
+    $response->assertSuccessful()
         ->assertJsonPath('company', config('app.name'));
 });
 
@@ -58,7 +58,7 @@ test('admins can view a single team member', function () {
     $response = $this->actingAs($this->admin, 'sanctum')
         ->getJson(TEAM_MEMBERS_ENDPOINT."/{$member->id}?company_id={$this->company->id}");
 
-    $response->assertStatus(200)
+    $response->assertSuccessful()
         ->assertJsonPath('id', $member->id)
         ->assertJsonPath('name', $member->name)
         ->assertJsonPath('email', $member->email)
@@ -75,7 +75,7 @@ test('members can view a single team member', function () {
     $response = $this->actingAs($member, 'sanctum')
         ->getJson(TEAM_MEMBERS_ENDPOINT."/{$otherMember->id}?company_id={$this->company->id}");
 
-    $response->assertStatus(200)
+    $response->assertSuccessful()
         ->assertJsonPath('id', $otherMember->id);
 });
 
@@ -96,7 +96,7 @@ test('admins can update team members', function () {
             'company_id' => $this->company->id,
         ]);
 
-    $response->assertStatus(200)
+    $response->assertSuccessful()
         ->assertJsonPath('message', 'Member updated successfully');
 
     expect($member->fresh()->name)->toBe('Updated Name');
@@ -121,7 +121,7 @@ test('admins cannot delete other admins', function () {
     $response = $this->actingAs($this->admin, 'sanctum')
         ->deleteJson(TEAM_MEMBERS_ENDPOINT."/{$otherAdmin->id}?company_id={$this->company->id}");
 
-    $response->assertStatus(403);
+    $response->assertForbidden();
 });
 
 test('members cannot invite team members', function () {
@@ -137,7 +137,7 @@ test('members cannot invite team members', function () {
         'company_id' => $this->company->id,
     ]);
 
-    $response->assertStatus(403);
+    $response->assertForbidden();
 
     Mail::assertNotSent(\App\Mail\TeamMemberInvitation::class);
 });
@@ -152,7 +152,7 @@ test('admins can promote a member to manager', function () {
             'company_id' => $this->company->id,
         ]);
 
-    $response->assertStatus(200)
+    $response->assertSuccessful()
         ->assertJsonPath('message', 'Member role updated successfully');
 
     expect($member->fresh()->role)->toBe(UserRole::Manager);
@@ -168,7 +168,7 @@ test('admins can demote a manager to member', function () {
             'company_id' => $this->company->id,
         ]);
 
-    $response->assertStatus(200);
+    $response->assertSuccessful();
 
     expect($manager->fresh()->role)->toBe(UserRole::Member);
 });
@@ -186,7 +186,7 @@ test('non-admins cannot promote team members', function () {
             'company_id' => $this->company->id,
         ]);
 
-    $response->assertStatus(403);
+    $response->assertForbidden();
 });
 
 test('managers cannot promote team members', function () {
@@ -202,7 +202,7 @@ test('managers cannot promote team members', function () {
             'company_id' => $this->company->id,
         ]);
 
-    $response->assertStatus(403);
+    $response->assertForbidden();
 });
 
 test('admins cannot promote to admin role', function () {
@@ -215,7 +215,7 @@ test('admins cannot promote to admin role', function () {
             'company_id' => $this->company->id,
         ]);
 
-    $response->assertStatus(422);
+    $response->assertUnprocessable();
 });
 
 test('managers cannot invite team members', function () {
@@ -231,7 +231,7 @@ test('managers cannot invite team members', function () {
         'company_id' => $this->company->id,
     ]);
 
-    $response->assertStatus(403);
+    $response->assertForbidden();
 
     Mail::assertNotSent(\App\Mail\TeamMemberInvitation::class);
 });

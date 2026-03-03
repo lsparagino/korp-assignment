@@ -7,6 +7,7 @@ interface ConfirmDialogState {
   requiresPin: boolean
   processing: boolean
   onConfirm: () => void | Promise<void>
+  onSuccess?: () => void | Promise<unknown>
 }
 
 export function useConfirmDialog () {
@@ -32,6 +33,7 @@ export function useConfirmDialog () {
     try {
       await confirmDialog.value.onConfirm()
       confirmDialog.value.show = false
+      await confirmDialog.value.onSuccess?.()
     } finally {
       confirmDialog.value.processing = false
     }

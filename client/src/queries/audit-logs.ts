@@ -30,7 +30,7 @@ export const useAuditLogList = defineQuery(() => {
   const isLoadingMore = ref(false)
 
   const { data, ...rest } = useQuery({
-    key: () => AUDIT_LOG_QUERY_KEYS.list({ ...filters }),
+    key: () => [...AUDIT_LOG_QUERY_KEYS.list({ ...filters }), cursor.value ?? null],
     query: async () => {
       const params: AuditLogFilters = {
         per_page: filters.perPage,
@@ -73,14 +73,14 @@ export const useAuditLogList = defineQuery(() => {
 
   const logs = computed(() => accumulatedData.value)
 
-  function applyFilters (newFilters: Partial<AuditLogQueryParams>) {
+  function applyFilters(newFilters: Partial<AuditLogQueryParams>) {
     cursor.value = undefined
     isLoadingMore.value = false
     accumulatedData.value = []
     Object.assign(filters, newFilters)
   }
 
-  function loadMore () {
+  function loadMore() {
     if (!nextCursor.value) {
       return
     }
@@ -88,7 +88,7 @@ export const useAuditLogList = defineQuery(() => {
     cursor.value = nextCursor.value
   }
 
-  function clearFilters () {
+  function clearFilters() {
     applyFilters({ category: undefined, severity: undefined, dateFrom: undefined, dateTo: undefined })
   }
 

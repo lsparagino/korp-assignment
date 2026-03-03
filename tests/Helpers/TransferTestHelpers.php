@@ -144,7 +144,7 @@ function createPendingTransfer(array $overrides = []): string
         'reference' => 'Pending transfer',
     ], $overrides));
 
-    $response->assertStatus(201);
+    $response->assertCreated();
     $response->assertJsonPath('data.status', 'pending_approval');
 
     return $response->json('data.group_id');

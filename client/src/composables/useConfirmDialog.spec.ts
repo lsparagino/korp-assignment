@@ -133,4 +133,42 @@ describe('useConfirmDialog', () => {
     await execPromise
     expect(confirmDialog.value.show).toBe(false)
   })
+
+  it('calls onSuccess after dialog closes on successful confirm', async () => {
+    const onConfirm = vi.fn()
+    const onSuccess = vi.fn()
+    const { confirmDialog, openConfirmDialog, executeConfirm } = useConfirmDialog()
+
+    openConfirmDialog({
+      title: 'Delete',
+      message: 'Sure?',
+      requiresPin: false,
+      onConfirm,
+      onSuccess,
+    })
+
+    await executeConfirm()
+
+    expect(onConfirm).toHaveBeenCalledOnce()
+    expect(confirmDialog.value.show).toBe(false)
+    expect(onSuccess).toHaveBeenCalledOnce()
+  })
+
+  it('does not call onSuccess when onConfirm throws', async () => {
+    const onSuccess = vi.fn()
+    const { openConfirmDialog, executeConfirm } = useConfirmDialog()
+
+    openConfirmDialog({
+      title: 'Fail',
+      message: 'Will error',
+      requiresPin: false,
+      onConfirm: async () => {
+        throw new Error('API Error')
+      },
+      onSuccess,
+    })
+
+    await expect(executeConfirm()).rejects.toThrow('API Error')
+    expect(onSuccess).not.toHaveBeenCalled()
+  })
 })

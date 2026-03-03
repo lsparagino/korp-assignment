@@ -18,7 +18,7 @@ test('two factor authentication can be enabled', function () {
 
     $this->actingAs($user, 'sanctum')
         ->postJson(TWO_FACTOR_AUTH_ENDPOINT)
-        ->assertStatus(200);
+        ->assertSuccessful();
 
     expect($user->fresh()->two_factor_secret)->not->toBeNull();
 });
@@ -32,7 +32,7 @@ test('two factor qr code can be retrieved', function () {
     $response = $this->actingAs($user, 'sanctum')
         ->getJson(TWO_FACTOR_QR_ENDPOINT);
 
-    $response->assertStatus(200)
+    $response->assertSuccessful()
         ->assertJsonStructure(['svg']);
 });
 
@@ -45,7 +45,7 @@ test('two factor recovery codes can be retrieved', function () {
     $response = $this->actingAs($user, 'sanctum')
         ->getJson(TWO_FACTOR_RECOVERY_ENDPOINT);
 
-    $response->assertStatus(200);
+    $response->assertSuccessful();
     expect($response->json())->toBeArray()->not->toBeEmpty();
 });
 
@@ -57,7 +57,7 @@ test('two factor authentication can be disabled', function () {
 
     $this->actingAs($user, 'sanctum')
         ->deleteJson(TWO_FACTOR_AUTH_ENDPOINT)
-        ->assertStatus(200);
+        ->assertSuccessful();
 
     expect($user->fresh()->two_factor_secret)->toBeNull();
 });
@@ -68,7 +68,7 @@ test('qr code returns 400 when two factor is not enabled', function () {
     $response = $this->actingAs($user, 'sanctum')
         ->getJson(TWO_FACTOR_QR_ENDPOINT);
 
-    $response->assertStatus(400);
+    $response->assertBadRequest();
 });
 
 test('recovery codes return 400 when two factor is not enabled', function () {
@@ -77,7 +77,7 @@ test('recovery codes return 400 when two factor is not enabled', function () {
     $response = $this->actingAs($user, 'sanctum')
         ->getJson(TWO_FACTOR_RECOVERY_ENDPOINT);
 
-    $response->assertStatus(400);
+    $response->assertBadRequest();
 });
 
 test('recovery codes can be regenerated', function () {

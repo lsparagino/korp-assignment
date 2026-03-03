@@ -20,7 +20,7 @@ const i18n = createI18n({
   },
 })
 
-export function mountWithPlugins (component: any, options: any = {}) {
+export function mountWithPlugins(component: any, options: any = {}) {
   const { piniaOptions, ...mountOptions } = options
   const pinia = createPinia()
 
@@ -46,4 +46,17 @@ export function mountWithPlugins (component: any, options: any = {}) {
       },
     },
   })
+}
+
+export function makeEmptyAuthState() {
+  return {
+    auth: {
+      user: null,
+      token: null,
+    },
+    company: {
+      currentCompany: null,
+      companies: [],
+    },
+  }
 }

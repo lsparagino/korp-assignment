@@ -30,7 +30,7 @@ test('does not send verification notification if email already verified', functi
     $response = $this->actingAs($user, 'sanctum')
         ->postJson(VERIFICATION_NOTIFICATION_ENDPOINT);
 
-    $response->assertStatus(400);
+    $response->assertBadRequest();
     $response->assertJson(['message' => 'Email already verified']);
 
     Notification::assertNothingSent();

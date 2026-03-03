@@ -47,7 +47,7 @@ test('audit logs validates per_page parameter', function () {
     $response = $this->actingAs($admin, 'sanctum')
         ->getJson(AUDIT_LOGS_ENDPOINT."?company_id={$this->company->id}&per_page=200");
 
-    $response->assertStatus(422)
+    $response->assertUnprocessable()
         ->assertJsonValidationErrors('per_page');
 });
 
@@ -58,7 +58,7 @@ test('audit logs validates category filter', function () {
     $response = $this->actingAs($admin, 'sanctum')
         ->getJson(AUDIT_LOGS_ENDPOINT."?company_id={$this->company->id}&category=invalid");
 
-    $response->assertStatus(422)
+    $response->assertUnprocessable()
         ->assertJsonValidationErrors('category');
 });
 
@@ -69,7 +69,7 @@ test('audit logs validates date range', function () {
     $response = $this->actingAs($admin, 'sanctum')
         ->getJson(AUDIT_LOGS_ENDPOINT."?company_id={$this->company->id}&date_from=2026-01-10&date_to=2026-01-01");
 
-    $response->assertStatus(422)
+    $response->assertUnprocessable()
         ->assertJsonValidationErrors('date_to');
 });
 

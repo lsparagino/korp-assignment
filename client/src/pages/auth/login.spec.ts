@@ -1,25 +1,13 @@
 import { flushPromises } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
 import en from '@/locales/en.json'
-import { mountWithPlugins } from '@/test/setup'
+import { makeEmptyAuthState, mountWithPlugins } from '@/test/setup'
 import LoginPage from './login.vue'
 
 vi.mock('@/api/auth', () => ({
   login: vi.fn(),
 }))
 
-function makeEmptyAuthState () {
-  return {
-    auth: {
-      user: null,
-      token: null,
-    },
-    company: {
-      currentCompany: null,
-      companies: [],
-    },
-  }
-}
 
 describe('login.vue', () => {
   it('renders email and password fields', () => {

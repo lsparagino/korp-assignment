@@ -15,5 +15,5 @@ test('api returns 429 when rate limit is exceeded', function () {
 
     $response = $this->actingAs($user, 'sanctum')->getJson('/api/v0/user');
 
-    $response->assertStatus(429);
+    $response->assertTooManyRequests();
 });

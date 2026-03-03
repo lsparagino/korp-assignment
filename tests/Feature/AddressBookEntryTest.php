@@ -61,7 +61,7 @@ test('users can create an address book entry', function () {
             'address' => 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh',
         ]);
 
-    $response->assertStatus(201)
+    $response->assertCreated()
         ->assertJsonPath('data.name', VENDOR_NAME)
         ->assertJsonPath('data.address', 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh');
 
@@ -78,7 +78,7 @@ test('validation rejects missing name', function () {
             'address' => 'some-address',
         ]);
 
-    $response->assertStatus(422)
+    $response->assertUnprocessable()
         ->assertJsonValidationErrors('name');
 });
 
@@ -88,7 +88,7 @@ test('validation rejects missing address', function () {
             'name' => 'Some Name',
         ]);
 
-    $response->assertStatus(422)
+    $response->assertUnprocessable()
         ->assertJsonValidationErrors('address');
 });
 
@@ -105,7 +105,7 @@ test('validation rejects duplicate address for same user and company', function 
             'address' => 'duplicate-addr',
         ]);
 
-    $response->assertStatus(422)
+    $response->assertUnprocessable()
         ->assertJsonValidationErrors('address');
 });
 
@@ -125,7 +125,7 @@ test('same address is allowed for different companies', function () {
             'address' => 'shared-addr',
         ]);
 
-    $response->assertStatus(201);
+    $response->assertCreated();
 });
 
 test('users can update their own entry', function () {

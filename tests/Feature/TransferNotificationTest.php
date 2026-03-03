@@ -15,7 +15,7 @@ test('completed transfer sends TransactionCompleted to initiator', function () {
     Notification::fake();
 
     createInternalTransfer(['amount' => 500, 'reference' => 'Notification test'])
-        ->assertStatus(201);
+        ->assertCreated();
 
     Notification::assertSentTo($this->member, TransactionCompleted::class);
 });
@@ -29,7 +29,7 @@ test('completed transfer does not send TransactionCompleted when setting is off'
     ]);
 
     createInternalTransfer(['amount' => 500, 'reference' => 'No notification test'])
-        ->assertStatus(201);
+        ->assertCreated();
 
     Notification::assertNotSentTo($this->member, TransactionCompleted::class);
 });
@@ -40,7 +40,7 @@ test('pending transfer sends TransactionPendingApproval to admins and managers',
     Notification::fake();
 
     createInternalTransfer(['amount' => 15000, 'reference' => 'Approval notification test'])
-        ->assertStatus(201);
+        ->assertCreated();
 
     Notification::assertSentTo($this->admin, TransactionPendingApproval::class);
     Notification::assertSentTo($this->manager, TransactionPendingApproval::class);
@@ -56,7 +56,7 @@ test('pending transfer does not notify admin when approval_needed setting is off
     ]);
 
     createInternalTransfer(['amount' => 15000, 'reference' => 'Admin opt-out test'])
-        ->assertStatus(201);
+        ->assertCreated();
 
     Notification::assertNotSentTo($this->admin, TransactionPendingApproval::class);
     Notification::assertSentTo($this->manager, TransactionPendingApproval::class);

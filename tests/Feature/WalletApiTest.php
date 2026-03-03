@@ -31,7 +31,7 @@ test('authenticated users can list their wallets', function () {
 
     $response = $this->actingAs($user, 'sanctum')->getJson(WALLETS_ENDPOINT."?company_id={$this->company->id}");
 
-    $response->assertStatus(200)
+    $response->assertSuccessful()
         ->assertJsonCount(3, 'data');
 });
 
@@ -45,7 +45,7 @@ test('admins can create wallets', function () {
         'company_id' => $this->company->id,
     ]);
 
-    $response->assertStatus(201)
+    $response->assertCreated()
         ->assertJsonPath('data.name', NEW_WALLET_NAME)
         ->assertJsonPath('data.currency', 'USD')
         ->assertJsonPath('data.balance', '0.00');
@@ -63,7 +63,7 @@ test('members cannot create wallets', function () {
         'company_id' => $this->company->id,
     ]);
 
-    $response->assertStatus(403);
+    $response->assertForbidden();
 });
 
 test('admins can toggle freeze status', function () {
@@ -76,7 +76,7 @@ test('admins can toggle freeze status', function () {
 
     $response = $this->actingAs($admin, 'sanctum')->patchJson(WALLETS_ENDPOINT."/{$wallet->id}/toggle-freeze?company_id={$this->company->id}");
 
-    $response->assertStatus(200)
+    $response->assertSuccessful()
         ->assertJsonPath('data.status', 'frozen');
 
     expect($wallet->fresh()->status)->toBe(WalletStatus::Frozen);
@@ -91,7 +91,7 @@ test('admins can delete empty wallets', function () {
 
     $response = $this->actingAs($admin, 'sanctum')->deleteJson(WALLETS_ENDPOINT."/{$wallet->id}?company_id={$this->company->id}");
 
-    $response->assertStatus(204);
+    $response->assertNoContent();
     $this->assertDatabaseMissing('wallets', ['id' => $wallet->id]);
 });
 
@@ -105,7 +105,7 @@ test('wallets list is paginated', function () {
 
     $response = $this->actingAs($user, 'sanctum')->getJson(WALLETS_ENDPOINT."?per_page=10&company_id={$this->company->id}");
 
-    $response->assertStatus(200)
+    $response->assertSuccessful()
         ->assertJsonCount(10, 'data')
         ->assertJsonPath('meta.total', 15);
 });

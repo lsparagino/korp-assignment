@@ -25,7 +25,7 @@ test('registration sends verification email', function () {
         'password_confirmation' => 'password123',
     ]);
 
-    $response->assertStatus(201)
+    $response->assertCreated()
         ->assertJsonPath('user.email_verified_at', null);
 
     Notification::assertSentTo(
@@ -42,7 +42,7 @@ test('unverified user can resend verification email', function () {
     $response = $this->actingAs($user, 'sanctum')
         ->postJson(VERIFICATION_NOTIFICATION_ENDPOINT);
 
-    $response->assertStatus(200)
+    $response->assertSuccessful()
         ->assertJsonPath('message', 'Verification link sent');
 
     Notification::assertSentTo($user, VerifyEmailNotification::class);
@@ -54,7 +54,7 @@ test('verified user cannot resend verification email without pending email', fun
     $response = $this->actingAs($user, 'sanctum')
         ->postJson('/api/v0/email/verification-notification');
 
-    $response->assertStatus(400)
+    $response->assertBadRequest()
         ->assertJsonPath('message', 'Email already verified');
 });
 
@@ -69,7 +69,7 @@ test('user can verify email with valid signed link', function () {
 
     $response = $this->getJson($url);
 
-    $response->assertStatus(200)
+    $response->assertSuccessful()
         ->assertJsonPath('message', 'Email verified successfully');
 
     expect($user->fresh()->hasVerifiedEmail())->toBeTrue();
@@ -80,7 +80,7 @@ test('verify fails with invalid signature', function () {
 
     $response = $this->getJson("/api/v0/email/verify/{$user->id}/".hash('sha256', $user->email).'?expires=9999999999&signature=invalid');
 
-    $response->assertStatus(403)
+    $response->assertForbidden()
         ->assertJsonPath('message', 'Invalid or expired verification link');
 });
 
@@ -95,7 +95,7 @@ test('verify fails with invalid hash', function () {
 
     $response = $this->getJson($url);
 
-    $response->assertStatus(403)
+    $response->assertForbidden()
         ->assertJsonPath('message', 'Invalid verification link');
 });
 
@@ -110,7 +110,7 @@ test('profile email change stores pending email', function () {
             'email' => NEW_EMAIL,
         ]);
 
-    $response->assertStatus(200);
+    $response->assertSuccessful();
 
     $user->refresh();
     expect($user->email)->not->toBe(NEW_EMAIL);
@@ -133,7 +133,7 @@ test('verifying pending email swaps it', function () {
 
     $response = $this->getJson($url);
 
-    $response->assertStatus(200)
+    $response->assertSuccessful()
         ->assertJsonPath('message', 'Email address updated and verified successfully');
 
     $user->refresh();
@@ -150,7 +150,7 @@ test('user can cancel pending email change', function () {
     $response = $this->actingAs($user, 'sanctum')
         ->deleteJson('/api/v0/settings/pending-email');
 
-    $response->assertStatus(200)
+    $response->assertSuccessful()
         ->assertJsonPath('message', 'Pending email change cancelled');
 
     expect($user->fresh()->pending_email)->toBeNull();

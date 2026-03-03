@@ -14,7 +14,7 @@ beforeEach(fn () => transferSetup());
 test('internal transfer auto-approved below threshold', function () {
     $response = createInternalTransfer(['amount' => 500, 'reference' => 'Office supplies']);
 
-    $response->assertStatus(201);
+    $response->assertCreated();
     $response->assertJsonPath('data.status', 'completed');
 
     expect($this->senderWallet->fresh()->balance)->toBe(19500.0);
@@ -29,7 +29,7 @@ test('internal transfer pending above threshold', function () {
         'notes' => 'Needed for the new office setup',
     ]);
 
-    $response->assertStatus(201);
+    $response->assertCreated();
     $response->assertJsonPath('data.status', 'pending_approval');
 
     expect($this->senderWallet->fresh()->balance)->toBe(20000.0);
@@ -48,7 +48,7 @@ test('transfer completes immediately when no threshold is configured for currenc
         'reference' => 'No threshold test',
     ]);
 
-    $response->assertStatus(201);
+    $response->assertCreated();
     $response->assertJsonPath('data.status', 'completed');
     expect((float) $eurSender->fresh()->locked_balance)->toBe(0.0);
 });
@@ -61,7 +61,7 @@ test('external transfer auto-approved creates only debit row', function () {
         'reference' => 'External payout',
     ]);
 
-    $response->assertStatus(201);
+    $response->assertCreated();
     $response->assertJsonPath('data.status', 'completed');
 
     $groupId = $response->json('data.group_id');
@@ -85,7 +85,7 @@ test('admin bypasses approval threshold', function () {
         'reference' => 'Admin transfer',
     ], $this->admin);
 
-    $response->assertStatus(201);
+    $response->assertCreated();
     $response->assertJsonPath('data.status', 'completed');
 });
 
@@ -98,7 +98,7 @@ test('manager bypasses approval threshold', function () {
         'reference' => 'Manager transfer',
     ], $this->manager);
 
-    $response->assertStatus(201);
+    $response->assertCreated();
     $response->assertJsonPath('data.status', 'completed');
 });
 
@@ -107,7 +107,7 @@ test('manager bypasses approval threshold', function () {
 test('insufficient funds returns 422', function () {
     $response = createInternalTransfer(['amount' => 999999, 'reference' => 'Big transfer']);
 
-    $response->assertStatus(422);
+    $response->assertUnprocessable();
     $response->assertJsonValidationErrors('amount');
 });
 
@@ -116,7 +116,7 @@ test('insufficient available funds due to locked balance returns 422', function 
 
     $response = createInternalTransfer(['amount' => 6000, 'reference' => 'Second attempt']);
 
-    $response->assertStatus(422);
+    $response->assertUnprocessable();
     $response->assertJsonValidationErrors('amount');
 });
 
@@ -134,7 +134,7 @@ test('cross-currency internal transfer returns 422', function () {
         'reference' => 'Cross-currency test',
     ]);
 
-    $response->assertStatus(422);
+    $response->assertUnprocessable();
     $response->assertJsonValidationErrors('receiver_wallet_id');
 });
 
@@ -183,7 +183,7 @@ test('double approval returns 409 conflict', function () {
             'action' => 'approve',
             'company_id' => $this->company->id,
         ])
-        ->assertStatus(409);
+        ->assertConflict();
 });
 
 test('member cannot review a transfer', function () {
@@ -195,7 +195,7 @@ test('member cannot review a transfer', function () {
             'action' => 'approve',
             'company_id' => $this->company->id,
         ])
-        ->assertStatus(403);
+        ->assertForbidden();
 });
 
 // ── Frozen Wallet Tests ──────────────────────────────────────────
@@ -205,7 +205,7 @@ test('frozen sender wallet returns 403', function () {
 
     $response = createInternalTransfer(['amount' => 500, 'reference' => 'Frozen sender test']);
 
-    $response->assertStatus(403);
+    $response->assertForbidden();
     expect($this->senderWallet->fresh()->balance)->toBe(20000.0);
 });
 
@@ -214,7 +214,7 @@ test('frozen receiver wallet returns 403', function () {
 
     $response = createInternalTransfer(['amount' => 500, 'reference' => 'Frozen receiver test']);
 
-    $response->assertStatus(403);
+    $response->assertForbidden();
     expect($this->senderWallet->fresh()->balance)->toBe(20000.0);
     expect($this->receiverWallet->fresh()->balance)->toBe(0.0);
 });
@@ -224,7 +224,7 @@ test('frozen sender wallet on external transfer returns 403', function () {
 
     $response = createExternalTransfer(['reference' => 'Frozen external test']);
 
-    $response->assertStatus(403);
+    $response->assertForbidden();
     expect($this->senderWallet->fresh()->balance)->toBe(20000.0);
 });
 
@@ -254,7 +254,7 @@ test('transfer rejected when daily limit exceeded', function () {
         'daily_transaction_limit' => 1000,
     ]);
 
-    createInternalTransfer(['amount' => 800, 'reference' => 'Under limit'])->assertStatus(201);
+    createInternalTransfer(['amount' => 800, 'reference' => 'Under limit'])->assertCreated();
 
     createInternalTransfer(['amount' => 300, 'reference' => 'Over limit'])
         ->assertUnprocessable()
@@ -267,11 +267,11 @@ test('transfer allowed when under daily limit', function () {
         'daily_transaction_limit' => 5000,
     ]);
 
-    createInternalTransfer(['amount' => 500, 'reference' => 'Under limit'])->assertStatus(201);
+    createInternalTransfer(['amount' => 500, 'reference' => 'Under limit'])->assertCreated();
 });
 
 test('transfer allowed when no daily limit is set', function () {
-    createInternalTransfer(['amount' => 9999, 'reference' => 'No limit set'])->assertStatus(201);
+    createInternalTransfer(['amount' => 9999, 'reference' => 'No limit set'])->assertCreated();
 });
 
 // ── Security Threshold Tests ─────────────────────────────────────
@@ -297,7 +297,7 @@ test('transfer above security threshold succeeds with password', function () {
         'amount' => 600,
         'reference' => 'With password',
         'password' => 'password',
-    ])->assertStatus(201);
+    ])->assertCreated();
 });
 
 test('transfer below security threshold needs no verification', function () {
@@ -306,11 +306,11 @@ test('transfer below security threshold needs no verification', function () {
         'security_threshold' => 500,
     ]);
 
-    createInternalTransfer(['amount' => 400, 'reference' => 'Below threshold'])->assertStatus(201);
+    createInternalTransfer(['amount' => 400, 'reference' => 'Below threshold'])->assertCreated();
 });
 
 test('transfer with no security threshold needs no verification', function () {
-    createInternalTransfer(['amount' => 9000, 'reference' => 'No threshold'])->assertStatus(201);
+    createInternalTransfer(['amount' => 9000, 'reference' => 'No threshold'])->assertCreated();
 });
 
 // ── Cancellation Tests ───────────────────────────────────────────
@@ -335,7 +335,7 @@ test('initiator can cancel a pending transfer', function () {
 test('non-initiator cannot cancel a transfer', function () {
     $groupId = createPendingTransfer(['reference' => 'Not yours to cancel']);
 
-    cancelTransfer($groupId, $this->manager)->assertStatus(403);
+    cancelTransfer($groupId, $this->manager)->assertForbidden();
 
     expect((float) $this->senderWallet->fresh()->locked_balance)->toBe(15000.0);
 });
@@ -345,7 +345,7 @@ test('cannot cancel an already reviewed transfer', function () {
 
     reviewTransfer($groupId, 'approve')->assertOk();
 
-    cancelTransfer($groupId)->assertStatus(409);
+    cancelTransfer($groupId)->assertConflict();
 });
 
 test('initiator with any role can cancel their own pending transfer', function () {
@@ -392,13 +392,13 @@ test('duplicate idempotency key returns cached response without creating duplica
         ->withHeaders(['Idempotency-Key' => $idempotencyKey])
         ->postJson(TRANSFERS_ENDPOINT, $payload);
 
-    $first->assertStatus(201);
+    $first->assertCreated();
 
     $second = test()->actingAs($this->member, 'sanctum')
         ->withHeaders(['Idempotency-Key' => $idempotencyKey])
         ->postJson(TRANSFERS_ENDPOINT, $payload);
 
-    $second->assertStatus(201);
+    $second->assertCreated();
     expect($second->json())->toBe($first->json());
 
     $transactionCount = Transaction::where('reference', 'Idempotent transfer')->count();
@@ -416,6 +416,6 @@ test('transfer without idempotency key returns 400', function () {
             'company_id' => $this->company->id,
         ]);
 
-    $response->assertStatus(400);
+    $response->assertBadRequest();
     $response->assertJsonPath('message', __('messages.idempotency_key_required'));
 });

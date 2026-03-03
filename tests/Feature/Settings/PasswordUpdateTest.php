@@ -33,6 +33,6 @@ test('correct password must be provided to update password', function () {
         ]);
 
     $response
-        ->assertStatus(422)
+        ->assertUnprocessable()
         ->assertJsonValidationErrors('current_password');
 });

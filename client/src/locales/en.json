@@ -332,7 +332,8 @@
             "confirmLimitChangeDescription": "Changing your daily transaction limit requires identity verification. Please enter your password or authentication code.",
             "authCode": "Authentication Code",
             "securityThreshold": "Security threshold",
-            "securityThresholdHint": "Transfers above this amount require identity verification. Must be lower than the daily limit."
+            "securityThresholdHint": "Transfers above this amount require identity verification. Must be lower than the daily limit.",
+            "thresholdExceedsLimit": "Security threshold must be lower than daily transaction limit"
         },
         "thresholds": {
             "title": "Transaction Thresholds",
