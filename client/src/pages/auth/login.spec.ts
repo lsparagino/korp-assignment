@@ -8,7 +8,6 @@ vi.mock('@/api/auth', () => ({
   login: vi.fn(),
 }))
 
-
 describe('login.vue', () => {
   it('renders email and password fields', () => {
     const wrapper = mountWithPlugins(LoginPage, {

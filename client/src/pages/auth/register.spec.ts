@@ -8,7 +8,6 @@ vi.mock('@/api/auth', () => ({
   register: vi.fn(),
 }))
 
-
 describe('register.vue', () => {
   it('renders all form fields', () => {
     const wrapper = mountWithPlugins(RegisterPage, {

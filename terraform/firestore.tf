@@ -58,14 +58,16 @@ resource "google_firestore_index" "company_tags_created" {
 # so even a compromised API cannot alter or remove historical logs.
 
 resource "google_project_iam_custom_role" "audit_writer" {
-  role_id     = "auditLogWriter"
-  title       = "Audit Log Writer"
+  role_id = "auditLogWriter"
+  title   = "Audit Log Writer"
   permissions = [
     "datastore.entities.create",
+    "datastore.entities.allocateIds",
     "datastore.entities.list",
     "datastore.entities.get",
     "datastore.indexes.list",
     "datastore.databases.get",
+    "datastore.databases.list",
   ]
 }
 

@@ -5,72 +5,72 @@ import { mountWithPlugins } from '@/test/setup'
 import TwoFactorChallengePage from './two-factor-challenge.vue'
 
 vi.mock('@/api/auth', () => ({
-    twoFactorChallenge: vi.fn(),
+  twoFactorChallenge: vi.fn(),
 }))
 
-function makeAuthState() {
-    return {
-        auth: {
-            user: null,
-            token: null,
-            twoFactorUserId: 42,
-        },
-        company: {
-            currentCompany: null,
-            companies: [],
-        },
-    }
+function makeAuthState () {
+  return {
+    auth: {
+      user: null,
+      token: null,
+      twoFactorUserId: 42,
+    },
+    company: {
+      currentCompany: null,
+      companies: [],
+    },
+  }
 }
 
 describe('two-factor-challenge.vue', () => {
-    it('renders OTP input by default', () => {
-        const wrapper = mountWithPlugins(TwoFactorChallengePage, {
-            piniaOptions: { initialState: makeAuthState() },
-        })
-
-        expect(wrapper.find('.v-otp-input').exists()).toBe(true)
+  it('renders OTP input by default', () => {
+    const wrapper = mountWithPlugins(TwoFactorChallengePage, {
+      piniaOptions: { initialState: makeAuthState() },
     })
 
-    it('renders continue button', () => {
-        const wrapper = mountWithPlugins(TwoFactorChallengePage, {
-            piniaOptions: { initialState: makeAuthState() },
-        })
+    expect(wrapper.find('.v-otp-input').exists()).toBe(true)
+  })
 
-        const buttons = wrapper.findAll('button[type="submit"]')
-        const continueBtn = buttons.find(b => b.text().includes(en.common.continue))
-        expect(continueBtn).toBeDefined()
+  it('renders continue button', () => {
+    const wrapper = mountWithPlugins(TwoFactorChallengePage, {
+      piniaOptions: { initialState: makeAuthState() },
     })
 
-    it('shows recovery code input after toggle', async () => {
-        const wrapper = mountWithPlugins(TwoFactorChallengePage, {
-            piniaOptions: { initialState: makeAuthState() },
-        })
+    const buttons = wrapper.findAll('button[type="submit"]')
+    const continueBtn = buttons.find(b => b.text().includes(en.common.continue))
+    expect(continueBtn).toBeDefined()
+  })
 
-        const toggleBtn = wrapper.findAll('button[type="button"]')
-            .find(b => b.text().includes(en.auth.twoFactor.useRecoveryCode))
-        expect(toggleBtn).toBeDefined()
-        await toggleBtn!.trigger('click')
-
-        expect(wrapper.find('.v-otp-input').exists()).toBe(false)
-        expect(wrapper.find('input').exists()).toBe(true)
+  it('shows recovery code input after toggle', async () => {
+    const wrapper = mountWithPlugins(TwoFactorChallengePage, {
+      piniaOptions: { initialState: makeAuthState() },
     })
 
-    it('calls twoFactorChallenge API on submit', async () => {
-        const { twoFactorChallenge } = await import('@/api/auth')
-        vi.mocked(twoFactorChallenge).mockResolvedValue({
-            data: {
-                access_token: 'jwt-token',
-                user: { id: 1, name: 'User', email: 'u@test.com', email_verified_at: '2024-01-01', role: 'member' },
-            },
-        } as any)
+    const toggleBtn = wrapper.findAll('button[type="button"]')
+      .find(b => b.text().includes(en.auth.twoFactor.useRecoveryCode))
+    expect(toggleBtn).toBeDefined()
+    await toggleBtn!.trigger('click')
 
-        const wrapper = mountWithPlugins(TwoFactorChallengePage, {
-            piniaOptions: { initialState: makeAuthState() },
-        })
+    expect(wrapper.find('.v-otp-input').exists()).toBe(false)
+    expect(wrapper.find('input').exists()).toBe(true)
+  })
 
-        await wrapper.find('form').trigger('submit.prevent')
-        await flushPromises()
+  it('calls twoFactorChallenge API on submit', async () => {
+    const { twoFactorChallenge } = await import('@/api/auth')
+    vi.mocked(twoFactorChallenge).mockResolvedValue({
+      data: {
+        access_token: 'jwt-token',
+        user: { id: 1, name: 'User', email: 'u@test.com', email_verified_at: '2024-01-01', role: 'member' },
+      },
+    } as any)
 
-        expect(twoFactorChallenge).toHaveBeenCalled()
+    const wrapper = mountWithPlugins(TwoFactorChallengePage, {
+      piniaOptions: { initialState: makeAuthState() },
     })
+
+    await wrapper.find('form').trigger('submit.prevent')
+    await flushPromises()
+
+    expect(twoFactorChallenge).toHaveBeenCalled()
+  })
 })

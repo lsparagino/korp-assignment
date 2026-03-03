@@ -9,7 +9,6 @@ use App\Models\CompanySetting;
 use App\Models\Transaction;
 use App\Models\User;
 use App\Models\Wallet;
-use Illuminate\Support\Facades\Log;
 
 class DashboardService
 {

@@ -2,12 +2,26 @@
 
 namespace Database\Seeders;
 
+use App\Enums\WalletCurrency;
 use App\Models\User;
 use App\Models\Wallet;
 use Illuminate\Database\Seeder;
 
 class WalletSeeder extends Seeder
 {
+    /**
+     * Wallets to seed, each with a specific name and currency.
+     *
+     * @var array<string, WalletCurrency>
+     */
+    private const WALLETS = [
+        'Savings' => WalletCurrency::USD,
+        'Business' => WalletCurrency::USD,
+        'Offshore' => WalletCurrency::EUR,
+        'Person A' => WalletCurrency::EUR,
+        'Person B' => WalletCurrency::GBP,
+    ];
+
     /**
      * Run the database seeds.
      */
@@ -18,12 +32,11 @@ class WalletSeeder extends Seeder
             'email' => 'test@example.com',
         ]);
 
-        $names = ['Savings', 'Offshore', 'Business', 'Person A', 'Person B'];
-
-        foreach ($names as $name) {
+        foreach (self::WALLETS as $name => $currency) {
             Wallet::factory()->create([
                 'user_id' => $user->id,
                 'name' => $name,
+                'currency' => $currency,
             ]);
         }
     }

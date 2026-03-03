@@ -65,9 +65,9 @@ class AppServiceProvider extends ServiceProvider
     {
         Date::use(CarbonImmutable::class);
 
-        DB::prohibitDestructiveCommands(
-            app()->isProduction(),
-        );
+        // Destructive commands (migrate:fresh, db:wipe) are allowed
+        // because this is a demo environment that requires full reseeding.
+        DB::prohibitDestructiveCommands(false);
 
         Password::defaults(fn (): ?Password => app()->isProduction()
             ? Password::min(12)

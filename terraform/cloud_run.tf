@@ -8,7 +8,7 @@ resource "google_cloud_run_service" "backend" {
       timeout_seconds = 600
       containers {
         image = "${var.region}-docker.pkg.dev/${var.project_id}/${google_artifact_registry_repository.registry.repository_id}/api:${var.api_image_tag}"
-        
+
         startup_probe {
           initial_delay_seconds = 60
           timeout_seconds       = 5
@@ -74,6 +74,10 @@ resource "google_cloud_run_service" "backend" {
           }
         }
         env {
+          name  = "MAIL_MAILER"
+          value = "smtp"
+        }
+        env {
           name  = "MAIL_HOST"
           value = var.mail_host
         }
@@ -126,10 +130,10 @@ resource "google_cloud_run_service" "backend" {
 
     metadata {
       annotations = {
-        "run.googleapis.com/vpc-access-connector" = google_vpc_access_connector.connector.name
-        "run.googleapis.com/vpc-access-egress"    = "private-ranges-only"
+        "run.googleapis.com/vpc-access-connector"  = google_vpc_access_connector.connector.name
+        "run.googleapis.com/vpc-access-egress"     = "private-ranges-only"
         "run.googleapis.com/execution-environment" = "gen2"
-        "run.googleapis.com/cpu-throttling"       = "true"
+        "run.googleapis.com/cpu-throttling"        = "true"
         "autoscaling.knative.dev/minScale"         = "0"
         "autoscaling.knative.dev/maxScale"         = "2"
       }
