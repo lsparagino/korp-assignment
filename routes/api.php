@@ -111,5 +111,6 @@ if (app()->environment('testing')) {
         Route::post('/create-second-company', [App\Http\Controllers\Api\TestingController::class, 'createSecondCompany']);
         Route::post('/create-wallet', [App\Http\Controllers\Api\TestingController::class, 'createWallet']);
         Route::post('/create-transactions', [App\Http\Controllers\Api\TestingController::class, 'createTransactions']);
+        Route::post('/set-user-preferences', [App\Http\Controllers\Api\TestingController::class, 'setUserPreferences']);
     });
 }

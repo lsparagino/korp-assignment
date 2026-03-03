@@ -7,6 +7,7 @@ use App\Enums\WalletStatus;
 use App\Models\Company;
 use App\Models\Transaction;
 use App\Models\User;
+use App\Models\UserSetting;
 use App\Models\Wallet;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -184,5 +185,31 @@ class TestingController
             ]);
 
         return response()->json(['count' => $transactions->count()]);
+    }
+
+    public function setUserPreferences(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'email' => 'required|email|exists:users,email',
+            'daily_transaction_limit' => 'sometimes|nullable|numeric|min:0',
+            'security_threshold' => 'sometimes|nullable|numeric|min:0',
+        ]);
+
+        $user = User::where('email', $validated['email'])->firstOrFail();
+
+        $prefs = UserSetting::firstOrNew([
+            'user_id' => $user->id,
+        ]);
+
+        if (array_key_exists('daily_transaction_limit', $validated)) {
+            $prefs->daily_transaction_limit = $validated['daily_transaction_limit'];
+        }
+        if (array_key_exists('security_threshold', $validated)) {
+            $prefs->security_threshold = $validated['security_threshold'];
+        }
+
+        $prefs->save();
+
+        return response()->json(['preferences' => $prefs]);
     }
 }

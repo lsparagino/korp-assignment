@@ -2,7 +2,7 @@ import { request } from '@playwright/test'
 
 const API_BASE = 'http://127.0.0.1:8001/api/v0'
 
-export async function resetDatabase () {
+export async function resetDatabase() {
   const ctx = await request.newContext()
   const response = await ctx.post(`${API_BASE}/test/reset-database`)
   if (!response.ok()) {
@@ -11,7 +11,7 @@ export async function resetDatabase () {
   await ctx.dispose()
 }
 
-export async function createUser (attrs: {
+export async function createUser(attrs: {
   name: string
   email: string
   password?: string
@@ -28,7 +28,7 @@ export async function createUser (attrs: {
   return data as { user: Record<string, unknown>, token: string }
 }
 
-export async function loginViaApi (email: string, password: string) {
+export async function loginViaApi(email: string, password: string) {
   const ctx = await request.newContext()
   const response = await ctx.post(`${API_BASE}/test/login`, {
     data: { email, password },
@@ -45,7 +45,7 @@ export async function loginViaApi (email: string, password: string) {
   }
 }
 
-export async function createPasswordResetToken (email: string) {
+export async function createPasswordResetToken(email: string) {
   const ctx = await request.newContext()
   const response = await ctx.post(`${API_BASE}/test/create-password-reset-token`, {
     data: { email },
@@ -58,7 +58,7 @@ export async function createPasswordResetToken (email: string) {
   return data as { token: string, email: string }
 }
 
-export async function createSecondCompany (email: string, companyName?: string) {
+export async function createSecondCompany(email: string, companyName?: string) {
   const ctx = await request.newContext()
   const response = await ctx.post(`${API_BASE}/test/create-second-company`, {
     data: { email, company_name: companyName },
@@ -71,7 +71,7 @@ export async function createSecondCompany (email: string, companyName?: string) 
   return data as { company: { id: number, name: string } }
 }
 
-export async function createWallet (attrs: {
+export async function createWallet(attrs: {
   email: string
   name?: string
   currency?: string
@@ -87,7 +87,7 @@ export async function createWallet (attrs: {
   return data as { wallet: Record<string, unknown> }
 }
 
-export async function createTransactions (attrs: {
+export async function createTransactions(attrs: {
   email: string
   count: number
 }) {
@@ -99,4 +99,19 @@ export async function createTransactions (attrs: {
   const data = await response.json()
   await ctx.dispose()
   return data as { count: number }
+}
+
+export async function setUserPreferences(attrs: {
+  email: string
+  daily_transaction_limit?: number | null
+  security_threshold?: number | null
+}) {
+  const ctx = await request.newContext()
+  const response = await ctx.post(`${API_BASE}/test/set-user-preferences`, { data: attrs })
+  if (!response.ok()) {
+    throw new Error(`Failed to set preferences: ${response.status()} ${await response.text()}`)
+  }
+  const data = await response.json()
+  await ctx.dispose()
+  return data as { preferences: Record<string, unknown> }
 }

@@ -2,7 +2,7 @@ import { createRequire } from 'node:module'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { expect, type Page, test } from '@playwright/test'
-import { createWallet, loginViaApi } from './helpers/api'
+import { createWallet, loginViaApi, setUserPreferences } from './helpers/api'
 import { authenticatedPage } from './helpers/auth'
 import { setNativeTextareaValue } from './helpers/dom'
 
@@ -16,7 +16,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 /**
  * Navigate to the transfer creation page.
  */
-async function goToCreateTransfer (page: Page) {
+async function goToCreateTransfer(page: Page) {
   await page.goto('/transactions/create')
   await expect(page.getByTestId('transfer-type-toggle')).toBeVisible({ timeout: 10_000 })
 }
@@ -27,7 +27,7 @@ async function goToCreateTransfer (page: Page) {
  * The wallet data loads asynchronously via useQuery, so the dropdown may
  * briefly contain no items. This helper retries up to 3 times to handle that.
  */
-async function selectFirstAvailableWallet (page: Page, testId: string) {
+async function selectFirstAvailableWallet(page: Page, testId: string) {
   const select = page.getByTestId(testId)
 
   for (let attempt = 0; attempt < 3; attempt++) {
@@ -57,7 +57,7 @@ async function selectFirstAvailableWallet (page: Page, testId: string) {
 /**
  * Fill the internal transfer form (sender, receiver, amount, reference).
  */
-async function fillInternalTransfer (page: Page, amount: string, reference: string) {
+async function fillInternalTransfer(page: Page, amount: string, reference: string) {
   await selectFirstAvailableWallet(page, 'transfer-sender-wallet')
   await selectFirstAvailableWallet(page, 'transfer-receiver-wallet')
 
@@ -68,7 +68,7 @@ async function fillInternalTransfer (page: Page, amount: string, reference: stri
 /**
  * Complete the 2-step transfer flow: review → confirm.
  */
-async function submitTransfer (page: Page) {
+async function submitTransfer(page: Page) {
   await page.getByTestId('transfer-submit-btn').click()
   await expect(page.getByTestId('transfer-recap')).toBeVisible({ timeout: 10_000 })
   await page.getByTestId('transfer-confirm-btn').click()
@@ -224,14 +224,14 @@ test.describe('Transfer Approval Flow', () => {
     await page.getByTestId('transfer-amount').locator('input').fill('999999999')
     await page.getByTestId('transfer-reference').locator('input').fill('Should fail')
 
-    // Trigger validation by blurring the amount field
-    await page.getByTestId('transfer-amount').locator('input').blur()
+    // Trigger validation by clicking submit
+    await page.getByTestId('transfer-submit-btn').click()
 
-    // The insufficient funds error should be visible
+    // Should NOT proceed to recap — validation blocks it
+    await expect(page.getByTestId('transfer-recap')).not.toBeVisible()
+
+    // The insufficient funds error should still be visible
     await expect(page.getByTestId('transfer-amount')).toContainText(en.validation.insufficientFunds, { timeout: 5000 })
-
-    // Submit button should be disabled
-    await expect(page.getByTestId('transfer-submit-btn')).toBeDisabled()
 
     await page.context().close()
   })
@@ -325,6 +325,49 @@ test.describe('Transfer Approval Flow', () => {
     await expect(confirmRejectBtn).toBeEnabled({ timeout: 5000 })
     await confirmRejectBtn.click()
     await expect(confirmRejectBtn).not.toBeVisible({ timeout: 10_000 })
+
+    await page.context().close()
+  })
+
+  // ===========================================================
+  // 8. Error recovery: submit button enabled after server 422
+  //    and error clears when editing a field
+  // ===========================================================
+  test('submit button stays enabled after server error and error clears on edit', async ({ browser }) => {
+    // Set a daily transaction limit of $10,000 for the member.
+    // Previous serial tests already used ~$10,500 ($500 + $5000 + $5000),
+    // so even a small transfer should exceed the limit.
+    await setUserPreferences({
+      email: 'member@example.com',
+      daily_transaction_limit: 10_000,
+    })
+
+    const member = await loginViaApi('member@example.com', 'password')
+    const page = await authenticatedPage(browser, member)
+
+    await goToCreateTransfer(page)
+    await fillInternalTransfer(page, '5000', 'Will exceed daily limit')
+
+    // Submit and confirm
+    await page.getByTestId('transfer-submit-btn').click()
+    await expect(page.getByTestId('transfer-recap')).toBeVisible({ timeout: 10_000 })
+    await page.getByTestId('transfer-confirm-btn').click()
+
+    // Should come back to form with an error (server 422)
+    await expect(page.getByTestId('transfer-submit-btn')).toBeVisible({ timeout: 15_000 })
+
+    // Submit button should still be clickable (not disabled)
+    await expect(page.getByTestId('transfer-submit-btn')).toBeEnabled()
+
+    // Edit the amount — this should clear server errors
+    await page.getByTestId('transfer-amount').locator('input').clear()
+    await page.getByTestId('transfer-amount').locator('input').fill('50')
+
+    // Wait for reactive error clearing
+    await page.waitForTimeout(500)
+
+    // The api error alert should not be visible
+    await expect(page.getByTestId('transfer-api-error')).not.toBeVisible({ timeout: 5000 })
 
     await page.context().close()
   })

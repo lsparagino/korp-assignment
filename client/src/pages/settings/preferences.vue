@@ -201,14 +201,14 @@ const { processing, recentlySuccessful, submit } = useFormSubmit({
 
             <v-row>
               <v-col cols="12" sm="6">
-                <v-text-field v-model="form.daily_transaction_limit" density="comfortable" hide-details="auto"
-                  :hint="$t('settings.preferences.dailyTransactionLimitHint')"
+                <v-text-field v-model="form.daily_transaction_limit" data-testid="daily-limit-input"
+                  density="comfortable" hide-details="auto" :hint="$t('settings.preferences.dailyTransactionLimitHint')"
                   :label="$t('settings.preferences.dailyTransactionLimit')" min="0" persistent-hint :rules="limitRules"
                   type="number" variant="outlined" />
               </v-col>
               <v-col cols="12" sm="6">
-                <v-text-field v-model="form.security_threshold" density="comfortable" hide-details="auto"
-                  :hint="$t('settings.preferences.securityThresholdHint')"
+                <v-text-field v-model="form.security_threshold" data-testid="security-threshold-input"
+                  density="comfortable" hide-details="auto" :hint="$t('settings.preferences.securityThresholdHint')"
                   :label="$t('settings.preferences.securityThreshold')" min="0" persistent-hint :rules="thresholdRules"
                   type="number" variant="outlined" />
               </v-col>
@@ -217,8 +217,8 @@ const { processing, recentlySuccessful, submit } = useFormSubmit({
 
           <!-- Submit -->
           <div class="d-flex align-center ga-4 mt-2">
-            <v-btn class="text-none font-weight-bold" color="primary" :loading="processing" type="submit"
-              variant="flat">
+            <v-btn class="text-none font-weight-bold" color="primary" data-testid="preferences-save-btn"
+              :loading="processing" type="submit" variant="flat">
               {{ $t('common.save') }}
             </v-btn>
 
