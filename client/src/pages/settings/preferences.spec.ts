@@ -1,7 +1,7 @@
 import { flushPromises } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
 import en from '@/locales/en.json'
-import { makeEmptyAuthState, mountWithPlugins } from '@/test/setup'
+import { mountWithPlugins } from '@/test/setup'
 import PreferencesPage from './preferences.vue'
 
 vi.mock('@/api/settings', () => ({
@@ -9,7 +9,7 @@ vi.mock('@/api/settings', () => ({
   updateUserPreferences: vi.fn(),
 }))
 
-function makeAdminState () {
+function makeAdminState() {
   return {
     auth: {
       user: { id: 1, name: 'Admin', email: 'admin@test.com', email_verified_at: '2024-01-01', role: 'admin' },
@@ -26,7 +26,7 @@ function makeAdminState () {
   }
 }
 
-function makePreferencesResponse () {
+function makePreferencesResponse() {
   return {
     data: {
       data: {

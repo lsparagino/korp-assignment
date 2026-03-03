@@ -90,7 +90,7 @@ test.describe('Authorization - Member Role', () => {
     // Create a wallet assigned to the member for this test
     const { wallet } = await createWallet({ email: 'member@example.com', name: 'Member Test Wallet' })
 
-    await page.goto(`/wallets/${wallet.id}`)
+    await page.goto(`/wallets/${wallet.id.toString()}`)
     await expect(page.getByTestId('page-heading')).toBeVisible({ timeout: 10_000 })
 
     // Should NOT see edit form inputs or management actions
@@ -104,7 +104,7 @@ test.describe('Authorization - Member Role', () => {
   test('can see wallet balance and transactions on detail page', async ({ page }) => {
     const { wallet } = await createWallet({ email: 'member@example.com', name: 'Member Balance Wallet', balance: 5000 })
 
-    await page.goto(`/wallets/${wallet.id}`)
+    await page.goto(`/wallets/${wallet.id.toString()}`)
     await expect(page.getByTestId('page-heading')).toBeVisible({ timeout: 10_000 })
 
     // Member should see the balance card
