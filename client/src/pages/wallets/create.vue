@@ -23,7 +23,7 @@
       const { data } = await fetchCurrencies()
       currencies.value = data
     } catch {
-      // Fallback handled by empty array
+    // Fallback handled by empty array
     }
   })
 
@@ -79,11 +79,7 @@
               variant="outlined"
             >
               <template #prepend-inner>
-                <v-icon
-                  color="grey-darken-1"
-                  :icon="Wallet"
-                  size="20"
-                />
+                <v-icon color="grey-darken-1" :icon="Wallet" size="20" />
               </template>
             </v-text-field>
 

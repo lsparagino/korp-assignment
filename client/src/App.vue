@@ -1,15 +1,16 @@
 <script lang="ts" setup>
-import { PiniaColadaDevtools } from '@pinia/colada-devtools'
-import AppNotification from '@/components/ui/AppNotification.vue'
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+  import { PiniaColadaDevtools } from '@pinia/colada-devtools'
+  import { ref } from 'vue'
+  import { useRouter } from 'vue-router'
+  import AppNotification from '@/components/ui/AppNotification.vue'
 
-const loading = ref(true)
-const router = useRouter()
+  const loading = ref(true)
+  const router = useRouter()
+  const showDevtools = import.meta.env.MODE !== 'e2e'
 
-router.isReady().then(() => {
-  loading.value = false
-})
+  router.isReady().then(() => {
+    loading.value = false
+  })
 </script>
 
 <template>
@@ -21,6 +22,6 @@ router.isReady().then(() => {
   <template v-else>
     <router-view />
     <AppNotification />
-    <PiniaColadaDevtools />
+    <PiniaColadaDevtools v-if="showDevtools" />
   </template>
 </template>

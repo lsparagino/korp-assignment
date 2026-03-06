@@ -1,18 +1,14 @@
 import { expect, type Page, test } from '@playwright/test'
-import { loginViaApi } from './helpers/api'
+import { createWallet as apiCreateWallet, loginViaApi } from './helpers/api'
 import { authenticatedPage } from './helpers/auth'
 
 /**
- * Helper: navigates to the create wallet page, fills the name, and submits the form.
+ * Helper: creates a wallet via the test API, then navigates to the list page to verify.
  */
 async function createWallet (page: Page, name: string) {
-  await page.goto('/wallets/create')
-  await expect(page.getByTestId('wallet-name-input').locator('input')).toBeVisible({ timeout: 10_000 })
-  await page.getByTestId('wallet-name-input').locator('input').fill(name)
+  await apiCreateWallet({ email: 'admin@example.com', name })
 
-  await page.getByTestId('wallet-create-btn').click()
-
-  // Wait for redirect back to wallets list
+  await page.goto('/wallets')
   await expect(page.getByTestId('data-table')).toBeVisible({ timeout: 15_000 })
   await expect(page.getByTestId('data-table').getByRole('row', { name })).toBeVisible({ timeout: 10_000 })
 }

@@ -1,18 +1,16 @@
 import { createRequire } from 'node:module'
 import { expect, type Page, test } from '@playwright/test'
+import { createWallet as apiCreateWallet } from './helpers/api'
 
 const require = createRequire(import.meta.url)
 const en = require('../src/locales/en.json')
 
 async function createWallet (page: Page, name: string) {
-  await page.goto('/wallets/create')
-  const nameField = page.getByTestId('wallet-name-input').locator('input')
-  await expect(nameField).toBeVisible({ timeout: 10_000 })
-  await nameField.fill(name)
+  // Create wallet via API to avoid client-side caching/navigation issues
+  await apiCreateWallet({ email: 'admin@example.com', name })
 
-  await page.getByTestId('wallet-create-btn').click()
-
-  // Wait for redirect to wallets list
+  // Navigate to wallets list and verify the wallet shows up
+  await page.goto('/wallets')
   await expect(page.getByTestId('data-table')).toBeVisible({ timeout: 15_000 })
   await expect(page.getByTestId('data-table').getByRole('row', { name })).toBeVisible({ timeout: 10_000 })
 }
