@@ -24,6 +24,8 @@ class TransactionFilterTest extends TestCase
 
     private const MID_DATE = '2025-01-15 10:00:00';
 
+    private const MID_DATE_ONLY = '2025-01-15';
+
     private User $user;
 
     private Wallet $wallet;
@@ -159,7 +161,7 @@ class TransactionFilterTest extends TestCase
         $this->createTransaction(['created_at' => self::BASE_DATE]);
         $this->createTransaction(['created_at' => self::SECOND_DATE]);
 
-        $response = $this->fetchTransactions(['date_from' => '2025-01-15', 'tz' => 'UTC']);
+        $response = $this->fetchTransactions(['date_from' => self::MID_DATE_ONLY, 'tz' => 'UTC']);
 
         $response->assertOk()->assertJsonCount(1, 'data');
         $this->assertEquals(
@@ -173,7 +175,7 @@ class TransactionFilterTest extends TestCase
         $this->createTransaction(['created_at' => self::BASE_DATE]);
         $this->createTransaction(['created_at' => self::SECOND_DATE]);
 
-        $response = $this->fetchTransactions(['date_to' => '2025-01-15', 'tz' => 'UTC']);
+        $response = $this->fetchTransactions(['date_to' => self::MID_DATE_ONLY, 'tz' => 'UTC']);
 
         $response->assertOk()->assertJsonCount(1, 'data');
         $this->assertEquals(
@@ -205,7 +207,7 @@ class TransactionFilterTest extends TestCase
         $this->createTransaction(['created_at' => '2025-01-15 06:00:00']);
 
         // date_from=2025-01-15 in America/New_York means >= 2025-01-15 05:00:00 UTC
-        $response = $this->fetchTransactions(['date_from' => '2025-01-15', 'tz' => 'America/New_York']);
+        $response = $this->fetchTransactions(['date_from' => self::MID_DATE_ONLY, 'tz' => 'America/New_York']);
 
         $response->assertOk()->assertJsonCount(1, 'data');
         $this->assertEquals(
@@ -222,7 +224,7 @@ class TransactionFilterTest extends TestCase
         $this->createTransaction(['created_at' => '2025-01-16 06:00:00']);
 
         // date_to=2025-01-15 in America/New_York means <= 2025-01-16 04:59:59 UTC
-        $response = $this->fetchTransactions(['date_to' => '2025-01-15', 'tz' => 'America/New_York']);
+        $response = $this->fetchTransactions(['date_to' => self::MID_DATE_ONLY, 'tz' => 'America/New_York']);
 
         $response->assertOk()->assertJsonCount(1, 'data');
         $this->assertEquals(
@@ -233,7 +235,7 @@ class TransactionFilterTest extends TestCase
 
     public function test_tz_is_required_when_date_filter_is_present(): void
     {
-        $response = $this->fetchTransactions(['date_from' => '2025-01-15']);
+        $response = $this->fetchTransactions(['date_from' => self::MID_DATE_ONLY]);
 
         $response->assertUnprocessable()->assertJsonValidationErrors(['tz']);
     }

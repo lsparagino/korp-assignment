@@ -1,8 +1,8 @@
-import type { Wallet } from '@/api/wallets'
+import type { TransferTarget, Wallet } from '@/api/wallets'
 import type { PaginationMeta } from '@/composables/useUrlPagination'
 import { defineQuery, defineQueryOptions, useQuery } from '@pinia/colada'
 import { computed, ref } from 'vue'
-import { fetchWallet, fetchWallets } from '@/api/wallets'
+import { fetchTransferTargets, fetchWallet, fetchWallets } from '@/api/wallets'
 
 interface WalletsQueryParams {
   page: number
@@ -15,6 +15,7 @@ export const WALLET_QUERY_KEYS = {
   root: ['wallets'] as const,
   list: (params: WalletsQueryParams) => [...WALLET_QUERY_KEYS.root, params] as const,
   byId: (id: string | number) => [...WALLET_QUERY_KEYS.root, String(id)] as const,
+  transferTargets: ['wallets', 'transfer-targets'] as const,
 }
 
 export const walletsListQuery = defineQueryOptions(
@@ -22,6 +23,16 @@ export const walletsListQuery = defineQueryOptions(
     key: WALLET_QUERY_KEYS.list(params),
     query: async (): Promise<{ data: Wallet[], meta: PaginationMeta }> => {
       const response = await fetchWallets({ page: params.page, per_page: params.perPage })
+      return response.data
+    },
+  }),
+)
+
+export const transferTargetsQuery = defineQueryOptions(
+  () => ({
+    key: WALLET_QUERY_KEYS.transferTargets,
+    query: async (): Promise<{ data: TransferTarget[] }> => {
+      const response = await fetchTransferTargets()
       return response.data
     },
   }),

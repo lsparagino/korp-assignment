@@ -54,6 +54,7 @@ return [
     'transfer_cancelled' => 'Transfer cancelled successfully.',
     'transfer_not_pending' => 'This transaction is not pending approval.',
     'daily_limit_exceeded' => 'This transfer would exceed your daily transaction limit.',
+    'frozen_wallet_transfer' => 'Cannot complete transfer: one or more wallets involved are frozen.',
     'idempotency_key_required' => 'A valid Idempotency-Key header is required.',
 
     // Notifications

@@ -1,7 +1,7 @@
 <script lang="ts" setup>
   import type { AddressBookEntry } from '@/api/address-book'
   import type { TransferForm } from '@/api/transactions'
-  import type { Wallet } from '@/api/wallets'
+  import type { TransferTarget, Wallet } from '@/api/wallets'
   import { useQuery, useQueryCache } from '@pinia/colada'
   import { computed, onMounted, ref, watch } from 'vue'
   import { useI18n } from 'vue-i18n'
@@ -15,7 +15,7 @@
   import { useIdentityConfirm } from '@/composables/useIdentityConfirm'
   import { useValidationRules } from '@/composables/useValidationRules'
   import { TRANSACTION_QUERY_KEYS } from '@/queries/transactions'
-  import { WALLET_QUERY_KEYS, walletsListQuery } from '@/queries/wallets'
+  import { transferTargetsQuery, WALLET_QUERY_KEYS, walletsListQuery } from '@/queries/wallets'
   import { useAuthStore } from '@/stores/auth'
   import { getValidationErrors, isApiError } from '@/utils/errors'
   import { formatCurrency, getCurrencySymbol } from '@/utils/formatters'
@@ -56,12 +56,15 @@
   )
   const wallets = computed<Wallet[]>(() => walletsData.value?.data ?? [])
 
+  const { data: transferTargetsData } = useQuery(transferTargetsQuery, () => ({}))
+  const transferTargets = computed<TransferTarget[]>(() => transferTargetsData.value?.data ?? [])
+
   const selectedWallet = computed(() =>
     wallets.value.find(w => w.id === form.value.sender_wallet_id),
   )
 
   const receiverWallet = computed(() =>
-    wallets.value.find(w => w.id === form.value.receiver_wallet_id),
+    transferTargets.value.find(w => w.id === form.value.receiver_wallet_id),
   )
 
   const currencySymbol = computed(() =>
@@ -76,7 +79,7 @@
   )
 
   const receiverWalletOptions = computed(() =>
-    wallets.value
+    transferTargets.value
       .filter(w =>
         w.id !== form.value.sender_wallet_id
         && (!selectedWallet.value || w.currency === selectedWallet.value.currency),
@@ -216,9 +219,12 @@
     apiError.value = ''
     try {
       await initiateTransfer({ ...form.value, ...extraFields }, idempotencyKey.value)
-      await queryCache.invalidateQueries({ key: WALLET_QUERY_KEYS.root })
-      await queryCache.invalidateQueries({ key: TRANSACTION_QUERY_KEYS.root })
+      // Transfer succeeded — redirect first, then refresh caches in the background.
+      // Cache invalidation is fire-and-forget: a failure (e.g. database lock) must not
+      // prevent navigation or show an error for an already-completed transfer.
       router.push('/transactions/')
+      queryCache.invalidateQueries({ key: WALLET_QUERY_KEYS.root }).catch(() => {})
+      queryCache.invalidateQueries({ key: TRANSACTION_QUERY_KEYS.root }).catch(() => {})
     } catch (error: unknown) {
       if (isApiError(error, 422)) {
         errors.value = getValidationErrors(error)
@@ -420,7 +426,7 @@
                         >🔒
                           Frozen</v-chip>
                       </span>
-                      <span v-if="!item.raw.disabled" class="text-grey text-body-2">
+                      <span v-if="!item.raw.disabled && item.raw.is_own" class="text-grey text-body-2">
                         {{ formatCurrency(Number(item.raw.available_balance), item.raw.currency) }}
                       </span>
                     </div>
@@ -428,8 +434,9 @@
                 </v-list-item>
               </template>
               <template #selection="{ item }">
-                <span v-if="item.raw.name">{{ item.raw.name }} ({{ formatCurrency(Number(item.raw.available_balance),
-                                                                                  item.raw.currency) }})</span>
+                <span v-if="item.raw.name && item.raw.is_own">{{ item.raw.name }} ({{ formatCurrency(Number(item.raw.available_balance),
+                                                                                                     item.raw.currency) }})</span>
+                <span v-else-if="item.raw.name">{{ item.raw.name }}</span>
               </template>
             </v-select>
           </template>

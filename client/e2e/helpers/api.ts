@@ -115,3 +115,16 @@ export async function setUserPreferences (attrs: {
   await ctx.dispose()
   return data as { preferences: Record<string, unknown> }
 }
+
+export async function toggleWalletFreeze (walletName: string) {
+  const ctx = await request.newContext()
+  const response = await ctx.post(`${API_BASE}/test/toggle-wallet-freeze`, {
+    data: { wallet_name: walletName },
+  })
+  if (!response.ok()) {
+    throw new Error(`Failed to toggle wallet freeze: ${response.status()} ${await response.text()}`)
+  }
+  const data = await response.json()
+  await ctx.dispose()
+  return data as { wallet: Record<string, unknown> }
+}

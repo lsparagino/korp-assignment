@@ -28,6 +28,11 @@ class WalletController extends Controller
         return $this->walletService->listForUser($request->user(), $request->company_id, $perPage);
     }
 
+    public function transferTargets(Request $request): AnonymousResourceCollection
+    {
+        return $this->walletService->listTransferTargets($request->user(), $request->company_id);
+    }
+
     public function store(StoreWalletRequest $request): WalletResource
     {
         $this->authorize('create', Wallet::class);

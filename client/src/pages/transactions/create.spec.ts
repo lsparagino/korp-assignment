@@ -30,10 +30,14 @@ const mockWallets = [
 ]
 
 vi.mock('@/queries/wallets', () => ({
-  WALLET_QUERY_KEYS: { root: ['wallets'], list: vi.fn(), byId: vi.fn() },
+  WALLET_QUERY_KEYS: { root: ['wallets'], list: vi.fn(), byId: vi.fn(), transferTargets: ['wallets', 'transfer-targets'] },
   walletsListQuery: () => ({
     key: ['wallets', { page: 1, perPage: 500 }],
     query: async () => ({ data: mockWallets, meta: { current_page: 1, last_page: 1, per_page: 500, total: 2, from: 1, to: 2 } }),
+  }),
+  transferTargetsQuery: () => ({
+    key: ['wallets', 'transfer-targets'],
+    query: async () => ({ data: mockWallets.map(w => ({ ...w, is_own: true })) }),
   }),
   useWalletList: vi.fn(),
   walletByIdQuery: vi.fn(),

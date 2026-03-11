@@ -2,7 +2,7 @@ import { createRequire } from 'node:module'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { expect, type Page, test } from '@playwright/test'
-import { createWallet, loginViaApi, setUserPreferences } from './helpers/api'
+import { createWallet, loginViaApi, setUserPreferences, toggleWalletFreeze } from './helpers/api'
 import { authenticatedPage } from './helpers/auth'
 import { setNativeTextareaValue } from './helpers/dom'
 
@@ -49,6 +49,33 @@ async function selectFirstAvailableWallet (page: Page, testId: string) {
   // Final attempt — fail loudly if no items.
   await select.click()
   const option = page.getByRole('option').first()
+  await expect(option).toBeVisible({ timeout: 10_000 })
+  await option.click()
+  await expect(page.locator('.v-overlay--active')).not.toBeVisible({ timeout: 3000 })
+}
+
+/**
+ * Select a specific wallet by name from a v-select dropdown.
+ */
+async function selectWalletByName (page: Page, testId: string, walletName: string) {
+  const select = page.getByTestId(testId)
+
+  for (let attempt = 0; attempt < 3; attempt++) {
+    await select.click()
+    try {
+      const option = page.getByRole('option', { name: walletName })
+      await expect(option).toBeVisible({ timeout: 3000 })
+      await option.click()
+      await expect(page.locator('.v-overlay--active')).not.toBeVisible({ timeout: 3000 })
+      return
+    } catch {
+      await page.keyboard.press('Escape')
+      await expect(page.locator('.v-overlay--active')).not.toBeVisible({ timeout: 3000 })
+    }
+  }
+
+  await select.click()
+  const option = page.getByRole('option', { name: walletName })
   await expect(option).toBeVisible({ timeout: 10_000 })
   await option.click()
   await expect(page.locator('.v-overlay--active')).not.toBeVisible({ timeout: 3000 })
@@ -369,6 +396,100 @@ test.describe('Transfer Approval Flow', () => {
     // The api error alert should not be visible
     await expect(page.getByTestId('transfer-api-error')).not.toBeVisible({ timeout: 5000 })
 
+    await page.context().close()
+  })
+})
+
+// ── Independent Tests (no serial dependency) ─────────────────────
+
+test.describe('Frozen Wallet Approval Error', () => {
+  test('approving a frozen wallet transfer shows specific error, not generic', async ({ browser }) => {
+    // Setup: create EUR wallets, EUR threshold, and a pending transfer
+    await createWallet({ email: 'member@example.com', name: 'FrozenTestSender', currency: 'EUR', balance: 50_000 })
+    await createWallet({ email: 'member@example.com', name: 'FrozenTestReceiver', currency: 'EUR', balance: 0 })
+
+    // Create EUR threshold as admin
+    const admin = await loginViaApi('admin@example.com', 'password')
+    const adminPage = await authenticatedPage(browser, admin)
+    await adminPage.goto('/settings/thresholds')
+    await expect(adminPage.getByTestId('data-table')).toBeVisible({ timeout: 10_000 })
+    await adminPage.getByTestId('add-threshold-btn').click()
+    const dialog = adminPage.getByTestId('threshold-dialog')
+    await expect(dialog).toBeVisible({ timeout: 5000 })
+    await adminPage.getByTestId('threshold-currency-select').click()
+    await adminPage.getByRole('option', { name: 'EUR' }).click()
+    await adminPage.getByTestId('threshold-amount-input').locator('input').fill('1000')
+    await adminPage.getByTestId('threshold-save-btn').click()
+    await expect(dialog).not.toBeVisible({ timeout: 10_000 })
+    await adminPage.context().close()
+
+    // Clear any daily transaction limit set by earlier tests
+    await setUserPreferences({
+      email: 'member@example.com',
+      daily_transaction_limit: null,
+    })
+
+    // Member creates a pending EUR transfer above threshold
+    const member = await loginViaApi('member@example.com', 'password')
+    const memberPage = await authenticatedPage(browser, member)
+    await goToCreateTransfer(memberPage)
+    await selectWalletByName(memberPage, 'transfer-sender-wallet', 'FrozenTestSender')
+    await selectWalletByName(memberPage, 'transfer-receiver-wallet', 'FrozenTestReceiver')
+    await memberPage.getByTestId('transfer-amount').locator('input').fill('5000')
+    await memberPage.getByTestId('transfer-reference').locator('input').fill('Freeze approval test')
+    await memberPage.getByTestId('transfer-submit-btn').click()
+    await expect(memberPage.getByTestId('transfer-recap')).toBeVisible({ timeout: 10_000 })
+    await memberPage.getByTestId('transfer-confirm-btn').click()
+    await expect(memberPage).toHaveURL(/\/transactions\/?$/, { timeout: 15_000 })
+    await memberPage.context().close()
+
+    // Freeze the sender wallet
+    await toggleWalletFreeze('FrozenTestSender')
+
+    // Manager tries to approve
+    const manager = await loginViaApi('manager@example.com', 'password')
+    const managerPage = await authenticatedPage(browser, manager)
+    await managerPage.goto('/transactions?status=pending_approval')
+    await expect(managerPage.getByTestId('data-table')).toBeVisible({ timeout: 10_000 })
+    const pendingRow = managerPage.getByTestId('data-table').getByRole('row', { name: '€5,000.00' })
+    await expect(pendingRow).toBeVisible({ timeout: 10_000 })
+    await pendingRow.click()
+    await expect(managerPage.getByTestId('approve-btn')).toBeVisible({ timeout: 5000 })
+    await managerPage.getByTestId('approve-btn').click()
+
+    // Should show actual error message, not "Something went wrong"
+    const errorAlert = managerPage.getByTestId('review-error')
+    await expect(errorAlert).toBeVisible({ timeout: 10_000 })
+    await expect(errorAlert).not.toContainText(en.common.genericError)
+
+    // Cleanup
+    await toggleWalletFreeze('FrozenTestSender')
+    await managerPage.context().close()
+  })
+})
+
+test.describe('Member Transfer to Any Company Wallet', () => {
+  test('receiver dropdown shows wallets from other users in the same company', async ({ browser }) => {
+    // Setup: create a wallet for member if not exists
+    await createWallet({ email: 'member@example.com', name: 'MemberTransferTest', currency: 'USD', balance: 10_000 })
+
+    const member = await loginViaApi('member@example.com', 'password')
+    const page = await authenticatedPage(browser, member)
+
+    await goToCreateTransfer(page)
+    await selectWalletByName(page, 'transfer-sender-wallet', 'MemberTransferTest')
+
+    // Open receiver dropdown — should include admin's wallets too
+    const receiverSelect = page.getByTestId('transfer-receiver-wallet')
+    await receiverSelect.click()
+    const options = page.getByRole('option')
+    await expect(options.first()).toBeVisible({ timeout: 10_000 })
+
+    // Should have more than just member's own wallets
+    const optionCount = await options.count()
+    expect(optionCount).toBeGreaterThanOrEqual(2)
+
+    await page.keyboard.press('Escape')
     await page.context().close()
   })
 })

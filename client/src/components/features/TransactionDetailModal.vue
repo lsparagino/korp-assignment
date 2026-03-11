@@ -9,6 +9,7 @@
   import { useIdempotencyKey } from '@/composables/useIdempotencyKey'
   import { useAuthStore } from '@/stores/auth'
   import { getTransactionStatusColors, getTransactionTypeColors } from '@/utils/colors'
+  import { getErrorMessage } from '@/utils/errors'
   import { formatCurrency, formatDate } from '@/utils/formatters'
 
   const props = defineProps<{
@@ -85,8 +86,8 @@
       await cancelTransfer(props.transaction.group_id, idempotencyKey.value)
       emit('reviewed')
       emit('update:modelValue', false)
-    } catch {
-      error.value = t('common.genericError')
+    } catch (error_: unknown) {
+      error.value = getErrorMessage(error_, t('common.genericError'))
     } finally {
       submitting.value = false
       regenerateKey()
@@ -101,8 +102,8 @@
       await reviewTransfer(props.transaction.group_id, { action: 'approve' }, idempotencyKey.value)
       emit('reviewed')
       emit('update:modelValue', false)
-    } catch {
-      error.value = t('common.genericError')
+    } catch (error_: unknown) {
+      error.value = getErrorMessage(error_, t('common.genericError'))
     } finally {
       submitting.value = false
       regenerateKey()
@@ -119,8 +120,8 @@
       rejectReason.value = ''
       emit('reviewed')
       emit('update:modelValue', false)
-    } catch {
-      error.value = t('common.genericError')
+    } catch (error_: unknown) {
+      error.value = getErrorMessage(error_, t('common.genericError'))
     } finally {
       submitting.value = false
       regenerateKey()

@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Enums\AuditCategory;
 use App\Enums\AuditSeverity;
 use App\Enums\WalletStatus;
+use App\Http\Resources\TransferTargetResource;
 use App\Http\Resources\WalletResource;
 use App\Models\User;
 use App\Models\Wallet;
@@ -29,6 +30,23 @@ class WalletService
             ->paginate($perPage);
 
         return WalletResource::collection($wallets);
+    }
+
+    public function listTransferTargets(User $user, ?int $companyId): AnonymousResourceCollection
+    {
+        if (! $companyId) {
+            return TransferTargetResource::collection(collect());
+        }
+
+        $ownWalletIds = Wallet::scopedToUser($user, $companyId)->pluck('id');
+
+        $wallets = Wallet::where('company_id', $companyId)
+            ->withBalance()
+            ->latest()
+            ->get()
+            ->each(fn ($w) => $w->is_own = $ownWalletIds->contains($w->id));
+
+        return TransferTargetResource::collection($wallets);
     }
 
     public function create(User $user, array $data): Wallet

@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Api;
 
+use App\Enums\WalletStatus;
 use App\Http\Requests\Concerns\VerifiesIdentity;
 use App\Models\Wallet;
 use Illuminate\Foundation\Http\FormRequest;
@@ -21,7 +22,9 @@ class InitiateTransferRequest extends FormRequest
         if (! $this->boolean('external') && $this->input('receiver_wallet_id')) {
             $receiverWallet = Wallet::find($this->input('receiver_wallet_id'));
 
-            if (! $receiverWallet || $receiverWallet->status->value === 'frozen') {
+            if (! $receiverWallet
+                || $receiverWallet->status === WalletStatus::Frozen
+                || $receiverWallet->company_id !== $senderWallet->company_id) {
                 return false;
             }
         }

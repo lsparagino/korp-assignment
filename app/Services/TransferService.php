@@ -7,6 +7,7 @@ use App\Enums\AuditSeverity;
 use App\Enums\TransactionStatus;
 use App\Enums\TransactionType;
 use App\Enums\UserRole;
+use App\Enums\WalletStatus;
 use App\Models\CompanySetting;
 use App\Models\Transaction;
 use App\Models\User;
@@ -130,6 +131,11 @@ class TransferService
                 ->firstOrFail();
 
             $senderWallet = Wallet::lockForUpdate()->findOrFail($debitTransaction->wallet_id);
+
+            if ($action === 'approve') {
+                $this->ensureWalletsNotFrozen($senderWallet, $debitTransaction->counterpart_wallet_id);
+            }
+
             $amount = abs((float) $debitTransaction->amount);
 
             $senderWallet->decrement('locked_balance', $amount);
@@ -311,6 +317,20 @@ class TransferService
         if (((float) $todayTotal + $amount) > (float) $setting->daily_transaction_limit) {
             throw ValidationException::withMessages([
                 'amount' => [__('messages.daily_limit_exceeded')],
+            ]);
+        }
+    }
+
+    private function ensureWalletsNotFrozen(Wallet $senderWallet, ?int $counterpartWalletId): void
+    {
+        $wallets = collect([$senderWallet]);
+        if ($counterpartWalletId) {
+            $wallets->push(Wallet::find($counterpartWalletId));
+        }
+
+        if ($wallets->contains(fn ($w) => $w?->status === WalletStatus::Frozen)) {
+            throw ValidationException::withMessages([
+                'wallet' => [__('messages.frozen_wallet_transfer')],
             ]);
         }
     }

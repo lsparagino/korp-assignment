@@ -228,6 +228,79 @@ test('frozen sender wallet on external transfer returns 403', function () {
     expect($this->senderWallet->fresh()->balance)->toBe(20000.0);
 });
 
+test('approving transfer with frozen sender wallet returns 422', function () {
+    $groupId = createPendingTransfer(['reference' => 'Freeze after pending']);
+
+    $this->senderWallet->update(['status' => 'frozen']);
+
+    $reviewResponse = reviewTransfer($groupId, 'approve');
+
+    $reviewResponse->assertUnprocessable();
+    $reviewResponse->assertJsonValidationErrors('wallet');
+    expect((float) $this->senderWallet->fresh()->locked_balance)->toBe(15000.0);
+});
+
+test('approving transfer with frozen receiver wallet returns 422', function () {
+    $groupId = createPendingTransfer(['reference' => 'Freeze receiver after pending']);
+
+    $this->receiverWallet->update(['status' => 'frozen']);
+
+    $reviewResponse = reviewTransfer($groupId, 'approve');
+
+    $reviewResponse->assertUnprocessable();
+    $reviewResponse->assertJsonValidationErrors('wallet');
+    expect((float) $this->senderWallet->fresh()->locked_balance)->toBe(15000.0);
+});
+
+test('rejecting transfer with frozen wallet still succeeds', function () {
+    $groupId = createPendingTransfer(['reference' => 'Reject despite freeze']);
+
+    $this->senderWallet->update(['status' => 'frozen']);
+
+    $reviewResponse = reviewTransfer($groupId, 'reject', ['reason' => 'Frozen wallet']);
+
+    $reviewResponse->assertOk();
+    $reviewResponse->assertJsonPath('data.status', 'rejected');
+});
+
+// ── Member Internal Transfer Tests ───────────────────────────────
+
+test('member can transfer to any wallet within the same company', function () {
+    $otherUserWallet = Wallet::factory()->create([
+        'user_id' => $this->manager->id,
+        'company_id' => $this->company->id,
+        'currency' => \App\Enums\WalletCurrency::USD,
+        'status' => 'active',
+    ]);
+
+    $response = createInternalTransfer([
+        'receiver_wallet_id' => $otherUserWallet->id,
+        'amount' => 500,
+        'reference' => 'Member to other wallet',
+    ]);
+
+    $response->assertCreated();
+    expect($this->senderWallet->fresh()->balance)->toBe(19500.0);
+});
+
+test('member cannot transfer to wallet in different company', function () {
+    $otherCompany = \App\Models\Company::factory()->create();
+    $otherCompanyWallet = Wallet::factory()->create([
+        'user_id' => $this->admin->id,
+        'company_id' => $otherCompany->id,
+        'currency' => \App\Enums\WalletCurrency::USD,
+        'status' => 'active',
+    ]);
+
+    $response = createInternalTransfer([
+        'receiver_wallet_id' => $otherCompanyWallet->id,
+        'amount' => 500,
+        'reference' => 'Cross company transfer',
+    ]);
+
+    $response->assertForbidden();
+});
+
 test('transaction resource includes initiator and reviewer names', function () {
     $groupId = createPendingTransfer(['reference' => 'Initiator test']);
 

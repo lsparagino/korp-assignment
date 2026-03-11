@@ -90,8 +90,10 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::apiResource('team-members', TeamMemberController::class)->parameters(['team-members' => 'teamMember']);
         Route::patch('/team-members/{teamMember}/promote', [TeamMemberController::class, 'promote']);
 
+        // Wallets
+        Route::get('wallets/transfer-targets', [WalletController::class, 'transferTargets']);
         Route::apiResource('wallets', WalletController::class);
-        Route::patch('/wallets/{wallet}/toggle-freeze', [WalletController::class, 'toggleFreeze']);
+        Route::patch('wallets/{wallet}/toggle-freeze', [WalletController::class, 'toggleFreeze']);
 
         Route::apiResource('address-book', AddressBookEntryController::class)
             ->parameters(['address-book' => 'addressBookEntry'])
@@ -112,5 +114,6 @@ if (app()->environment('testing')) {
         Route::post('/create-wallet', [App\Http\Controllers\Api\TestingController::class, 'createWallet']);
         Route::post('/create-transactions', [App\Http\Controllers\Api\TestingController::class, 'createTransactions']);
         Route::post('/set-user-preferences', [App\Http\Controllers\Api\TestingController::class, 'setUserPreferences']);
+        Route::post('/toggle-wallet-freeze', [App\Http\Controllers\Api\TestingController::class, 'toggleWalletFreeze']);
     });
 }

@@ -212,4 +212,16 @@ class TestingController
 
         return response()->json(['preferences' => $prefs]);
     }
+
+    public function toggleWalletFreeze(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'wallet_name' => 'required|string',
+        ]);
+
+        $wallet = Wallet::where('name', $validated['wallet_name'])->firstOrFail();
+        $wallet->toggleFreeze();
+
+        return response()->json(['wallet' => $wallet]);
+    }
 }
