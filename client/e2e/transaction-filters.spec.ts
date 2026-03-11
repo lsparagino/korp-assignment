@@ -84,4 +84,32 @@ test.describe('Transaction Filters', () => {
     // The type dropdown should reflect the filter
     await expect(page.getByTestId('type-select')).toContainText(en.transactions.typeCredit)
   })
+
+  test('date filter sends tz parameter in URL', async ({ page }) => {
+    await page.goto('/transactions')
+    await expect(page.getByTestId('filter-options-card')).toBeVisible({ timeout: 10_000 })
+
+    // Click the date-from input to open the date picker menu
+    const dateFromInput = page.getByTestId('date-from-input')
+    await dateFromInput.click()
+
+    // Wait for the date picker to appear
+    const datePicker = page.locator('.v-date-picker')
+    await expect(datePicker).toBeVisible({ timeout: 5000 })
+
+    // Click on a day button in the calendar
+    const dayButton = datePicker.locator('.v-date-picker-month__day .v-btn').first()
+    await expect(dayButton).toBeVisible({ timeout: 5000 })
+    await dayButton.click()
+
+    // Wait for menu to close
+    await expect(datePicker).not.toBeVisible({ timeout: 5000 })
+
+    // Click Filter button
+    await page.getByTestId('filter-btn').click()
+
+    // URL should contain date_from and tz parameters
+    await expect(page).toHaveURL(/date_from=\d{4}-\d{2}-\d{2}/, { timeout: 10_000 })
+    await expect(page).toHaveURL(/tz=/, { timeout: 5000 })
+  })
 })

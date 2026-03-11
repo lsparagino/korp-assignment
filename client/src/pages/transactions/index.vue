@@ -15,6 +15,8 @@
     dateToMenu,
     dateFromValue,
     dateToValue,
+    dateFromMax,
+    dateToMin,
     advancedPanel,
     wallets,
     walletOptions,
@@ -76,6 +78,7 @@
                 v-model="filterForm.date_from"
                 clearable
                 color="primary"
+                data-testid="date-from-input"
                 density="comfortable"
                 hide-details
                 :label="$t('transactions.dateFrom')"
@@ -88,6 +91,7 @@
             </template>
             <v-date-picker
               v-model="dateFromValue"
+              :max="dateFromMax"
               @update:model-value="
                 onDateSelected('from', $event);
                 dateFromMenu = false;
@@ -103,6 +107,7 @@
                 v-model="filterForm.date_to"
                 clearable
                 color="primary"
+                data-testid="date-to-input"
                 density="comfortable"
                 hide-details
                 :label="$t('transactions.dateTo')"
@@ -115,6 +120,7 @@
             </template>
             <v-date-picker
               v-model="dateToValue"
+              :min="dateToMin"
               @update:model-value="
                 onDateSelected('to', $event);
                 dateToMenu = false;

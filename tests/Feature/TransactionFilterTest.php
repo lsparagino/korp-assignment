@@ -159,7 +159,7 @@ class TransactionFilterTest extends TestCase
         $this->createTransaction(['created_at' => self::BASE_DATE]);
         $this->createTransaction(['created_at' => self::SECOND_DATE]);
 
-        $response = $this->fetchTransactions(['date_from' => '2025-01-15']);
+        $response = $this->fetchTransactions(['date_from' => '2025-01-15', 'tz' => 'UTC']);
 
         $response->assertOk()->assertJsonCount(1, 'data');
         $this->assertEquals(
@@ -173,7 +173,7 @@ class TransactionFilterTest extends TestCase
         $this->createTransaction(['created_at' => self::BASE_DATE]);
         $this->createTransaction(['created_at' => self::SECOND_DATE]);
 
-        $response = $this->fetchTransactions(['date_to' => '2025-01-15']);
+        $response = $this->fetchTransactions(['date_to' => '2025-01-15', 'tz' => 'UTC']);
 
         $response->assertOk()->assertJsonCount(1, 'data');
         $this->assertEquals(
@@ -188,13 +188,63 @@ class TransactionFilterTest extends TestCase
         $this->createTransaction(['created_at' => self::MID_DATE]);
         $this->createTransaction(['created_at' => self::SECOND_DATE]);
 
-        $response = $this->fetchTransactions(['date_from' => '2025-01-10', 'date_to' => '2025-01-20']);
+        $response = $this->fetchTransactions(['date_from' => '2025-01-10', 'date_to' => '2025-01-20', 'tz' => 'UTC']);
 
         $response->assertOk()->assertJsonCount(1, 'data');
         $this->assertEquals(
             self::MID_DATE,
             Transaction::find($response->json('data.0.id'))->created_at->toDateTimeString(),
         );
+    }
+
+    public function test_date_from_filter_converts_timezone_to_utc(): void
+    {
+        // 2025-01-15 02:00:00 UTC — this is before midnight EST (05:00 UTC)
+        $this->createTransaction(['created_at' => '2025-01-15 02:00:00']);
+        // 2025-01-15 06:00:00 UTC — this is after midnight EST (05:00 UTC)
+        $this->createTransaction(['created_at' => '2025-01-15 06:00:00']);
+
+        // date_from=2025-01-15 in America/New_York means >= 2025-01-15 05:00:00 UTC
+        $response = $this->fetchTransactions(['date_from' => '2025-01-15', 'tz' => 'America/New_York']);
+
+        $response->assertOk()->assertJsonCount(1, 'data');
+        $this->assertEquals(
+            '2025-01-15 06:00:00',
+            Transaction::find($response->json('data.0.id'))->created_at->toDateTimeString(),
+        );
+    }
+
+    public function test_date_to_filter_converts_timezone_to_utc(): void
+    {
+        // 2025-01-15 23:30:00 UTC — within Jan 15 end-of-day EST (next day 04:59:59 UTC)
+        $this->createTransaction(['created_at' => '2025-01-15 23:30:00']);
+        // 2025-01-16 06:00:00 UTC — after Jan 15 end-of-day EST
+        $this->createTransaction(['created_at' => '2025-01-16 06:00:00']);
+
+        // date_to=2025-01-15 in America/New_York means <= 2025-01-16 04:59:59 UTC
+        $response = $this->fetchTransactions(['date_to' => '2025-01-15', 'tz' => 'America/New_York']);
+
+        $response->assertOk()->assertJsonCount(1, 'data');
+        $this->assertEquals(
+            '2025-01-15 23:30:00',
+            Transaction::find($response->json('data.0.id'))->created_at->toDateTimeString(),
+        );
+    }
+
+    public function test_tz_is_required_when_date_filter_is_present(): void
+    {
+        $response = $this->fetchTransactions(['date_from' => '2025-01-15']);
+
+        $response->assertUnprocessable()->assertJsonValidationErrors(['tz']);
+    }
+
+    public function test_tz_is_not_required_when_no_dates(): void
+    {
+        $this->createTransaction();
+
+        $response = $this->fetchTransactions(['type' => 'credit']);
+
+        $response->assertOk();
     }
 
     // ── Amount & Reference Filters ───────────────────────────────────

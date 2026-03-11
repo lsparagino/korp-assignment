@@ -34,6 +34,7 @@ export interface Transaction {
 interface TransactionParams extends PaginationParams {
   date_from?: string
   date_to?: string
+  tz?: string
   type?: string
   status?: string
   amount_min?: string

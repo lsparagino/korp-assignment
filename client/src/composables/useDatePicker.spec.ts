@@ -42,6 +42,17 @@ describe('useDatePicker', () => {
       expect(dateToMenu.value).toBe(false)
     })
 
+    it('uses local date, not UTC, to avoid day shift', () => {
+      const form = createForm()
+      const { onDateSelected } = useDatePicker(form)
+
+      // Simulate a date picker returning local midnight for March 11
+      const localDate = new Date(2024, 2, 11, 0, 0, 0) // March 11 local
+      onDateSelected('from', localDate)
+
+      expect(form.date_from).toBe('2024-03-11')
+    })
+
     it('does nothing when value is null', () => {
       const form = createForm()
       const { dateFromMenu, onDateSelected } = useDatePicker(form)
@@ -100,6 +111,73 @@ describe('useDatePicker', () => {
       await nextTick()
 
       expect(dateToValue.value).toBeNull()
+    })
+  })
+
+  describe('date range constraints', () => {
+    it('dateFromMax equals the to-date when set', () => {
+      const form = createForm()
+      const { dateFromMax } = useDatePicker(form)
+
+      form.date_to = '2024-06-15'
+      expect(dateFromMax.value).toBeInstanceOf(Date)
+      expect(dateFromMax.value?.toISOString()).toContain('2024-06-15')
+    })
+
+    it('dateFromMax is undefined when no to-date', () => {
+      const form = createForm()
+      const { dateFromMax } = useDatePicker(form)
+
+      expect(dateFromMax.value).toBeUndefined()
+    })
+
+    it('dateToMin equals the from-date when set', () => {
+      const form = createForm()
+      const { dateToMin } = useDatePicker(form)
+
+      form.date_from = '2024-03-01'
+      expect(dateToMin.value).toBeInstanceOf(Date)
+      expect(dateToMin.value?.toISOString()).toContain('2024-03-01')
+    })
+
+    it('dateToMin is undefined when no from-date', () => {
+      const form = createForm()
+      const { dateToMin } = useDatePicker(form)
+
+      expect(dateToMin.value).toBeUndefined()
+    })
+
+    it('clears to-date when selecting a from-date after it', () => {
+      const form = createForm()
+      const { onDateSelected } = useDatePicker(form)
+
+      form.date_to = '2024-03-01'
+      onDateSelected('from', new Date(2024, 5, 15)) // June 15 — after March 1
+
+      expect(form.date_from).toBe('2024-06-15')
+      expect(form.date_to).toBe('')
+    })
+
+    it('clears from-date when selecting a to-date before it', () => {
+      const form = createForm()
+      const { onDateSelected } = useDatePicker(form)
+
+      form.date_from = '2024-06-15'
+      onDateSelected('to', new Date(2024, 2, 1)) // March 1 — before June 15
+
+      expect(form.date_to).toBe('2024-03-01')
+      expect(form.date_from).toBe('')
+    })
+
+    it('does not clear to-date when from-date is before it', () => {
+      const form = createForm()
+      const { onDateSelected } = useDatePicker(form)
+
+      form.date_to = '2024-06-15'
+      onDateSelected('from', new Date(2024, 2, 1)) // March 1 — before June 15
+
+      expect(form.date_from).toBe('2024-03-01')
+      expect(form.date_to).toBe('2024-06-15')
     })
   })
 })

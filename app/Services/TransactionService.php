@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Models\Wallet;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
 class TransactionService
@@ -35,11 +36,15 @@ class TransactionService
         }
 
         if (! empty($filters['date_from'])) {
-            $query->where('created_at', '>=', $filters['date_from']);
+            $tz = $filters['tz'] ?? 'UTC';
+            $from = Carbon::parse($filters['date_from'], $tz)->startOfDay()->utc();
+            $query->where('created_at', '>=', $from);
         }
 
         if (! empty($filters['date_to'])) {
-            $query->where('created_at', '<=', $filters['date_to'].' 23:59:59');
+            $tz = $filters['tz'] ?? 'UTC';
+            $to = Carbon::parse($filters['date_to'], $tz)->endOfDay()->utc();
+            $query->where('created_at', '<=', $to);
         }
 
         if (! empty($filters['amount_min'])) {

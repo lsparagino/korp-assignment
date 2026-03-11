@@ -65,7 +65,9 @@ export function useTransactionFilters () {
   ])
   const advancedPanel = ref<number[]>([])
 
-  const { dateFromMenu, dateToMenu, dateFromValue, dateToValue, onDateSelected } = useDatePicker(filterForm)
+  const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone
+
+  const { dateFromMenu, dateToMenu, dateFromValue, dateToValue, dateFromMax, dateToMin, onDateSelected } = useDatePicker(filterForm)
 
   const { data: walletsData } = useQuery(walletsListQuery, () => ({ page: 1, perPage: 500 }))
   const wallets = computed<Wallet[]>(() => walletsData.value?.data ?? [])
@@ -92,21 +94,26 @@ export function useTransactionFilters () {
 
   const { data: transactionsData, isPending: processing } = useQuery(
     transactionsListQuery,
-    () => ({
-      page: page.value,
-      perPage: perPage.value,
-      dateFrom: (route.query.date_from as string) || undefined,
-      dateTo: (route.query.date_to as string) || undefined,
-      type: (route.query.type as string) || undefined,
-      status: (route.query.status as string) || undefined,
-      amountMin: (route.query.amount_min as string) || undefined,
-      amountMax: (route.query.amount_max as string) || undefined,
-      reference: (route.query.reference as string) || undefined,
-      fromWalletId: parseWalletParam(route.query.from_wallet_id as string | undefined),
-      toWalletId: parseWalletParam(route.query.to_wallet_id as string | undefined),
-      hasWalletId: parseWalletParam(route.query.has_wallet_id as string | undefined),
-      initiatorUserId: route.query.initiator_user_id ? Number(route.query.initiator_user_id) : null,
-    }),
+    () => {
+      const dateFrom = (route.query.date_from as string) || undefined
+      const dateTo = (route.query.date_to as string) || undefined
+      return {
+        page: page.value,
+        perPage: perPage.value,
+        dateFrom,
+        dateTo,
+        tz: dateFrom || dateTo ? userTimezone : undefined,
+        type: (route.query.type as string) || undefined,
+        status: (route.query.status as string) || undefined,
+        amountMin: (route.query.amount_min as string) || undefined,
+        amountMax: (route.query.amount_max as string) || undefined,
+        reference: (route.query.reference as string) || undefined,
+        fromWalletId: parseWalletParam(route.query.from_wallet_id as string | undefined),
+        toWalletId: parseWalletParam(route.query.to_wallet_id as string | undefined),
+        hasWalletId: parseWalletParam(route.query.has_wallet_id as string | undefined),
+        initiatorUserId: route.query.initiator_user_id ? Number(route.query.initiator_user_id) : null,
+      }
+    },
   )
 
   const transactions = computed<Transaction[]>(() => transactionsData.value?.data ?? [])
@@ -137,11 +144,15 @@ export function useTransactionFilters () {
   }
 
   function handleFilter () {
+    const dateFrom = filterForm.date_from || undefined
+    const dateTo = filterForm.date_to || undefined
+
     const raw: Record<string, string | undefined> = {
       ...route.query,
       page: '1',
-      date_from: filterForm.date_from || undefined,
-      date_to: filterForm.date_to || undefined,
+      date_from: dateFrom,
+      date_to: dateTo,
+      tz: dateFrom || dateTo ? userTimezone : undefined,
       type: filterForm.type === 'All' ? undefined : filterForm.type.toLowerCase(),
       status: filterForm.status === 'All' ? undefined : filterForm.status,
       amount_min: filterForm.amount_min || undefined,
@@ -169,6 +180,7 @@ export function useTransactionFilters () {
     for (const key of FILTER_KEYS) {
       delete query[key]
     }
+    delete query.tz
     query.page = '1'
     walletFilterMode.value = 'simple'
     router.push({ query })
@@ -186,6 +198,8 @@ export function useTransactionFilters () {
     dateToMenu,
     dateFromValue,
     dateToValue,
+    dateFromMax,
+    dateToMin,
     advancedPanel,
     wallets,
     walletOptions,

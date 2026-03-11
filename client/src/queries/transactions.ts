@@ -6,6 +6,7 @@ interface TransactionsQueryParams {
   perPage: number
   dateFrom?: string
   dateTo?: string
+  tz?: string
   type?: string
   status?: string
   amountMin?: string
@@ -31,6 +32,7 @@ export const transactionsListQuery = defineQueryOptions(
         per_page: params.perPage,
         date_from: params.dateFrom,
         date_to: params.dateTo,
+        tz: params.tz,
         type: params.type === 'All' ? undefined : params.type,
         status: params.status,
         amount_min: params.amountMin,
